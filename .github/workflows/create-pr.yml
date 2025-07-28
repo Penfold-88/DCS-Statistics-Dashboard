@@ -1,0 +1,78 @@
+name: Create PR Helper
+
+on:
+  push:
+    branches:
+      - 'feature/*'
+      - 'fix/*'
+      - 'hotfix/*'
+
+jobs:
+  create-pr:
+    runs-on: ubuntu-latest
+    if: github.event.repository.fork == true
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Extract branch info
+      id: branch
+      run: |
+        BRANCH_NAME="${GITHUB_REF#refs/heads/}"
+        echo "name=$BRANCH_NAME" >> $GITHUB_OUTPUT
+        
+        # Generate PR title based on branch name
+        if [[ $BRANCH_NAME == feature/* ]]; then
+          PR_TITLE="Feature: ${BRANCH_NAME#feature/}"
+        elif [[ $BRANCH_NAME == fix/* ]]; then
+          PR_TITLE="Fix: ${BRANCH_NAME#fix/}"
+        elif [[ $BRANCH_NAME == hotfix/* ]]; then
+          PR_TITLE="Hotfix: ${BRANCH_NAME#hotfix/}"
+        else
+          PR_TITLE="$BRANCH_NAME"
+        fi
+        
+        # Replace hyphens with spaces and capitalize
+        PR_TITLE=$(echo "$PR_TITLE" | sed 's/-/ /g' | sed 's/\b\(.\)/\u\1/g')
+        echo "pr_title=$PR_TITLE" >> $GITHUB_OUTPUT
+
+    - name: Create Pull Request
+      uses: peter-evans/create-pull-request@v6
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        commit-message: Auto-create PR for ${{ steps.branch.outputs.name }}
+        title: ${{ steps.branch.outputs.pr_title }}
+        body: |
+          ## Description
+          This PR was automatically created for branch: `${{ steps.branch.outputs.name }}`
+          
+          ## Changes
+          - [ ] Add your changes here
+          
+          ## Testing
+          - [ ] Tested locally
+          - [ ] All tests pass
+          
+          ## Checklist
+          - [ ] Code follows project style guidelines
+          - [ ] Self-review completed
+          - [ ] Comments added for complex code
+          - [ ] Documentation updated if needed
+        branch: ${{ steps.branch.outputs.name }}
+        base: main
+        draft: true
+
+    - name: PR Instructions
+      if: success()
+      run: |
+        echo "## 🎉 PR Draft Created!" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "A draft PR has been created for your branch: **${{ steps.branch.outputs.name }}**" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Next Steps:" >> $GITHUB_STEP_SUMMARY
+        echo "1. Go to the Pull Requests tab" >> $GITHUB_STEP_SUMMARY
+        echo "2. Find your draft PR" >> $GITHUB_STEP_SUMMARY
+        echo "3. Update the description" >> $GITHUB_STEP_SUMMARY
+        echo "4. Change the base branch to 'Dev' if needed" >> $GITHUB_STEP_SUMMARY
+        echo "5. Mark as ready for review when complete" >> $GITHUB_STEP_SUMMARY
