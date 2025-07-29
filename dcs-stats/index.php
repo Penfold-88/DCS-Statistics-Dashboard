@@ -1,534 +1,805 @@
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>DCS Statistics Dashboard</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background: #f5f5f5;
-            color: #333;
-        }
-        header {
-            background-color: #2c3e50;
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 1rem 2rem;
-        }
-        header .logo {
-            display: flex;
-            align-items: center;
-        }
-        header .logo img {
-            height: 50px;
-            margin-right: 1rem;
-        }
-        footer {
-            background-color: #2c3e50;
-            color: white;
-            text-align: center;
-            padding: 1rem;
-            position: relative;
-            bottom: 0;
-            width: 100%;
-            margin-top: 2rem;
-        }
-        main {
-            padding: 2rem;
-        }
-    </style>
-</head>
-<body>
-<header>
-    <div class="logo">
-        <img src="A_digital_illustration_of_an_F-14_Tomcat,_a_twin-e.png" alt="F-14 Logo">
-        <h1>Player Statistics Dashboard</h1>
-    </div>
-</header>
-<nav style="margin-top: 10px; padding: 10px; background-color: #e3e3e3; text-align: center; font-family: Arial, sans-serif;">
-    <a href="index.php" style="margin: 0 15px; text-decoration: none; font-weight: bold; color: #333;">Home</a>
-    <a href="https://discord.com" target="_blank" style="margin: 0 15px; text-decoration: none; font-weight: bold; color: #333;">Discord</a>
-</nav>
+<?php include 'header.php'; ?>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<?php include 'nav.php'; ?>
 
 <main>
-<?php
-$playersData = file_get_contents(__DIR__ . '/data/players.json');
-$creditsData = file_get_contents(__DIR__ . '/data/credits.json');
-
-// Parse players line-by-line (NDJSON)
-$playersLines = preg_split('/\r\n|\r|\n/', $playersData);
-$players = [];
-foreach ($playersLines as $line) {
-    if (trim($line) === '') continue;
-    $player = json_decode($line, true);
-    if ($player && isset($player['ucid'])) {
-        $players[$player['ucid']] = $player;
-    }
-}
-
-$creditsLines = preg_split('/\r\n|\r|\n/', file_get_contents(__DIR__ . '/data/credits.json'));
-$credits = [];
-foreach ($creditsLines as $line) {
-    if (trim($line) === '') continue;
-    $entry = json_decode($line, true);
-    if ($entry && isset($entry['player_ucid'])) {
-        $credits[] = $entry;
-    }
-}
-
-// Calculate credit totals
-$playerPoints = [];
-foreach ($credits as $entry) {
-    $ucid = $entry['player_ucid'];
-    $points = $entry['points'] ?? 0;
-    $playerPoints[$ucid] = ($playerPoints[$ucid] ?? 0) + $points;
-}
-
-$rows = [];
-foreach ($playerPoints as $ucid => $points) {
-    $name = isset($players[$ucid]) ? $players[$ucid]['name'] : "Unknown";
-    if ($points > 10) {
-        $lastSeen = isset($players[$ucid]['last_seen']) 
-        ? date("d M Y H:i T", strtotime($players[$ucid]['last_seen'])) 
-        : "N/A";
-    $rows[] = ['name' => $name, 'points' => $points, 'last_seen' => $lastSeen];
-    }
-}
-
-usort($rows, fn($a, $b) => $b['points'] <=> $a['points']);
-?>
-
-<!DOCTYPE html>
-<html>
-<head><meta charset="UTF-8" />
-    <style>
-        body { font-family: Arial, sans-serif; background: #1e1e1e; color: #f0f0f0; padding: 20px; }
-        h1 { color: #00e676; }
-        input[type="text"], select {
-            padding: 10px; margin: 10px 0;
-            border: none; border-radius: 5px;
-            font-size: 16px;
-        }
-        table { border-collapse: collapse; width: 100%; margin-top: 10px; }
-        th, td { padding: 10px; border: 1px solid #444; text-align: left; }
-        th { background-color: #333; }
-        tr:nth-child(even) { background-color: #2a2a2a; }
-        tr:hover { background-color: #444; }
-        .pagination { margin-top: 15px; }
-        .pagination button {
-            padding: 8px 12px; margin-right: 5px;
-            background-color: #00e676; border: none;
-            cursor: pointer; border-radius: 4px; font-weight: bold;
-        }
-        .pagination button:disabled {
-            background-color: #555; cursor: not-allowed;
-        }
-    </style>
-</head>
-<body>
-<div class="tabs">
-    <button class="tablink active" onclick="openTab(event, 'tab1')">Pilot Credits</button>
-    <button class="tablink" onclick="openTab(event, 'tab2')">Leaderboard</button>
-    <button class="tablink" onclick="openTab(event, 'tab3')">Pilot Statistics</button>
-</div>
-
-<div id="tab1" class="tabcontent" style="display:block;"><input type="text" id="searchInput" placeholder="Search by player name..." onkeyup="filterAndPaginate()" />
-<h2>Pilot Credits</h2>
-    <label for="rowsPerPage">Rows per page:</label>
-    <select id="rowsPerPage" onchange="filterAndPaginate()">
-        <option>10</option>
-        <option selected>25</option>
-        <option>50</option>
-        <option>100</option>
-    </select>
-
-    <table id="statsTable">
-        <thead>
-            <tr>
-                <th>#</th>
-                <th>Player Name</th>
-                <th>Credits</th><th>Last Seen</th>
-            </tr>
-        </thead>
-        <tbody id="tableBody"></tbody>
-    </table>
-
-    <div class="pagination">
-        <button onclick="prevPage()" id="prevBtn">Prev</button>
-        <button onclick="nextPage()" id="nextBtn">Next</button>
+    <div class="dashboard-header">
+        <h1>DCS Server Statistics Dashboard</h1>
+        <p class="dashboard-subtitle">Real-time server performance and player metrics</p>
     </div>
-
-    <script>
-        const allData = <?= json_encode($rows) ?>;
-        let filteredData = [...allData];
-        let currentPage = 1;
-
-        function renderTable() {
-            const rowsPerPage = parseInt(document.getElementById("rowsPerPage").value);
-            const start = (currentPage - 1) * rowsPerPage;
-            const end = start + rowsPerPage;
-            const tableBody = document.getElementById("tableBody");
-
-            tableBody.innerHTML = "";
-
-            if (filteredData.length === 0) {
-                tableBody.innerHTML = `<tr><td colspan="3">No results found.</td></tr>`;
-                return;
-            }
-
-            filteredData.slice(start, end).forEach((row, i) => {
-                const tr = document.createElement("tr");
-                tr.innerHTML = `<td>${start + i + 1}</td><td>${row.name}</td><td>${row.points}</td><td>${row.last_seen}</td>`;
-                tableBody.appendChild(tr);
-            });
-
-            document.getElementById("prevBtn").disabled = currentPage === 1;
-            document.getElementById("nextBtn").disabled = end >= filteredData.length;
-        }
-
-        function filterAndPaginate() {
-            const query = document.getElementById("searchInput").value.toLowerCase();
-            filteredData = allData.filter(row => row.name.toLowerCase().includes(query));
-            currentPage = 1;
-            renderTable();
-        }
-
-        function nextPage() {
-            currentPage++;
-            renderTable();
-        }
-
-        function prevPage() {
-            currentPage--;
-            renderTable();
-        }
-
-        window.onload = renderTable;
-    </script>
-
-</div>
-
-<div id="tab2" class="tabcontent" style="display:none;">
-<h2>Leaderboard</h2>
-<div id="leaderboardTable" class="table-container">Loading leaderboard...</div>
-</div>
-
-
-<div id="tab3" class="tabcontent" style="display:none;">
-  <h2>Pilot Statistics</h2>
-  <input type="text" id="pilotSearchInput" placeholder="Search by pilot name..." style="margin: 10px; padding: 5px; font-size: 16px;" />
-  <div id="pilotStatsResult" style="margin-top: 20px;"></div>
-</div>
-
-
-<script>
-function openTab(evt, tabId) {
-    document.querySelectorAll('.tabcontent').forEach(el => el.style.display = 'none');
-    document.querySelectorAll('.tablink').forEach(el => el.classList.remove('active'));
-    document.getElementById(tabId).style.display = 'block';
-    evt.currentTarget.classList.add('active');
-}
-</script>
-
-<style>
-.tabs {
-    margin-bottom: 20px;
-}
-.tablink {
-    background-color: #333;
-    border: none;
-    color: white;
-    padding: 10px 20px;
-    cursor: pointer;
-    font-size: 16px;
-}
-.tablink.active {
-    background-color: #00e676;
-    color: black;
-}
-.tabcontent {
-    display: none;
-}
-</style>
-
+    
+    <div class="stats-cards">
+        <div class="stat-card" id="totalPlayersCard">
+            <div class="stat-icon">👥</div>
+            <div class="stat-content">
+                <h3>Total Players</h3>
+                <p class="stat-number" id="totalPlayers">-</p>
+            </div>
+        </div>
+        
+        <div class="stat-card" id="totalKillsCard">
+            <div class="stat-icon">🎯</div>
+            <div class="stat-content">
+                <h3>Server Kills</h3>
+                <p class="stat-number" id="totalKills">-</p>
+            </div>
+        </div>
+        
+        <div class="stat-card" id="totalDeathsCard">
+            <div class="stat-icon">💥</div>
+            <div class="stat-content">
+                <h3>Server Deaths</h3>
+                <p class="stat-number" id="totalDeaths">-</p>
+            </div>
+        </div>
+        
+        <div class="stat-card" id="kdRatioCard">
+            <div class="stat-icon">📊</div>
+            <div class="stat-content">
+                <h3>K/D Ratio</h3>
+                <p class="stat-number" id="kdRatio">-</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="charts-dashboard">
+        <div class="chart-container">
+            <h2>Top 5 Most Active Pilots</h2>
+            <canvas id="topPilotsChart"></canvas>
+            <p class="no-data-message" id="topPilotsNoData" style="display: none;">No mission data available yet</p>
+        </div>
+        
+        <div class="chart-container">
+            <h2>Server Combat Statistics</h2>
+            <canvas id="combatStatsChart"></canvas>
+        </div>
+        
+        <div class="chart-container">
+            <h2>Top 3 Most Active Squadrons</h2>
+            <canvas id="topSquadronsChart"></canvas>
+            <p class="no-data-message" id="squadronsNoData" style="display: none;">No squadron data available yet</p>
+        </div>
+        
+        <div class="chart-container full-width">
+            <h2>Player Activity Overview</h2>
+            <canvas id="playerActivityChart"></canvas>
+        </div>
+    </div>
+    
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="loader"></div>
+        <p>Loading server statistics...</p>
+    </div>
+</main>
 
 <script>
-async function loadLeaderboardTable() {
-    const res = await fetch('data/leaderboard.json');
-    const lines = (await res.text()).split(/\r?\n/).filter(l => l.trim());
-    const players = lines.map(l => JSON.parse(l));
+// Chart instances
+let topPilotsChart = null;
+let combatStatsChart = null;
+let playerActivityChart = null;
+let topSquadronsChart = null;
 
-    const formatDuration = (s) => {
-        const d = Math.floor(s / 86400);
-        const h = Math.floor((s % 86400) / 3600);
-        const m = Math.floor((s % 3600) / 60);
-        return `${d ? d + 'd ' : ''}${h ? h + 'h ' : ''}${m}m`;
-    };
+// Chart configuration with enhanced dark theme
+const chartColors = {
+    primary: 'rgba(76, 175, 80, 0.8)',
+    secondary: 'rgba(33, 150, 243, 0.8)',
+    danger: 'rgba(244, 67, 54, 0.8)',
+    warning: 'rgba(255, 193, 7, 0.8)',
+    info: 'rgba(0, 188, 212, 0.8)',
+    purple: 'rgba(156, 39, 176, 0.8)',
+    pink: 'rgba(233, 30, 99, 0.8)'
+};
 
-    let html = '<table><thead><tr>';
-    const cols = Object.keys(players[0]);
-    for (const col of cols) html += `<th>${col}</th>`;
-    html += '</tr></thead><tbody>';
-    for (const row of players) {
-        html += '<tr>';
-        for (const col of cols) {
-            const val = col === 'duration' ? formatDuration(row[col]) : row[col];
-            html += `<td>${val}</td>`;
-        }
-        html += '</tr>';
-    }
-    html += '</tbody></table>';
-    document.getElementById('leaderboardTable').innerHTML = html;
-}
-document.addEventListener('DOMContentLoaded', function() {
-    const tab2 = document.getElementById('tab2');
-    if (tab2) {
-        const observer = new MutationObserver(() => {
-            if (tab2.style.display !== 'none') {
-                loadLeaderboardTable();
-                observer.disconnect();
-            }
-        });
-        observer.observe(tab2, { attributes: true });
-    }
-});
-</script>
+const gradientColors = {
+    primary: ['rgba(76, 175, 80, 1)', 'rgba(76, 175, 80, 0.2)'],
+    secondary: ['rgba(33, 150, 243, 1)', 'rgba(33, 150, 243, 0.2)'],
+    danger: ['rgba(244, 67, 54, 1)', 'rgba(244, 67, 54, 0.2)'],
+    warning: ['rgba(255, 193, 7, 1)', 'rgba(255, 193, 7, 0.2)']
+};
 
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-async function setupPilotSearch() {
-    const [statsRes, playersRes] = await Promise.all([
-        fetch('data/missionstats.json?v=' + Date.now()),
-        fetch('data/players.json?v=' + Date.now())
-    ]);
-    const eventLines = (await statsRes.text()).split(/\r?\n/).filter(Boolean);
-    const playerLines = (await playersRes.text()).split(/\r?\n/).filter(Boolean);
-    const events = eventLines.map(line => JSON.parse(line));
-    const playerMap = {};
-    for (const line of playerLines) {
-        const player = JSON.parse(line);
-        playerMap[player.ucid] = player.name;
-    }
-
-    const pilots = {};
-    const toDate = s => new Date(s);
-
-    for (const evt of events) {
-        const id = evt.init_id;
-        if (!id || id === "-1") continue;
-        if (!pilots[id]) {
-            pilots[id] = {
-                ucid: id,
-                name: playerMap[id] || "Unknown",
-                kills: 0,
-                sorties: 0,
-                deaths: 0,
-                takeoffs: 0,
-                landings: 0,
-                crashes: 0,
-                ejections: 0,
-                timestamps: []
-            };
-        }
-
-        const p = pilots[id];
-        const e = evt.event;
-        if (evt.time) p.timestamps.push(toDate(evt.time));
-        if (e === "S_EVENT_TAKEOFF") { p.sorties++; p.takeoffs++; }
-        else if (e === "S_EVENT_KILL") p.kills++;
-        else if (e === "S_EVENT_DEAD") p.deaths++;
-        else if (e === "S_EVENT_LAND") p.landings++;
-        else if (e === "S_EVENT_CRASH") p.crashes++;
-        else if (e === "S_EVENT_EJECTION") p.ejections++;
-    }
-
-    for (const id in pilots) {
-        const p = pilots[id];
-        const times = p.timestamps;
-        const duration = times.length ? (Math.max(...times.map(d => d.getTime())) - Math.min(...times.map(d => d.getTime()))) / 1000 : 0;
-        p.duration = Math.round(duration);
-    }
-
-    const formatDuration = s => {
-        const d = Math.floor(s / 86400), h = Math.floor((s % 86400) / 3600), m = Math.floor((s % 3600) / 60);
-        return `${d ? d + 'd ' : ''}${h ? h + 'h ' : ''}${m}m`;
-    };
-
-    const input = document.getElementById("pilotSearchInput");
-    const result = document.getElementById("pilotStatsResult");
-
-    input.addEventListener("input", () => {
-        const query = input.value.toLowerCase();
-        const match = Object.values(pilots).find(p => p.name.toLowerCase().includes(query));
-        if (!query || !match) {
-            result.innerHTML = "<p>No matching pilot found.</p>";
+// Load server statistics
+async function loadServerStats() {
+    try {
+        const response = await fetch('get_server_stats.php');
+        const data = await response.json();
+        
+        if (data.error) {
+            console.error('Error loading stats:', data.error);
+            document.getElementById('loading-overlay').style.display = 'none';
             return;
         }
-
-        const p = match;
-        result.innerHTML = `
-            <h3>${p.name}</h3>
-            <ul>
-                <li>Kills: ${p.kills}</li>
-                <li>Sorties: ${p.sorties}</li>
-                <li>Duration: ${formatDuration(p.duration)}</li>
-                <li>Deaths: ${p.deaths}</li>
-                <li>Takeoffs: ${p.takeoffs}</li>
-                <li>Landings: ${p.landings}</li>
-                <li>Crashes: ${p.crashes}</li>
-                <li>Ejections: ${p.ejections}</li>
-            </ul>
-            <canvas id="pilotChart" width="400" height="300"></canvas>
-        `;
-
-        const ctx = document.getElementById('pilotChart').getContext('2d');
-        if (window.pilotChartInstance) {
-            window.pilotChartInstance.destroy();
+        
+        // Update stat cards with animation
+        animateNumber('totalPlayers', data.totalPlayers);
+        animateNumber('totalKills', data.totalKills);
+        animateNumber('totalDeaths', data.totalDeaths);
+        
+        // Calculate K/D ratio
+        const kdRatio = data.totalDeaths > 0 ? (data.totalKills / data.totalDeaths).toFixed(2) : data.totalKills;
+        document.getElementById('kdRatio').textContent = kdRatio;
+        
+        // Create charts with empty data handling
+        if (data.top5Pilots && data.top5Pilots.length > 0) {
+            createTopPilotsChart(data.top5Pilots);
+            document.getElementById('topPilotsNoData').style.display = 'none';
+        } else {
+            document.getElementById('topPilotsChart').style.display = 'none';
+            document.getElementById('topPilotsNoData').style.display = 'block';
         }
-        window.pilotChartInstance = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: ['Kills', 'Sorties', 'Deaths', 'Takeoffs', 'Landings', 'Crashes', 'Ejections'],
-                datasets: [{
-                    label: 'Pilot Stats',
-                    data: [p.kills, p.sorties, p.deaths, p.takeoffs, p.landings, p.crashes, p.ejections],
-                    backgroundColor: 'rgba(0, 123, 255, 0.6)',
-                    borderColor: 'rgba(0, 123, 255, 1)',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                scales: {
-                    y: { beginAtZero: true }
-                }
-            }
+        
+        createCombatStatsChart(data.totalKills || 0, data.totalDeaths || 0);
+        
+        if (data.top3Squadrons && data.top3Squadrons.length > 0) {
+            createTopSquadronsChart(data.top3Squadrons);
+            document.getElementById('squadronsNoData').style.display = 'none';
+        } else {
+            document.getElementById('topSquadronsChart').style.display = 'none';
+            document.getElementById('squadronsNoData').style.display = 'block';
+        }
+        
+        createPlayerActivityChart(data.totalPlayers || 0, data.top5Pilots || []);
+        
+        // Hide loading overlay
+        document.getElementById('loading-overlay').style.display = 'none';
+        
+        // Add pop animations to cards
+        document.querySelectorAll('.stat-card').forEach((card, index) => {
+            setTimeout(() => {
+                card.classList.add('pop-in');
+            }, index * 100);
         });
+        
+    } catch (error) {
+        console.error('Error fetching server stats:', error);
+        document.getElementById('loading-overlay').style.display = 'none';
+    }
+}
+
+// Animate numbers counting up
+function animateNumber(elementId, targetNumber) {
+    const element = document.getElementById(elementId);
+    const duration = 1500;
+    const start = 0;
+    const increment = targetNumber / (duration / 16);
+    let current = start;
+    
+    const timer = setInterval(() => {
+        current += increment;
+        if (current >= targetNumber) {
+            current = targetNumber;
+            clearInterval(timer);
+        }
+        element.textContent = Math.floor(current).toLocaleString();
+    }, 16);
+}
+
+// Create gradient for charts
+function createGradient(ctx, colors) {
+    const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+    gradient.addColorStop(0, colors[0]);
+    gradient.addColorStop(1, colors[1]);
+    return gradient;
+}
+
+// Top 5 pilots chart
+function createTopPilotsChart(pilots) {
+    const ctx = document.getElementById('topPilotsChart').getContext('2d');
+    
+    if (topPilotsChart) {
+        topPilotsChart.destroy();
+    }
+    
+    const gradient = createGradient(ctx, gradientColors.primary);
+    
+    topPilotsChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: pilots.map(p => p.name),
+            datasets: [{
+                label: 'Server Visits',
+                data: pilots.map(p => p.visits),
+                backgroundColor: gradient,
+                borderColor: 'rgba(76, 175, 80, 1)',
+                borderWidth: 2,
+                borderRadius: 8,
+                barThickness: 40
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                    titleColor: '#4CAF50',
+                    bodyColor: '#fff',
+                    borderColor: '#4CAF50',
+                    borderWidth: 1,
+                    titleFont: {
+                        size: 14,
+                        weight: 'bold'
+                    },
+                    bodyFont: {
+                        size: 13
+                    },
+                    padding: 12,
+                    displayColors: false,
+                    callbacks: {
+                        label: function(context) {
+                            return `Visits: ${context.parsed.y.toLocaleString()}`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        color: '#ccc',
+                        font: {
+                            size: 12,
+                            weight: 'bold'
+                        }
+                    },
+                    title: {
+                        display: true,
+                        text: 'Pilot Names',
+                        color: '#4CAF50',
+                        font: {
+                            size: 14,
+                            weight: 'bold'
+                        }
+                    }
+                },
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.1)',
+                        borderDash: [5, 5]
+                    },
+                    ticks: {
+                        color: '#ccc',
+                        font: {
+                            size: 11
+                        },
+                        callback: function(value) {
+                            return value.toLocaleString();
+                        }
+                    },
+                    title: {
+                        display: true,
+                        text: 'Number of Server Visits',
+                        color: '#4CAF50',
+                        font: {
+                            size: 14,
+                            weight: 'bold'
+                        }
+                    }
+                }
+            },
+            animation: {
+                duration: 1500,
+                easing: 'easeOutBounce'
+            }
+        }
     });
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    const tab3 = document.getElementById('tab3');
-    if (tab3) {
-        const observer = new MutationObserver(() => {
-            if (tab3.style.display !== 'none') {
-                setupPilotSearch();
-                observer.disconnect();
+// Combat stats chart
+function createCombatStatsChart(kills, deaths) {
+    const ctx = document.getElementById('combatStatsChart').getContext('2d');
+    
+    if (combatStatsChart) {
+        combatStatsChart.destroy();
+    }
+    
+    const killGradient = createGradient(ctx, gradientColors.secondary);
+    const deathGradient = createGradient(ctx, gradientColors.danger);
+    
+    combatStatsChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Total Kills', 'Total Deaths'],
+            datasets: [{
+                data: [kills, deaths],
+                backgroundColor: [killGradient, deathGradient],
+                borderColor: ['rgba(33, 150, 243, 1)', 'rgba(244, 67, 54, 1)'],
+                borderWidth: 2,
+                hoverOffset: 20
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '65%',
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        color: '#ccc',
+                        font: {
+                            size: 14,
+                            weight: 'bold'
+                        },
+                        padding: 20,
+                        usePointStyle: true,
+                        pointStyle: 'circle'
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                    titleColor: '#fff',
+                    bodyColor: '#ccc',
+                    borderColor: '#444',
+                    borderWidth: 1,
+                    titleFont: {
+                        size: 14,
+                        weight: 'bold'
+                    },
+                    bodyFont: {
+                        size: 13
+                    },
+                    padding: 12,
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.label || '';
+                            const value = context.parsed || 0;
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = ((value / total) * 100).toFixed(1);
+                            return `${label}: ${value.toLocaleString()} (${percentage}%)`;
+                        }
+                    }
+                }
+            },
+            animation: {
+                animateRotate: true,
+                animateScale: true,
+                duration: 1500
             }
-        });
-        observer.observe(tab3, { attributes: true });
-    }
-});
-</script>
-
-
-<script>
-async function loadLeaderboardFromMissionstats() {
-    const [statsRes, playersRes] = await Promise.all([
-        fetch('data/missionstats.json?v=' + Date.now()),
-        fetch('data/players.json?v=' + Date.now())
-    ]);
-
-    const eventLines = (await statsRes.text()).split(/\r?\n/).filter(Boolean);
-    const playerLines = (await playersRes.text()).split(/\r?\n/).filter(Boolean);
-    const events = eventLines.map(line => JSON.parse(line));
-    const playerMap = {};
-    for (const line of playerLines) {
-        const player = JSON.parse(line);
-        playerMap[player.ucid] = player.name;
-    }
-
-    const players = {};
-    const toDate = s => new Date(s);
-
-    for (const evt of events) {
-        const id = evt.init_id;
-        if (!id || id === "-1") continue;
-        if (!players[id]) {
-            players[id] = {
-                ucid: id,
-                name: playerMap[id] || "Unknown",
-                kills: 0,
-                sorties: 0,
-                deaths: 0,
-                takeoffs: 0,
-                landings: 0,
-                crashes: 0,
-                ejections: 0,
-                timestamps: []
-            };
         }
-
-        const p = players[id];
-        const e = evt.event;
-        if (evt.time) p.timestamps.push(toDate(evt.time));
-        if (e === "S_EVENT_TAKEOFF") { p.sorties++; p.takeoffs++; }
-        else if (e === "S_EVENT_KILL") p.kills++;
-        else if (e === "S_EVENT_DEAD") p.deaths++;
-        else if (e === "S_EVENT_LAND") p.landings++;
-        else if (e === "S_EVENT_CRASH") p.crashes++;
-        else if (e === "S_EVENT_EJECTION") p.ejections++;
-    }
-
-    for (const id in players) {
-        const p = players[id];
-        const times = p.timestamps;
-        const duration = times.length ? (Math.max(...times.map(d => d.getTime())) - Math.min(...times.map(d => d.getTime()))) / 1000 : 0;
-        p.duration = Math.round(duration);
-    }
-
-    const sorted = Object.values(players).sort((a, b) => b.kills - a.kills).slice(0, 20);
-    sorted.forEach((p, i) => p.rank = (i + 1));
-
-    const formatDuration = s => {
-        const d = Math.floor(s / 86400), h = Math.floor((s % 86400) / 3600), m = Math.floor((s % 3600) / 60);
-        return `${d ? d + 'd ' : ''}${h ? h + 'h ' : ''}${m}m`;
-    };
-
-    let html = '<table><thead><tr><th>Rank</th><th>Name</th><th>Kills</th><th>Sorties</th><th>Duration</th><th>Deaths</th><th>Takeoffs</th><th>Landings</th><th>Crashes</th><th>Ejections</th></tr></thead><tbody>';
-    for (const p of sorted) {
-        html += `<tr>
-        <td>${p.rank}</td>
-        <td>${p.name}</td>
-        <td>${p.kills}</td>
-        <td>${p.sorties}</td>
-        <td>${formatDuration(p.duration)}</td>
-        <td>${p.deaths}</td>
-        <td>${p.takeoffs}</td>
-        <td>${p.landings}</td>
-        <td>${p.crashes}</td>
-        <td>${p.ejections}</td>
-        </tr>`;
-    }
-    html += '</tbody></table>';
-    document.getElementById('leaderboardTable').innerHTML = html;
+    });
 }
 
-document.addEventListener('DOMContentLoaded', function() {
-    const tab2 = document.getElementById('tab2');
-    if (tab2) {
-        const observer = new MutationObserver(() => {
-            if (tab2.style.display !== 'none') {
-                loadLeaderboardFromMissionstats();
-                observer.disconnect();
-            }
-        });
-        observer.observe(tab2, { attributes: true });
+// Top 3 squadrons chart
+function createTopSquadronsChart(squadrons) {
+    const ctx = document.getElementById('topSquadronsChart').getContext('2d');
+    
+    if (topSquadronsChart) {
+        topSquadronsChart.destroy();
     }
-});
+    
+    const gradient = createGradient(ctx, gradientColors.warning);
+    
+    topSquadronsChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: squadrons.map(s => s.name),
+            datasets: [{
+                label: 'Squadron Visits',
+                data: squadrons.map(s => s.visits),
+                backgroundColor: gradient,
+                borderColor: 'rgba(255, 193, 7, 1)',
+                borderWidth: 2,
+                borderRadius: 8,
+                barThickness: 50
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                    titleColor: '#FFD700',
+                    bodyColor: '#fff',
+                    borderColor: '#FFD700',
+                    borderWidth: 1,
+                    titleFont: {
+                        size: 14,
+                        weight: 'bold'
+                    },
+                    bodyFont: {
+                        size: 13
+                    },
+                    padding: 12,
+                    displayColors: false,
+                    callbacks: {
+                        label: function(context) {
+                            return `Total Visits: ${context.parsed.y.toLocaleString()}`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        color: '#ccc',
+                        font: {
+                            size: 12,
+                            weight: 'bold'
+                        }
+                    },
+                    title: {
+                        display: true,
+                        text: 'Squadron Names',
+                        color: '#FFD700',
+                        font: {
+                            size: 14,
+                            weight: 'bold'
+                        }
+                    }
+                },
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.1)',
+                        borderDash: [5, 5]
+                    },
+                    ticks: {
+                        color: '#ccc',
+                        font: {
+                            size: 11
+                        },
+                        callback: function(value) {
+                            return value.toLocaleString();
+                        }
+                    },
+                    title: {
+                        display: true,
+                        text: 'Combined Member Visits',
+                        color: '#FFD700',
+                        font: {
+                            size: 14,
+                            weight: 'bold'
+                        }
+                    }
+                }
+            },
+            animation: {
+                duration: 1500,
+                easing: 'easeOutBounce'
+            }
+        }
+    });
+}
+
+// Player activity overview chart
+function createPlayerActivityChart(totalPlayers, top5Pilots) {
+    const ctx = document.getElementById('playerActivityChart').getContext('2d');
+    
+    if (playerActivityChart) {
+        playerActivityChart.destroy();
+    }
+    
+    const labels = ['Total Registered', 'Active Players', 'Top 5 Combined Visits'];
+    const activePlayers = top5Pilots.reduce((sum, p) => sum + (p.visits > 0 ? 1 : 0), 0);
+    const top5Visits = top5Pilots.reduce((sum, p) => sum + p.visits, 0);
+    
+    const gradient1 = createGradient(ctx, gradientColors.primary);
+    const gradient2 = createGradient(ctx, gradientColors.warning);
+    const gradient3 = createGradient(ctx, gradientColors.secondary);
+    
+    playerActivityChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Player Metrics',
+                data: [totalPlayers, activePlayers, top5Visits],
+                borderColor: 'rgba(76, 175, 80, 1)',
+                backgroundColor: gradient1,
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4,
+                pointBackgroundColor: 'rgba(76, 175, 80, 1)',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+                pointRadius: 6,
+                pointHoverRadius: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                    titleColor: '#4CAF50',
+                    bodyColor: '#fff',
+                    borderColor: '#4CAF50',
+                    borderWidth: 1,
+                    titleFont: {
+                        size: 14,
+                        weight: 'bold'
+                    },
+                    bodyFont: {
+                        size: 13
+                    },
+                    padding: 12,
+                    displayColors: false
+                }
+            },
+            scales: {
+                x: {
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.1)',
+                        borderDash: [5, 5]
+                    },
+                    ticks: {
+                        color: '#ccc',
+                        font: {
+                            size: 12,
+                            weight: 'bold'
+                        }
+                    },
+                    title: {
+                        display: true,
+                        text: 'Player Categories',
+                        color: '#4CAF50',
+                        font: {
+                            size: 14,
+                            weight: 'bold'
+                        }
+                    }
+                },
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.1)',
+                        borderDash: [5, 5]
+                    },
+                    ticks: {
+                        color: '#ccc',
+                        font: {
+                            size: 11
+                        },
+                        callback: function(value) {
+                            return value.toLocaleString();
+                        }
+                    },
+                    title: {
+                        display: true,
+                        text: 'Number of Players',
+                        color: '#4CAF50',
+                        font: {
+                            size: 14,
+                            weight: 'bold'
+                        }
+                    }
+                }
+            },
+            animation: {
+                duration: 2000,
+                easing: 'easeInOutQuart'
+            }
+        }
+    });
+}
+
+// Load stats on page load
+document.addEventListener('DOMContentLoaded', loadServerStats);
+
+// Refresh stats every 30 seconds
+setInterval(loadServerStats, 30000);
 </script>
 
-</body>
-</html>
+<style>
+main {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem;
+}
 
-</main>
-<footer>
-    &copy; 2025 All rights reserved.
-</footer>
-</body>
-</html>
+.dashboard-header {
+    text-align: center;
+    margin-bottom: 40px;
+    animation: fadeInDown 0.8s ease-out;
+}
+
+.dashboard-header h1 {
+    font-size: 2.5rem;
+    color: #4CAF50;
+    margin-bottom: 10px;
+    text-shadow: 0 0 20px rgba(76, 175, 80, 0.5);
+}
+
+.dashboard-subtitle {
+    color: #ccc;
+    font-size: 1.1rem;
+    opacity: 0.8;
+}
+
+.stats-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 25px;
+    margin-bottom: 50px;
+}
+
+.stat-card {
+    background: linear-gradient(135deg, #2c2c2c 0%, #1e1e1e 100%);
+    border-radius: 16px;
+    padding: 30px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+    opacity: 0;
+    transform: translateY(20px);
+}
+
+.stat-card.pop-in {
+    animation: popIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 40px rgba(76, 175, 80, 0.3);
+    border-color: rgba(76, 175, 80, 0.5);
+}
+
+.stat-icon {
+    font-size: 3rem;
+    filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.3));
+}
+
+.stat-content h3 {
+    color: #ccc;
+    font-size: 1rem;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.stat-number {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #4CAF50;
+    margin: 0;
+    text-shadow: 0 0 15px rgba(76, 175, 80, 0.5);
+}
+
+.charts-dashboard {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 30px;
+    margin: 40px auto;
+    max-width: 1200px;
+    padding: 0 20px;
+}
+
+@media (max-width: 968px) {
+    .charts-dashboard {
+        grid-template-columns: 1fr;
+    }
+}
+
+.chart-container {
+    background: linear-gradient(135deg, #2c2c2c 0%, #1e1e1e 100%);
+    border-radius: 16px;
+    padding: 30px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    animation: fadeInUp 0.8s ease-out;
+}
+
+.chart-container.full-width {
+    grid-column: 1 / -1;
+}
+
+.chart-container h2 {
+    color: #4CAF50;
+    font-size: 1.5rem;
+    margin-bottom: 25px;
+    text-align: center;
+    text-shadow: 0 0 10px rgba(76, 175, 80, 0.3);
+}
+
+.chart-container canvas {
+    max-height: 350px;
+}
+
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.loader {
+    width: 60px;
+    height: 60px;
+    border: 4px solid rgba(76, 175, 80, 0.3);
+    border-top-color: #4CAF50;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.loading-overlay p {
+    color: #4CAF50;
+    margin-top: 20px;
+    font-size: 1.2rem;
+}
+
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes popIn {
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.no-data-message {
+    text-align: center;
+    color: #888;
+    font-style: italic;
+    margin-top: 20px;
+    font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+    .stats-cards {
+        grid-template-columns: 1fr;
+    }
+    
+    .charts-dashboard {
+        grid-template-columns: 1fr;
+    }
+    
+    .dashboard-header h1 {
+        font-size: 2rem;
+    }
+}
+</style>
+
+<?php include 'footer.php'; ?>

@@ -1,0 +1,17 @@
+# Security: Prevent direct access to JSON data files
+# This protects sensitive player and mission data from being accessed directly via web requests
+
+<Files "*.json">
+    Order Allow,Deny
+    Deny from all
+</Files>
+
+<Files "*.txt">
+    Order Allow,Deny  
+    Deny from all
+</Files>
+
+# Alternative for Apache 2.4+
+<FilesMatch "\.(json|txt)$">
+    Require all denied
+</FilesMatch>

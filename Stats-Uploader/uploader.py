@@ -2,24 +2,88 @@ import os
 import time
 import ftplib
 import configparser
+import logging
 from datetime import datetime
+from dotenv import load_dotenv
+from logging.handlers import RotatingFileHandler
+
+# Load environment variables from .env file
+load_dotenv()
 
 CONFIG_FILE = 'config.ini'
 FILELIST_FILE = 'filelist.txt'
 MAX_RETRIES = 10
 RETRY_INTERVAL = 120  # seconds
-LOG_FILE = 'upload_log.txt'
 CHUNK_SIZE = 8192  # 8 KB
 
-def log_message(message):
-    timestamped = f"[{datetime.now()}] {message}"
-    print(timestamped)
-    with open(LOG_FILE, 'a') as log_file:
-        log_file.write(timestamped + '\n')
+# Set up secure logging with rotation
+def setup_logging():
+    logger = logging.getLogger('uploader')
+    logger.setLevel(logging.INFO)
+    
+    # Remove existing handlers to avoid duplicates
+    for handler in logger.handlers[:]:
+        logger.removeHandler(handler)
+    
+    # Create rotating file handler (10MB max, keep 5 backup files)
+    handler = RotatingFileHandler('upload.log', maxBytes=10*1024*1024, backupCount=5)
+    formatter = logging.Formatter('[%(asctime)s] %(levelname)s: %(message)s')
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+    
+    # Also log to console
+    console_handler = logging.StreamHandler()
+    console_handler.setFormatter(formatter)
+    logger.addHandler(console_handler)
+    
+    return logger
+
+# Initialize logger
+logger = setup_logging()
+
+def log_message(message, level='info'):
+    """Log message with specified level (info, warning, error)"""
+    if level == 'error':
+        logger.error(message)
+    elif level == 'warning':
+        logger.warning(message)
+    else:
+        logger.info(message)
 
 def load_config():
     config = configparser.ConfigParser()
     config.read(CONFIG_FILE)
+    
+    # Override with environment variables if they exist
+    if 'FTP' not in config:
+        config.add_section('FTP')
+    if 'Paths' not in config:
+        config.add_section('Paths')
+    if 'Upload' not in config:
+        config.add_section('Upload')
+    
+    # FTP settings from environment variables (takes precedence)
+    if os.getenv('FTP_HOST'):
+        config.set('FTP', 'host', os.getenv('FTP_HOST'))
+    if os.getenv('FTP_USER'):
+        config.set('FTP', 'user', os.getenv('FTP_USER'))
+    if os.getenv('FTP_PASSWORD'):
+        config.set('FTP', 'password', os.getenv('FTP_PASSWORD'))
+    if os.getenv('FTP_SECURE'):
+        config.set('FTP', 'secure', os.getenv('FTP_SECURE'))
+    
+    # Path settings from environment variables
+    if os.getenv('LOCAL_FOLDER'):
+        config.set('Paths', 'local_folder', os.getenv('LOCAL_FOLDER'))
+    if os.getenv('REMOTE_FOLDER'):
+        config.set('Paths', 'remote_folder', os.getenv('REMOTE_FOLDER'))
+    
+    # Upload settings from environment variables
+    if os.getenv('THROTTLE_SECONDS'):
+        config.set('Upload', 'throttle_seconds', os.getenv('THROTTLE_SECONDS'))
+    if os.getenv('DISPLAY_COUNTDOWN'):
+        config.set('Upload', 'display_countdown', os.getenv('DISPLAY_COUNTDOWN'))
+    
     return config
 
 def read_file_list(enabled_files):
@@ -41,9 +105,42 @@ def upload_file_with_progress(ftp, local_path, remote_path):
     log_message(f"Uploading {remote_path}: 100.00% complete")
 
 def connect_ftp(config):
-    ftp = ftplib.FTP(config['FTP']['host'])
-    ftp.login(config['FTP']['user'], config['FTP']['password'])
-    ftp.cwd(config['Paths']['remote_folder'])
+    use_secure = config['FTP'].getboolean('secure', True)
+    
+    if use_secure:
+        try:
+            # Try secure FTP first (FTPS)
+            ftp = ftplib.FTP_TLS(config['FTP']['host'])
+            ftp.auth()  # Set up secure control connection
+            ftp.login(config['FTP']['user'], config['FTP']['password'])
+            ftp.prot_p()  # Set up secure data connection
+            log_message("Connected using secure FTP (FTPS)")
+        except Exception as e:
+            log_message(f"Secure FTP failed, falling back to plain FTP: {e}", 'warning')
+            # Fallback to plain FTP for backward compatibility
+            ftp = ftplib.FTP(config['FTP']['host'])
+            ftp.login(config['FTP']['user'], config['FTP']['password'])
+            log_message("Connected using plain FTP (fallback)", 'warning')
+    else:
+        # Use plain FTP when explicitly configured
+        ftp = ftplib.FTP(config['FTP']['host'])
+        ftp.login(config['FTP']['user'], config['FTP']['password'])
+        log_message("Connected using plain FTP (configured)")
+    
+    # Ensure the data directory exists
+    remote_folder = config['Paths']['remote_folder']
+    try:
+        ftp.cwd(remote_folder)
+    except ftplib.error_perm:
+        # Directory doesn't exist, try to create it
+        try:
+            ftp.mkd(remote_folder)
+            ftp.cwd(remote_folder)
+            log_message(f"Created remote directory: {remote_folder}")
+        except ftplib.error_perm as e:
+            log_message(f"Failed to create remote directory {remote_folder}: {e}")
+            raise
+    
     return ftp
 
 def try_upload(file, local_folder, config):
@@ -57,7 +154,7 @@ def try_upload(file, local_folder, config):
             log_message(f"Upload successful: {file}")
             return True
         except Exception as e:
-            log_message(f"Upload failed (Attempt {attempt}/10): {file}, Error: {e}")
+            log_message(f"Upload failed (Attempt {attempt}/{MAX_RETRIES}): {file}, Error: {e}", 'warning')
             time.sleep(RETRY_INTERVAL)
         finally:
             if ftp:
