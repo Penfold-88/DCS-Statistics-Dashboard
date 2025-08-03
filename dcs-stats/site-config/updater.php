@@ -146,21 +146,32 @@ function rrmdir(string $dir): void {
 /**
  * Retrieve remote version string from GitHub for a given branch.
  *
+ * Attempts to read a simple version.txt file first, falling back to parsing
+ * config.php if the version file is unavailable.
+ *
  * @param string $branch Branch name
  * @return string|null Version string or null on failure
  */
 function getRemoteVersion(string $branch): ?string {
-    $url = sprintf(
-        'https://raw.githubusercontent.com/%s/%s/%s/dcs-stats/site-config/config.php',
+    $base = sprintf(
+        'https://raw.githubusercontent.com/%s/%s/%s/dcs-stats/site-config/',
         GITHUB_REPO_OWNER,
         GITHUB_REPO_NAME,
         $branch
     );
-    $data = fetchRemoteFile($url);
-    if ($data === null) {
-        return null;
+
+    // Try dedicated version.txt file first
+    $data = fetchRemoteFile($base . 'version.txt');
+    if ($data !== null) {
+        $version = trim($data);
+        if ($version !== '') {
+            return $version;
+        }
     }
-    if (preg_match("/define\('ADMIN_PANEL_VERSION',\s*'([^']+)'\);/", $data, $matches)) {
+
+    // Fall back to parsing ADMIN_PANEL_VERSION from config.php
+    $data = fetchRemoteFile($base . 'config.php');
+    if ($data !== null && preg_match("/define\('ADMIN_PANEL_VERSION',\s*'([^']+)'\);/", $data, $matches)) {
         return $matches[1];
     }
     return null;
