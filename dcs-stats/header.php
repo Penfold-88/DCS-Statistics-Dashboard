@@ -41,6 +41,21 @@ if (file_exists($configFile)) {
 $cspConnectSrc .= " http://localhost:* https://localhost:*";
 
 header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src {$cspConnectSrc};");
+
+// Maintenance mode check
+$maintenanceFile = __DIR__ . '/site-config/data/maintenance.json';
+if (file_exists($maintenanceFile)) {
+    $maintenance = json_decode(file_get_contents($maintenanceFile), true);
+    if (!empty($maintenance['enabled'])) {
+        $allowed = $maintenance['ip_whitelist'] ?? [];
+        $ip = $_SERVER['REMOTE_ADDR'] ?? '';
+        if (!in_array($ip, $allowed)) {
+            http_response_code(503);
+            echo '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Maintenance</title></head><body><h1>Maintenance Mode</h1><p>The site is currently under maintenance. Please check back later.</p></body></html>';
+            exit;
+        }
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">

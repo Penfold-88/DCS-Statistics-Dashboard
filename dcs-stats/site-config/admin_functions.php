@@ -370,3 +370,28 @@ function getPagination($totalItems, $perPage, $currentPage, $baseUrl) {
     
     return $html;
 }
+
+/**
+ * Load maintenance configuration
+ */
+function loadMaintenanceConfig() {
+    $file = __DIR__ . '/data/maintenance.json';
+    $defaults = ['enabled' => false, 'ip_whitelist' => []];
+
+    if (file_exists($file)) {
+        $data = json_decode(file_get_contents($file), true);
+        if (is_array($data)) {
+            return array_merge($defaults, $data);
+        }
+    }
+
+    return $defaults;
+}
+
+/**
+ * Save maintenance configuration
+ */
+function saveMaintenanceConfig($config) {
+    $file = __DIR__ . '/data/maintenance.json';
+    return file_put_contents($file, json_encode($config, JSON_PRETTY_PRINT)) !== false;
+}
