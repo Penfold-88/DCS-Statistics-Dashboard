@@ -374,6 +374,17 @@ textarea.form-control {
     flex: 1;
 }
 
+/* Input with button */
+.input-with-button {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+}
+
+.input-with-button input {
+    flex: 1;
+}
+
 /* Pagination */
 .pagination {
     display: flex;

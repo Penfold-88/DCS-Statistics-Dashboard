@@ -663,6 +663,9 @@ header("Content-Security-Policy: default-src 'self';
 - **Improved:** Error logging with automatic rotation
 - **Maintained:** All existing `config.ini` settings continue to work
 
+### 🛠 Maintenance Whitelist Improvements
+- Added "Add My IP" button on settings page to auto-fill the current administrator's IP into the maintenance mode whitelist.
+
 ---
 
 ## 🤝 Contributors

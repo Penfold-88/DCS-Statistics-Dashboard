@@ -277,9 +277,12 @@ $pageTitle = 'Site Settings';
                             <?php endforeach; ?>
                         </div>
 
-                        <div class="setting-item" style="margin-top:20px;">
+                        <div class="setting-item" style="margin-top:20px; flex-direction: column; align-items: flex-start;">
                             <label for="maintenance_whitelist">Maintenance Mode Whitelist IPs (comma-separated)</label>
-                            <input type="text" id="maintenance_whitelist" name="maintenance_whitelist" value="<?= e($currentFeatures['maintenance_whitelist'] ?? '') ?>" placeholder="e.g. 127.0.0.1, 192.168.1.1" />
+                            <div class="input-with-button">
+                                <input type="text" id="maintenance_whitelist" name="maintenance_whitelist" value="<?= e($currentFeatures['maintenance_whitelist'] ?? '') ?>" placeholder="e.g. 127.0.0.1, 192.168.1.1" />
+                                <button type="button" class="btn btn-secondary btn-small" id="add-current-ip">Add My IP</button>
+                            </div>
                         </div>
 
                         <div class="settings-actions">
@@ -373,13 +376,27 @@ $pageTitle = 'Site Settings';
                 expandAllBtn.textContent = 'Expand All Groups';
                 expandAllBtn.onclick = function() { toggleAllGroups(false); };
                 bulkActions.appendChild(expandAllBtn);
-                
+
                 const collapseAllBtn = document.createElement('button');
                 collapseAllBtn.type = 'button';
                 collapseAllBtn.className = 'btn btn-secondary';
                 collapseAllBtn.textContent = 'Collapse All Groups';
                 collapseAllBtn.onclick = function() { toggleAllGroups(true); };
                 bulkActions.appendChild(collapseAllBtn);
+            }
+
+            const addIpBtn = document.getElementById('add-current-ip');
+            if (addIpBtn) {
+                const currentIp = '<?= e($_SERVER['REMOTE_ADDR'] ?? '') ?>';
+                addIpBtn.addEventListener('click', function() {
+                    const input = document.getElementById('maintenance_whitelist');
+                    if (!input) return;
+                    const ips = input.value.split(',').map(ip => ip.trim()).filter(ip => ip);
+                    if (!ips.includes(currentIp)) {
+                        ips.push(currentIp);
+                        input.value = ips.join(', ');
+                    }
+                });
             }
         });
         
