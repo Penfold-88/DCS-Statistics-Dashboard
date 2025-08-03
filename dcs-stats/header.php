@@ -50,24 +50,7 @@ if (file_exists($maintenanceFile)) {
         $allowed = $maintenance['ip_whitelist'] ?? [];
         $ip = $_SERVER['REMOTE_ADDR'] ?? '';
         if (!in_array($ip, $allowed)) {
-            http_response_code(503);
-            ?>
-            <!DOCTYPE html>
-            <html lang="en">
-            <head>
-                <meta charset="UTF-8">
-                <title>DCS Statistics Dashboard</title>
-                <link rel="stylesheet" href="<?php echo url('styles.php'); ?>">
-                <link rel="stylesheet" href="<?php echo url('styles-mobile.css'); ?>">
-            </head>
-            <body>
-            <div class="maintenance-page">
-                <div class="maintenance-icon">✖</div>
-                <p>DCS Statistics Dashboard is unavailable please try again later</p>
-            </div>
-            </body>
-            </html>
-            <?php
+            require __DIR__ . '/maintenance.php';
             exit;
         }
     }
