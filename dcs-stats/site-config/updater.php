@@ -20,6 +20,38 @@ define('GITHUB_REPO_OWNER', 'Penfold-88');
 define('GITHUB_REPO_NAME', 'DCS-Statistics-Dashboard');
 
 /**
+ * Fetch a remote file via file_get_contents or cURL as a fallback.
+ *
+ * @param string $url URL to fetch
+ * @return string|null File contents or null on failure
+ */
+function fetchRemoteFile(string $url): ?string {
+    if (ini_get('allow_url_fopen')) {
+        $data = @file_get_contents($url);
+        if ($data !== false) {
+            return $data;
+        }
+    }
+
+    if (function_exists('curl_init')) {
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_USERAGENT => 'DCS-Stats-Updater',
+            CURLOPT_TIMEOUT => 10,
+        ]);
+        $data = curl_exec($ch);
+        curl_close($ch);
+        if ($data !== false) {
+            return $data;
+        }
+    }
+
+    return null;
+}
+
+/**
  * Create a zip backup of the provided directory.
  *
  * @param string $source Directory to backup
@@ -124,8 +156,8 @@ function getRemoteVersion(string $branch): ?string {
         GITHUB_REPO_NAME,
         $branch
     );
-    $data = @file_get_contents($url);
-    if ($data === false) {
+    $data = fetchRemoteFile($url);
+    if ($data === null) {
         return null;
     }
     if (preg_match("/define\('ADMIN_PANEL_VERSION',\s*'([^']+)'\);/", $data, $matches)) {
@@ -147,8 +179,8 @@ function downloadBranchArchive(string $branch): ?string {
         GITHUB_REPO_NAME,
         $branch
     );
-    $data = @file_get_contents($url);
-    if ($data === false) {
+    $data = fetchRemoteFile($url);
+    if ($data === null) {
         return null;
     }
     $tmp = tempnam(sys_get_temp_dir(), 'update_');
