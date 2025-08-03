@@ -1,6 +1,7 @@
 <?php
 // Include path configuration
 require_once __DIR__ . '/config_path.php';
+require_once __DIR__ . '/site_features.php';
 
 // Security headers for protection against common web vulnerabilities
 header("X-Content-Type-Options: nosniff");
@@ -41,6 +42,15 @@ if (file_exists($configFile)) {
 $cspConnectSrc .= " http://localhost:* https://localhost:*";
 
 header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src {$cspConnectSrc};");
+
+if (isFeatureEnabled('maintenance_mode')) {
+    $whitelist = array_filter(array_map('trim', explode(',', getFeatureValue('maintenance_whitelist', ''))));
+    $clientIp = $_SERVER['REMOTE_ADDR'] ?? '';
+    if (!in_array($clientIp, $whitelist)) {
+        include __DIR__ . '/maintenance.php';
+        exit;
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
