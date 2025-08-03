@@ -97,53 +97,6 @@ function createBackup(string $source, string $destination): bool {
 }
 
 /**
- * Recursively copy a directory tree.
- *
- * @param string $src Source directory
- * @param string $dst Destination directory
- */
-function recurseCopy(string $src, string $dst): void {
-    if (!is_dir($dst)) {
-        mkdir($dst, 0755, true);
-    }
-    $dir = opendir($src);
-    while (($file = readdir($dir)) !== false) {
-        if ($file === '.' || $file === '..') {
-            continue;
-        }
-        $srcPath = $src . '/' . $file;
-        $dstPath = $dst . '/' . $file;
-        if (is_dir($srcPath)) {
-            recurseCopy($srcPath, $dstPath);
-        } else {
-            copy($srcPath, $dstPath);
-        }
-    }
-    closedir($dir);
-}
-
-/**
- * Recursively remove a directory tree.
- *
- * @param string $dir Directory to remove
- */
-function rrmdir(string $dir): void {
-    if (!is_dir($dir)) {
-        return;
-    }
-    $items = array_diff(scandir($dir), ['.', '..']);
-    foreach ($items as $item) {
-        $path = $dir . '/' . $item;
-        if (is_dir($path)) {
-            rrmdir($path);
-        } else {
-            unlink($path);
-        }
-    }
-    rmdir($dir);
-}
-
-/**
  * Retrieve the current local version from version.txt, falling back to
  * the ADMIN_PANEL_VERSION constant if the file is missing.
  *
@@ -225,6 +178,32 @@ function getRemoteFileList(string $branch): ?array {
 }
 
 /**
+ * Retrieve the last commit timestamp for a file in the specified branch.
+ *
+ * @param string $branch Branch name
+ * @param string $path   File path within the repository
+ * @return int|null UNIX timestamp of last commit or null on failure
+ */
+function getRemoteCommitDate(string $branch, string $path): ?int {
+    $url = sprintf(
+        'https://api.github.com/repos/%s/%s/commits?sha=%s&path=%s&per_page=1',
+        GITHUB_REPO_OWNER,
+        GITHUB_REPO_NAME,
+        $branch,
+        rawurlencode($path)
+    );
+    $data = fetchRemoteFile($url);
+    if ($data === null) {
+        return null;
+    }
+    $json = json_decode($data, true);
+    if (!is_array($json) || empty($json[0]['commit']['committer']['date'])) {
+        return null;
+    }
+    return strtotime($json[0]['commit']['committer']['date']);
+}
+
+/**
  * Download and apply individual files from a branch to the target directory.
  *
  * @param string $branch Branch name
@@ -238,6 +217,16 @@ function updateFromBranchFiles(string $branch, string $targetDir): ?array {
     }
     $updated = [];
     foreach ($files as $path) {
+        $remoteTime = getRemoteCommitDate($branch, $path);
+        if ($remoteTime === null) {
+            return null;
+        }
+        $relative = substr($path, strlen('dcs-stats/'));
+        $localPath = $targetDir . '/' . $relative;
+        $localTime = is_file($localPath) ? filemtime($localPath) : 0;
+        if ($remoteTime <= $localTime) {
+            continue;
+        }
         $url = sprintf(
             'https://raw.githubusercontent.com/%s/%s/%s/%s',
             GITHUB_REPO_OWNER,
@@ -249,120 +238,19 @@ function updateFromBranchFiles(string $branch, string $targetDir): ?array {
         if ($data === null) {
             return null;
         }
-        $relative = substr($path, strlen('dcs-stats/'));
-        $localPath = $targetDir . '/' . $relative;
+        if (is_file($localPath) && sha1_file($localPath) === sha1($data)) {
+            touch($localPath, $remoteTime);
+            continue;
+        }
         $dir = dirname($localPath);
         if (!is_dir($dir)) {
             mkdir($dir, 0755, true);
         }
-        if (is_file($localPath) && sha1_file($localPath) === sha1($data)) {
-            continue;
-        }
         file_put_contents($localPath, $data);
+        touch($localPath, $remoteTime);
         $updated[] = $relative;
     }
     return $updated;
-}
-
-/**
- * Download a zip archive for the given branch from GitHub.
- *
- * @param string $branch Branch name
- * @return string|null Path to downloaded archive or null on failure
- */
-function downloadBranchArchive(string $branch): ?string {
-    $url = sprintf(
-        'https://github.com/%s/%s/archive/refs/heads/%s.zip',
-        GITHUB_REPO_OWNER,
-        GITHUB_REPO_NAME,
-        $branch
-    );
-    $data = fetchRemoteFile($url);
-    if ($data === null) {
-        return null;
-    }
-    $tmp = tempnam(sys_get_temp_dir(), 'update_');
-    file_put_contents($tmp, $data);
-    return $tmp;
-}
-
-/**
- * Perform update by extracting provided archive into target directory.
- *
- * @param string $archivePath Path to update archive
- * @param string $targetDir Directory to extract to
- * @return bool True on success, false on failure
- */
-function performUpdate(string $archivePath, string $targetDir): bool {
-    $extractPath = sys_get_temp_dir() . '/dcs_update_' . uniqid();
-    mkdir($extractPath, 0755, true);
-    $extracted = false;
-
-    if (class_exists('ZipArchive')) {
-        $zip = new ZipArchive();
-        if ($zip->open($archivePath) === true) {
-            $zip->extractTo($extractPath);
-            $zip->close();
-            $extracted = true;
-        } else {
-            echo "Error: Unable to open update archive.";
-            rrmdir($extractPath);
-            return false;
-        }
-    } else {
-        echo "Warning: PHP ZipArchive extension not installed. " .
-             "Consider enabling it via php.ini or installing php-zip. " .
-             "Attempting fallback extraction...";
-
-        if (class_exists('PharData')) {
-            try {
-                $phar = new PharData($archivePath);
-                $phar->extractTo($extractPath, null, true);
-                $extracted = true;
-            } catch (Exception $e) {
-                // continue to next fallback
-            }
-        }
-
-        if (!$extracted) {
-            $unzip = trim(shell_exec('command -v unzip'));
-            if ($unzip) {
-                $cmd = escapeshellcmd($unzip) . ' ' . escapeshellarg($archivePath) . ' -d ' . escapeshellarg($extractPath);
-                exec($cmd, $output, $retval);
-                $extracted = ($retval === 0);
-            }
-        }
-    }
-
-    if (!$extracted) {
-        rrmdir($extractPath);
-        echo "\nError: No suitable archive extraction method available. Update aborted.";
-        return false;
-    }
-
-    // Locate extracted repo root containing dcs-stats
-    $rootItems = scandir($extractPath);
-    $sourceDir = '';
-    foreach ($rootItems as $item) {
-        if ($item === '.' || $item === '..') {
-            continue;
-        }
-        $candidate = $extractPath . '/' . $item . '/dcs-stats';
-        if (is_dir($candidate)) {
-            $sourceDir = $candidate;
-            break;
-        }
-    }
-
-    if (!$sourceDir) {
-        rrmdir($extractPath);
-        echo 'Error: Extracted archive missing dcs-stats folder.';
-        return false;
-    }
-
-    recurseCopy($sourceDir, $targetDir);
-    rrmdir($extractPath);
-    return true;
 }
 
 $message = '';
@@ -398,30 +286,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $backupFile = $backupDir . '/site-backup-' . date('YmdHis') . '.zip';
 
             if (createBackup($targetDir, $backupFile)) {
-                if ($branch === 'dev') {
-                    $updatedFiles = updateFromBranchFiles($branch, $targetDir);
-                    if ($updatedFiles === null) {
-                        $message = 'Failed to download update files.';
-                        $messageType = 'error';
-                    } else {
-                        $message = 'Update to version ' . $remoteVersion . ' completed successfully.';
-                        $messageType = 'success';
-                    }
+                $updatedFiles = updateFromBranchFiles($branch, $targetDir);
+                if ($updatedFiles === null) {
+                    $message = 'Failed to download update files.';
+                    $messageType = 'error';
                 } else {
-                    $archivePath = downloadBranchArchive($branch);
-                    if (!$archivePath) {
-                        $message = 'Failed to download update archive.';
-                        $messageType = 'error';
-                    } else {
-                        if (performUpdate($archivePath, $targetDir)) {
-                            $message = 'Update to version ' . $remoteVersion . ' completed successfully.';
-                            $messageType = 'success';
-                        } else {
-                            $message = 'Update failed. See errors above.';
-                            $messageType = 'error';
-                        }
-                        unlink($archivePath);
-                    }
+                    $message = 'Update to version ' . $remoteVersion . ' completed successfully.';
+                    $messageType = 'success';
                 }
             } else {
                 $message = 'Backup failed. Update aborted.';
