@@ -157,6 +157,65 @@ function downloadBranchArchive(string $branch): ?string {
 }
 
 /**
+ * Update specific files from a given branch without downloading an archive.
+ *
+ * Attempts to fetch the latest commit date and file contents for each path.
+ * If either step fails for a file, the path is skipped and an error message
+ * is logged.  The function continues processing the remaining files so that a
+ * single failure does not abort the entire update process.
+ *
+ * @param string   $branch    Branch name to pull from
+ * @param string[] $paths     List of file paths relative to repository root
+ * @param string   $targetDir Local base directory for writing files
+ * @return array{updatedFiles:string[], errors:string[]} Details of the update
+ */
+function updateFromBranchFiles(string $branch, array $paths, string $targetDir): array {
+    $updated = [];
+    $errors = [];
+
+    foreach ($paths as $path) {
+        try {
+            $commitDate = getRemoteCommitDate($branch, $path);
+        } catch (Throwable $e) {
+            $commitDate = null;
+        }
+        if ($commitDate === null) {
+            $errors[] = "Unable to determine commit date for {$path}";
+            error_log('[updater] commit date fetch failed for ' . $path);
+            continue;
+        }
+
+        try {
+            $contents = fetchRemoteFile($branch, $path);
+        } catch (Throwable $e) {
+            $contents = null;
+        }
+        if ($contents === null) {
+            $errors[] = "Failed to retrieve file contents for {$path}";
+            error_log('[updater] remote file fetch failed for ' . $path);
+            continue;
+        }
+
+        $dest = rtrim($targetDir, '/').'/'.$path;
+        if (!is_dir(dirname($dest))) {
+            mkdir(dirname($dest), 0755, true);
+        }
+        if (file_put_contents($dest, $contents) === false) {
+            $errors[] = "Unable to write updated file to {$dest}";
+            error_log('[updater] failed to write ' . $dest);
+            continue;
+        }
+
+        $updated[] = $path;
+    }
+
+    return [
+        'updatedFiles' => $updated,
+        'errors'       => $errors,
+    ];
+}
+
+/**
  * Perform update by extracting provided archive into target directory.
  *
  * @param string $archivePath Path to update archive
