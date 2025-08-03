@@ -189,11 +189,14 @@ $pageTitle = 'Flight Deck Operations';
                         <?php if (hasPermission('view_logs')): ?>
                             <a href="logs.php" class="btn btn-secondary">View Logs</a>
                         <?php endif; ?>
-                        <?php if (hasPermission('export_data')): ?>
-                            <a href="export.php" class="btn btn-secondary">Export Data</a>
-                        <?php endif; ?>
-                    </div>
-                </div>
+                          <?php if (hasPermission('export_data')): ?>
+                              <a href="export.php" class="btn btn-secondary">Export Data</a>
+                          <?php endif; ?>
+                          <?php if (hasPermission('change_settings')): ?>
+                              <a href="updater.php" class="btn btn-secondary">Updater</a>
+                          <?php endif; ?>
+                      </div>
+                  </div>
                 
                 <!-- System Information -->
                 <div class="card">

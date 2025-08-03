@@ -86,17 +86,23 @@ if (!isset($currentAdmin)) {
                         </a>
                     </li>
                     <?php endif; ?>
-                    <li>
-                        <a href="maintenance.php" <?= basename($_SERVER['PHP_SELF']) === 'maintenance.php' ? 'class="active"' : '' ?>>
-                            <span class="nav-icon">🛠️</span>
-                            Maintenance
-                        </a>
-                    </li>
-                    <?php if ($currentAdmin['role'] === ROLE_AIR_BOSS): // Only Air Boss can access Navigation Settings ?>
-                    <li>
-                        <a href="discord_settings.php" <?= basename($_SERVER['PHP_SELF']) === 'discord_settings.php' ? 'class="active"' : '' ?>>
-                            <span class="nav-icon">🎮</span>
-                            Discord Link
+                      <li>
+                          <a href="maintenance.php" <?= basename($_SERVER['PHP_SELF']) === 'maintenance.php' ? 'class="active"' : '' ?>>
+                              <span class="nav-icon">🛠️</span>
+                              Maintenance
+                          </a>
+                      </li>
+                      <li>
+                          <a href="updater.php" <?= basename($_SERVER['PHP_SELF']) === 'updater.php' ? 'class="active"' : '' ?>>
+                              <span class="nav-icon">⬆️</span>
+                              Updater
+                          </a>
+                      </li>
+                      <?php if ($currentAdmin['role'] === ROLE_AIR_BOSS): // Only Air Boss can access Navigation Settings ?>
+                      <li>
+                          <a href="discord_settings.php" <?= basename($_SERVER['PHP_SELF']) === 'discord_settings.php' ? 'class="active"' : '' ?>>
+                              <span class="nav-icon">🎮</span>
+                              Discord Link
                         </a>
                     </li>
                     <li>
