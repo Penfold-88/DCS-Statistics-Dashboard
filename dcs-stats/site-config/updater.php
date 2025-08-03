@@ -112,6 +112,45 @@ function rrmdir(string $dir): void {
 }
 
 /**
+ * Fetch a remote file using file_get_contents with a User-Agent header
+ * when allow_url_fopen is enabled. Falls back to cURL if available.
+ *
+ * @param string $url URL to fetch
+ * @return string|false Remote contents or false on failure
+ */
+function fetchRemoteFile(string $url) {
+    $userAgent = 'DCS-Statistics-Dashboard Updater';
+
+    if (ini_get('allow_url_fopen')) {
+        $context = stream_context_create([
+            'http' => [
+                'header' => "User-Agent: {$userAgent}\r\n"
+            ]
+        ]);
+        $data = @file_get_contents($url, false, $context);
+        if ($data !== false) {
+            return $data;
+        }
+    }
+
+    if (function_exists('curl_init')) {
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_USERAGENT => $userAgent,
+        ]);
+        $data = curl_exec($ch);
+        curl_close($ch);
+        if ($data !== false) {
+            return $data;
+        }
+    }
+
+    return false;
+}
+
+/**
  * Retrieve remote version string from GitHub for a given branch.
  *
  * @param string $branch Branch name
@@ -124,7 +163,7 @@ function getRemoteVersion(string $branch): ?string {
         GITHUB_REPO_NAME,
         $branch
     );
-    $data = @file_get_contents($url);
+    $data = fetchRemoteFile($url);
     if ($data === false) {
         return null;
     }
@@ -147,7 +186,7 @@ function downloadBranchArchive(string $branch): ?string {
         GITHUB_REPO_NAME,
         $branch
     );
-    $data = @file_get_contents($url);
+    $data = fetchRemoteFile($url);
     if ($data === false) {
         return null;
     }
