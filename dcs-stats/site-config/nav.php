@@ -46,7 +46,7 @@ if (!isset($currentAdmin)) {
             </li>
             <?php endif; ?>
             <?php if (hasPermission('change_settings')): ?>
-<?php $isSettingsPage = in_array(basename($_SERVER['PHP_SELF']), ['settings.php', 'api_settings.php', 'themes.php', 'discord_settings.php', 'squadron_settings.php', 'admins.php', 'permissions.php', 'maintenance.php']); ?>
+<?php $isSettingsPage = in_array(basename($_SERVER['PHP_SELF']), ['settings.php', 'api_settings.php', 'themes.php', 'discord_settings.php', 'squadron_settings.php', 'admins.php', 'permissions.php', 'maintenance.php', 'updater.php']); ?>
             <li class="nav-dropdown <?= $isSettingsPage ? 'open' : '' ?>">
                 <a href="#" class="nav-dropdown-toggle <?= $isSettingsPage ? 'active' : '' ?>">
                     <span class="nav-icon">⚙️</span>
@@ -90,6 +90,12 @@ if (!isset($currentAdmin)) {
                         <a href="maintenance.php" <?= basename($_SERVER['PHP_SELF']) === 'maintenance.php' ? 'class="active"' : '' ?>>
                             <span class="nav-icon">🛠️</span>
                             Maintenance
+                        </a>
+                    </li>
+                    <li>
+                        <a href="updater.php" <?= basename($_SERVER['PHP_SELF']) === 'updater.php' ? 'class="active"' : '' ?>>
+                            <span class="nav-icon">⬇️</span>
+                            Updater
                         </a>
                     </li>
                     <?php if ($currentAdmin['role'] === ROLE_AIR_BOSS): // Only Air Boss can access Navigation Settings ?>
