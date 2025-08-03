@@ -195,6 +195,76 @@ function getRemoteVersion(string $branch): ?string {
 }
 
 /**
+ * Retrieve list of file paths in the repository for a given branch.
+ *
+ * @param string $branch Branch name
+ * @return array|null Array of file paths or null on failure
+ */
+function getRemoteFileList(string $branch): ?array {
+    $url = sprintf(
+        'https://api.github.com/repos/%s/%s/git/trees/%s?recursive=1',
+        GITHUB_REPO_OWNER,
+        GITHUB_REPO_NAME,
+        $branch
+    );
+    $data = fetchRemoteFile($url);
+    if ($data === null) {
+        return null;
+    }
+    $json = json_decode($data, true);
+    if (!is_array($json) || empty($json['tree'])) {
+        return null;
+    }
+    $files = [];
+    foreach ($json['tree'] as $node) {
+        if ($node['type'] === 'blob' && strpos($node['path'], 'dcs-stats/') === 0) {
+            $files[] = $node['path'];
+        }
+    }
+    return $files;
+}
+
+/**
+ * Download and apply individual files from a branch to the target directory.
+ *
+ * @param string $branch Branch name
+ * @param string $targetDir Directory to update
+ * @return array|null List of updated files or null on failure
+ */
+function updateFromBranchFiles(string $branch, string $targetDir): ?array {
+    $files = getRemoteFileList($branch);
+    if ($files === null) {
+        return null;
+    }
+    $updated = [];
+    foreach ($files as $path) {
+        $url = sprintf(
+            'https://raw.githubusercontent.com/%s/%s/%s/%s',
+            GITHUB_REPO_OWNER,
+            GITHUB_REPO_NAME,
+            $branch,
+            $path
+        );
+        $data = fetchRemoteFile($url);
+        if ($data === null) {
+            return null;
+        }
+        $relative = substr($path, strlen('dcs-stats/'));
+        $localPath = $targetDir . '/' . $relative;
+        $dir = dirname($localPath);
+        if (!is_dir($dir)) {
+            mkdir($dir, 0755, true);
+        }
+        if (is_file($localPath) && sha1_file($localPath) === sha1($data)) {
+            continue;
+        }
+        file_put_contents($localPath, $data);
+        $updated[] = $relative;
+    }
+    return $updated;
+}
+
+/**
  * Download a zip archive for the given branch from GitHub.
  *
  * @param string $branch Branch name
@@ -297,6 +367,7 @@ function performUpdate(string $archivePath, string $targetDir): bool {
 
 $message = '';
 $messageType = '';
+$updatedFiles = [];
 $branch = $_POST['branch'] ?? 'master';
 if (!in_array($branch, ['master', 'dev'], true)) {
     $branch = 'master';
@@ -319,31 +390,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $message = 'Already up to date.';
             $messageType = 'success';
         } else {
-            $archivePath = downloadBranchArchive($branch);
-            if (!$archivePath) {
-                $message = 'Failed to download update archive.';
-                $messageType = 'error';
-            } else {
-                $targetDir = dirname(__DIR__);
-                $backupDir = __DIR__ . '/data/backups';
-                if (!is_dir($backupDir)) {
-                    mkdir($backupDir, 0755, true);
-                }
-                $backupFile = $backupDir . '/site-backup-' . date('YmdHis') . '.zip';
+            $targetDir = dirname(__DIR__);
+            $backupDir = __DIR__ . '/data/backups';
+            if (!is_dir($backupDir)) {
+                mkdir($backupDir, 0755, true);
+            }
+            $backupFile = $backupDir . '/site-backup-' . date('YmdHis') . '.zip';
 
-                if (createBackup($targetDir, $backupFile)) {
-                    if (performUpdate($archivePath, $targetDir)) {
+            if (createBackup($targetDir, $backupFile)) {
+                if ($branch === 'dev') {
+                    $updatedFiles = updateFromBranchFiles($branch, $targetDir);
+                    if ($updatedFiles === null) {
+                        $message = 'Failed to download update files.';
+                        $messageType = 'error';
+                    } else {
                         $message = 'Update to version ' . $remoteVersion . ' completed successfully.';
                         $messageType = 'success';
-                    } else {
-                        $message = 'Update failed. See errors above.';
-                        $messageType = 'error';
                     }
                 } else {
-                    $message = 'Backup failed. Update aborted.';
-                    $messageType = 'error';
+                    $archivePath = downloadBranchArchive($branch);
+                    if (!$archivePath) {
+                        $message = 'Failed to download update archive.';
+                        $messageType = 'error';
+                    } else {
+                        if (performUpdate($archivePath, $targetDir)) {
+                            $message = 'Update to version ' . $remoteVersion . ' completed successfully.';
+                            $messageType = 'success';
+                        } else {
+                            $message = 'Update failed. See errors above.';
+                            $messageType = 'error';
+                        }
+                        unlink($archivePath);
+                    }
                 }
-                unlink($archivePath);
+            } else {
+                $message = 'Backup failed. Update aborted.';
+                $messageType = 'error';
             }
         }
     }
@@ -377,6 +459,12 @@ $pageTitle = 'System Updater';
             <?php if ($message): ?>
                 <div class="alert alert-<?= $messageType === 'success' ? 'success' : 'error' ?>">
                     <?= e($message) ?>
+                </div>
+            <?php endif; ?>
+            <?php if ($updatedFiles): ?>
+                <div class="update-log">
+                    <h2>Updated Files</h2>
+                    <pre><?= e(implode("\n", $updatedFiles)) ?></pre>
                 </div>
             <?php endif; ?>
             <form method="POST">
