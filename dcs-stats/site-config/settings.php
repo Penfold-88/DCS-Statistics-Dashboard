@@ -39,6 +39,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $allFeatures[$key] = isset($_POST['features'][$key]);
             }
         }
+
+        // Save maintenance whitelist
+        $allFeatures['maintenance_whitelist'] = trim($_POST['maintenance_whitelist'] ?? '');
         
         // Note: Discord and Squadron settings are now handled in separate pages
         
@@ -273,7 +276,12 @@ $pageTitle = 'Site Settings';
                                 </div>
                             <?php endforeach; ?>
                         </div>
-                        
+
+                        <div class="setting-item" style="margin-top:20px;">
+                            <label for="maintenance_whitelist">Maintenance Mode Whitelist IPs (comma-separated)</label>
+                            <input type="text" id="maintenance_whitelist" name="maintenance_whitelist" value="<?= e($currentFeatures['maintenance_whitelist'] ?? '') ?>" placeholder="e.g. 127.0.0.1, 192.168.1.1" />
+                        </div>
+
                         <div class="settings-actions">
                             <button type="submit" class="btn btn-primary">Save Settings</button>
                             <span class="text-muted">Changes take effect immediately</span>

@@ -81,6 +81,9 @@ switch ($method) {
         if (isset($input['features']['squadron_homepage_text'])) {
             $allFeatures['squadron_homepage_text'] = $input['features']['squadron_homepage_text'];
         }
+        if (isset($input['features']['maintenance_whitelist'])) {
+            $allFeatures['maintenance_whitelist'] = $input['features']['maintenance_whitelist'];
+        }
         
         // Apply dependencies
         $dependencies = getFeatureDependencies();

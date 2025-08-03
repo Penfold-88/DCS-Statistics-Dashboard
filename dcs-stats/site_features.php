@@ -94,6 +94,8 @@ function loadSiteFeatures() {
         // Global Features
         'show_discord_link' => true,
         'show_last_update' => true,
+        'maintenance_mode' => false,
+        'maintenance_whitelist' => '',
         
         // Custom Links
         'show_squadron_homepage' => false,
@@ -211,7 +213,8 @@ function getFeatureGroups() {
         ],
         'Global Settings' => [
             'show_discord_link' => 'Show Discord Link',
-            'show_last_update' => 'Show Last Update Time'
+            'show_last_update' => 'Show Last Update Time',
+            'maintenance_mode' => 'Enable Maintenance Mode'
         ]
     ];
 }
