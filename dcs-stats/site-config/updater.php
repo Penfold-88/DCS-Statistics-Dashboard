@@ -15,6 +15,10 @@ requirePermission('change_settings');
 // Current admin for display purposes
 $currentAdmin = getCurrentAdmin();
 
+// GitHub repository information
+define('GITHUB_REPO_OWNER', 'Penfold-88');
+define('GITHUB_REPO_NAME', 'DCS-Statistics-Dashboard');
+
 /**
  * Create a zip backup of the provided directory.
  *
@@ -61,6 +65,98 @@ function createBackup(string $source, string $destination): bool {
 }
 
 /**
+ * Recursively copy a directory tree.
+ *
+ * @param string $src Source directory
+ * @param string $dst Destination directory
+ */
+function recurseCopy(string $src, string $dst): void {
+    if (!is_dir($dst)) {
+        mkdir($dst, 0755, true);
+    }
+    $dir = opendir($src);
+    while (($file = readdir($dir)) !== false) {
+        if ($file === '.' || $file === '..') {
+            continue;
+        }
+        $srcPath = $src . '/' . $file;
+        $dstPath = $dst . '/' . $file;
+        if (is_dir($srcPath)) {
+            recurseCopy($srcPath, $dstPath);
+        } else {
+            copy($srcPath, $dstPath);
+        }
+    }
+    closedir($dir);
+}
+
+/**
+ * Recursively remove a directory tree.
+ *
+ * @param string $dir Directory to remove
+ */
+function rrmdir(string $dir): void {
+    if (!is_dir($dir)) {
+        return;
+    }
+    $items = array_diff(scandir($dir), ['.', '..']);
+    foreach ($items as $item) {
+        $path = $dir . '/' . $item;
+        if (is_dir($path)) {
+            rrmdir($path);
+        } else {
+            unlink($path);
+        }
+    }
+    rmdir($dir);
+}
+
+/**
+ * Retrieve remote version string from GitHub for a given branch.
+ *
+ * @param string $branch Branch name
+ * @return string|null Version string or null on failure
+ */
+function getRemoteVersion(string $branch): ?string {
+    $url = sprintf(
+        'https://raw.githubusercontent.com/%s/%s/%s/dcs-stats/site-config/config.php',
+        GITHUB_REPO_OWNER,
+        GITHUB_REPO_NAME,
+        $branch
+    );
+    $data = @file_get_contents($url);
+    if ($data === false) {
+        return null;
+    }
+    if (preg_match("/define\('ADMIN_PANEL_VERSION',\s*'([^']+)'\);/", $data, $matches)) {
+        return $matches[1];
+    }
+    return null;
+}
+
+/**
+ * Download a zip archive for the given branch from GitHub.
+ *
+ * @param string $branch Branch name
+ * @return string|null Path to downloaded archive or null on failure
+ */
+function downloadBranchArchive(string $branch): ?string {
+    $url = sprintf(
+        'https://github.com/%s/%s/archive/refs/heads/%s.zip',
+        GITHUB_REPO_OWNER,
+        GITHUB_REPO_NAME,
+        $branch
+    );
+    $data = @file_get_contents($url);
+    if ($data === false) {
+        return null;
+    }
+    $tmp = tempnam(sys_get_temp_dir(), 'update_');
+    file_put_contents($tmp, $data);
+    return $tmp;
+}
+
+/**
  * Perform update by extracting provided archive into target directory.
  *
  * @param string $archivePath Path to update archive
@@ -68,78 +164,123 @@ function createBackup(string $source, string $destination): bool {
  * @return bool True on success, false on failure
  */
 function performUpdate(string $archivePath, string $targetDir): bool {
+    $extractPath = sys_get_temp_dir() . '/dcs_update_' . uniqid();
+    mkdir($extractPath, 0755, true);
+    $extracted = false;
+
     if (class_exists('ZipArchive')) {
         $zip = new ZipArchive();
         if ($zip->open($archivePath) === true) {
-            $zip->extractTo($targetDir);
+            $zip->extractTo($extractPath);
             $zip->close();
-            return true;
+            $extracted = true;
+        } else {
+            echo "Error: Unable to open update archive.";
+            rrmdir($extractPath);
+            return false;
         }
-        echo "Error: Unable to open update archive.";
+    } else {
+        echo "Warning: PHP ZipArchive extension not installed. " .
+             "Consider enabling it via php.ini or installing php-zip. " .
+             "Attempting fallback extraction...";
+
+        if (class_exists('PharData')) {
+            try {
+                $phar = new PharData($archivePath);
+                $phar->extractTo($extractPath, null, true);
+                $extracted = true;
+            } catch (Exception $e) {
+                // continue to next fallback
+            }
+        }
+
+        if (!$extracted) {
+            $unzip = trim(shell_exec('command -v unzip'));
+            if ($unzip) {
+                $cmd = escapeshellcmd($unzip) . ' ' . escapeshellarg($archivePath) . ' -d ' . escapeshellarg($extractPath);
+                exec($cmd, $output, $retval);
+                $extracted = ($retval === 0);
+            }
+        }
+    }
+
+    if (!$extracted) {
+        rrmdir($extractPath);
+        echo "\nError: No suitable archive extraction method available. Update aborted.";
         return false;
     }
 
-    // ZipArchive is unavailable – advise admin and attempt fallback
-    echo "Warning: PHP ZipArchive extension not installed. " .
-         "Consider enabling it via php.ini or installing php-zip. " .
-         "Attempting fallback extraction...";
-
-    // Fallback 1: PharData
-    if (class_exists('PharData')) {
-        try {
-            $phar = new PharData($archivePath);
-            $phar->extractTo($targetDir, null, true);
-            return true;
-        } catch (Exception $e) {
-            // Continue to next fallback
+    // Locate extracted repo root containing dcs-stats
+    $rootItems = scandir($extractPath);
+    $sourceDir = '';
+    foreach ($rootItems as $item) {
+        if ($item === '.' || $item === '..') {
+            continue;
+        }
+        $candidate = $extractPath . '/' . $item . '/dcs-stats';
+        if (is_dir($candidate)) {
+            $sourceDir = $candidate;
+            break;
         }
     }
 
-    // Fallback 2: system unzip command
-    $unzip = trim(shell_exec('command -v unzip'));
-    if ($unzip) {
-        $cmd = escapeshellcmd($unzip) . ' ' . escapeshellarg($archivePath) . ' -d ' . escapeshellarg($targetDir);
-        exec($cmd, $output, $retval);
-        if ($retval === 0) {
-            return true;
-        }
+    if (!$sourceDir) {
+        rrmdir($extractPath);
+        echo 'Error: Extracted archive missing dcs-stats folder.';
+        return false;
     }
 
-    echo "\nError: No suitable archive extraction method available. Update aborted.";
-    return false;
+    recurseCopy($sourceDir, $targetDir);
+    rrmdir($extractPath);
+    return true;
 }
 
 $message = '';
 $messageType = '';
+$branch = $_POST['branch'] ?? 'master';
+if (!in_array($branch, ['master', 'dev'], true)) {
+    $branch = 'master';
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!isset($_POST['csrf_token']) || !verifyCSRFToken($_POST['csrf_token'])) {
         $message = ERROR_MESSAGES['csrf_invalid'];
         $messageType = 'error';
-    } elseif (!isset($_FILES['update_archive']) || $_FILES['update_archive']['error'] !== UPLOAD_ERR_OK) {
-        $message = 'File upload failed.';
-        $messageType = 'error';
     } else {
-        $archivePath = $_FILES['update_archive']['tmp_name'];
-        $targetDir = dirname(__DIR__);
-
-        $backupDir = __DIR__ . '/data/backups';
-        if (!is_dir($backupDir)) {
-            mkdir($backupDir, 0755, true);
-        }
-        $backupFile = $backupDir . '/site-backup-' . date('YmdHis') . '.zip';
-
-        if (createBackup($targetDir, $backupFile)) {
-            if (performUpdate($archivePath, $targetDir)) {
-                $message = 'Update completed successfully.';
-                $messageType = 'success';
-            } else {
-                $message = 'Update failed. See errors above.';
-                $messageType = 'error';
-            }
-        } else {
-            $message = 'Backup failed. Update aborted.';
+        $remoteVersion = getRemoteVersion($branch);
+        if ($remoteVersion === null) {
+            $message = 'Unable to retrieve remote version.';
             $messageType = 'error';
+        } elseif (version_compare($remoteVersion, ADMIN_PANEL_VERSION, '<=')) {
+            $message = 'Already up to date.';
+            $messageType = 'success';
+        } else {
+            $archivePath = downloadBranchArchive($branch);
+            if (!$archivePath) {
+                $message = 'Failed to download update archive.';
+                $messageType = 'error';
+            } else {
+                $targetDir = dirname(__DIR__);
+                $backupDir = __DIR__ . '/data/backups';
+                if (!is_dir($backupDir)) {
+                    mkdir($backupDir, 0755, true);
+                }
+                $backupFile = $backupDir . '/site-backup-' . date('YmdHis') . '.zip';
+
+                if (createBackup($targetDir, $backupFile)) {
+                    if (performUpdate($archivePath, $targetDir)) {
+                        $message = 'Update to version ' . $remoteVersion . ' completed successfully.';
+                        $messageType = 'success';
+                    } else {
+                        $message = 'Update failed. See errors above.';
+                        $messageType = 'error';
+                    }
+                } else {
+                    $message = 'Backup failed. Update aborted.';
+                    $messageType = 'error';
+                }
+                unlink($archivePath);
+            }
         }
     }
 }
@@ -174,11 +315,17 @@ $pageTitle = 'System Updater';
                     <?= e($message) ?>
                 </div>
             <?php endif; ?>
-            <form method="POST" enctype="multipart/form-data">
+            <form method="POST">
                 <?= csrfField() ?>
                 <div class="form-group">
-                    <label for="update_archive">Update Archive (.zip)</label>
-                    <input type="file" name="update_archive" id="update_archive" class="form-control" required>
+                    <label for="branch">Select Branch</label>
+                    <select name="branch" id="branch" class="form-control">
+                        <option value="master" <?= $branch === 'master' ? 'selected' : '' ?>>master</option>
+                        <option value="dev" <?= $branch === 'dev' ? 'selected' : '' ?>>dev</option>
+                    </select>
+                    <div id="dev-warning" class="alert alert-warning" style="display: <?= $branch === 'dev' ? 'block' : 'none' ?>; margin-top:8px;">
+                        This is not a stable release. Use at your own risk.
+                    </div>
                 </div>
                 <div class="btn-group">
                     <button type="submit" class="btn btn-primary">Run Update</button>
@@ -187,6 +334,11 @@ $pageTitle = 'System Updater';
         </div>
     </main>
 </div>
+<script>
+document.getElementById('branch').addEventListener('change', function() {
+    document.getElementById('dev-warning').style.display = this.value === 'dev' ? 'block' : 'none';
+});
+</script>
 </body>
 </html>
 
