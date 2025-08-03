@@ -951,3 +951,19 @@ button[onclick*="search"]:hover {
     font-size: 2.5rem;
     margin-bottom: 10px;
 }
+
+/* Maintenance page styling */
+.maintenance-page {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 1rem;
+}
+
+.maintenance-icon {
+    width: 100px;
+    height: 100px;
+}
