@@ -144,6 +144,23 @@ function rrmdir(string $dir): void {
 }
 
 /**
+ * Retrieve the current local version from version.txt, falling back to
+ * the ADMIN_PANEL_VERSION constant if the file is missing.
+ *
+ * @return string|null Version string or null when unavailable
+ */
+function getLocalVersion(): ?string {
+    $path = __DIR__ . '/version.txt';
+    if (is_file($path)) {
+        $version = trim(file_get_contents($path));
+        if ($version !== '') {
+            return $version;
+        }
+    }
+    return defined('ADMIN_PANEL_VERSION') ? ADMIN_PANEL_VERSION : null;
+}
+
+/**
  * Retrieve remote version string from GitHub for a given branch.
  *
  * Attempts to read a simple version.txt file first, falling back to parsing
@@ -291,10 +308,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $messageType = 'error';
     } else {
         $remoteVersion = getRemoteVersion($branch);
+        $localVersion = getLocalVersion();
         if ($remoteVersion === null) {
             $message = 'Unable to retrieve remote version.';
             $messageType = 'error';
-        } elseif (version_compare($remoteVersion, ADMIN_PANEL_VERSION, '<=')) {
+        } elseif ($localVersion === null) {
+            $message = 'Unable to determine local version.';
+            $messageType = 'error';
+        } elseif (version_compare($remoteVersion, $localVersion, '<=')) {
             $message = 'Already up to date.';
             $messageType = 'success';
         } else {
