@@ -3,7 +3,6 @@
  * Dashboard Update Page
  */
 
-define('ADMIN_PANEL', true);
 require_once __DIR__ . '/auth.php';
 require_once __DIR__ . '/admin_functions.php';
 
@@ -66,12 +65,16 @@ if (isset($_GET['run'])) {
     $doBackup = isset($_POST['backup']);
 
     $repoUrl = trim(shell_exec('git config --get remote.origin.url'));
-    if (!preg_match('#github.com[:/](.+?)/(.+?)(?:\.git)?$#', $repoUrl, $matches)) {
-        $log('Could not determine repository');
+    if ($repoUrl && preg_match('#github.com[:/](.+?)/(.+?)(?:\.git)?$#', $repoUrl, $matches)) {
+        $owner = $matches[1];
+        $repo = $matches[2];
+    } elseif (defined('GITHUB_OWNER') && defined('GITHUB_REPO') && GITHUB_OWNER && GITHUB_REPO) {
+        $owner = GITHUB_OWNER;
+        $repo = GITHUB_REPO;
+    } else {
+        $log('Could not determine repository - set GITHUB_OWNER and GITHUB_REPO in config.php');
         exit;
     }
-    $owner = $matches[1];
-    $repo = $matches[2];
 
     $apiUrl = "https://api.github.com/repos/$owner/$repo/zipball/$branch";
     $log("Downloading $branch branch...");

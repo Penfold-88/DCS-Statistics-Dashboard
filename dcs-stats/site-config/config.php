@@ -15,6 +15,10 @@ define('ADMIN_SESSION_NAME', 'dcs_admin_session');
 define('ADMIN_COOKIE_NAME', 'dcs_admin_remember');
 define('ADMIN_COOKIE_LIFETIME', 30 * 24 * 60 * 60); // 30 days
 
+// GitHub repository details for updater
+define('GITHUB_OWNER', ''); // e.g. 'YourGitHubUsername'
+define('GITHUB_REPO', '');  // e.g. 'YourRepositoryName'
+
 // Security settings
 define('LOGIN_THROTTLE_ATTEMPTS', 5); // Max login attempts
 define('LOGIN_THROTTLE_WINDOW', 900); // 15 minutes in seconds
