@@ -46,7 +46,7 @@ if (!isset($currentAdmin)) {
             </li>
             <?php endif; ?>
             <?php if (hasPermission('change_settings')): ?>
-<?php $isSettingsPage = in_array(basename($_SERVER['PHP_SELF']), ['settings.php', 'api_settings.php', 'themes.php', 'discord_settings.php', 'squadron_settings.php', 'admins.php', 'permissions.php', 'maintenance.php']); ?>
+<?php $isSettingsPage = in_array(basename($_SERVER['PHP_SELF']), ['settings.php', 'api_settings.php', 'themes.php', 'discord_settings.php', 'squadron_settings.php', 'admins.php', 'permissions.php', 'maintenance.php', 'update.php']); ?>
             <li class="nav-dropdown <?= $isSettingsPage ? 'open' : '' ?>">
                 <a href="#" class="nav-dropdown-toggle <?= $isSettingsPage ? 'active' : '' ?>">
                     <span class="nav-icon">⚙️</span>
@@ -86,6 +86,12 @@ if (!isset($currentAdmin)) {
                         </a>
                     </li>
                     <?php endif; ?>
+                    <li>
+                        <a href="update.php" <?= basename($_SERVER['PHP_SELF']) === 'update.php' ? 'class="active"' : '' ?>>
+                            <span class="nav-icon">⬆️</span>
+                            Update
+                        </a>
+                    </li>
                     <li>
                         <a href="maintenance.php" <?= basename($_SERVER['PHP_SELF']) === 'maintenance.php' ? 'class="active"' : '' ?>>
                             <span class="nav-icon">🛠️</span>
@@ -179,7 +185,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.addEventListener('click', function(e) {
         if (!e.target.closest('.nav-dropdown')) {
             const currentPath = window.location.pathname;
-            const settingsPages = ['settings.php', 'api_settings.php', 'themes.php', 'discord_settings.php', 'squadron_settings.php', 'admins.php', 'maintenance.php'];
+            const settingsPages = ['settings.php', 'api_settings.php', 'themes.php', 'discord_settings.php', 'squadron_settings.php', 'admins.php', 'maintenance.php', 'update.php'];
             const isOnSettingsPage = settingsPages.some(page => currentPath.includes(page));
             
             if (!isOnSettingsPage) {
