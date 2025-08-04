@@ -61,7 +61,7 @@ if (isset($_GET['run'])) {
         exit;
     }
 
-    $branch = $_POST['branch'] === 'dev' ? 'dev' : 'master';
+    $branch = $_POST['branch'] === 'dev' ? 'dev' : 'main';
     $doBackup = isset($_POST['backup']);
 
     $repoUrl = trim(shell_exec('git config --get remote.origin.url'));
@@ -222,7 +222,7 @@ $pageTitle = 'Update Dashboard';
                 <div class="form-group">
                     <label for="branch">Select Branch</label>
                     <select name="branch" id="branch" class="form-control">
-                        <option value="master">Master</option>
+                        <option value="main">Main</option>
                         <option value="dev">Dev</option>
                     </select>
                 </div>
