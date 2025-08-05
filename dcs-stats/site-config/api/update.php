@@ -16,8 +16,12 @@ function logMessage($msg) {
     flush();
 }
 
-// Always use main branch for updates
-$branch = 'main';
+$rootPath = dirname(__DIR__, 2); // path to dcs-stats
+
+// Detect development mode via .dev file
+$isDev = file_exists($rootPath . '/.dev');
+$branch = $isDev ? 'Dev' : 'main';
+
 // ALWAYS backup before updates, regardless of user choice
 $backup = true; // Force backup for safety
 $specificVersion = !empty($_POST['version']) ? $_POST['version'] : null;
@@ -30,18 +34,49 @@ $repo = 'Penfold-88/DCS-Statistics-Dashboard';
 $currentVersion = defined('ADMIN_PANEL_VERSION') ? ADMIN_PANEL_VERSION : '1.0.0';
 logMessage("Current version: $currentVersion");
 
+// Check latest release when not in dev mode
+$latestRelease = null;
+if (!$isDev) {
+    logMessage("Checking for latest release...");
+    $releaseUrl = "https://api.github.com/repos/$repo/releases/latest";
+    $ch = curl_init($releaseUrl);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_USERAGENT, 'DCS-Stats-Updater');
+    $releaseData = curl_exec($ch);
+    curl_close($ch);
+
+    if ($releaseData) {
+        $release = json_decode($releaseData, true);
+        if (isset($release['tag_name'])) {
+            $latestRelease = $release['tag_name'];
+            logMessage("Latest release: " . $latestRelease);
+            // Compare versions (handle V prefix)
+            $current = ltrim($currentVersion, 'Vv');
+            $latest = ltrim($latestRelease, 'Vv');
+            if (version_compare($current, $latest, '>=') && !$specificVersion) {
+                logMessage("You are already running the latest version.");
+                exit;
+            }
+        }
+    }
+}
+
 // Determine download URL
 if ($specificVersion) {
     // Download specific version/tag
     $apiUrl = "https://api.github.com/repos/$repo/zipball/$specificVersion";
     logMessage("Downloading specific version: $specificVersion");
-} else {
-    // Download latest from branch
+} elseif ($isDev) {
+    // Development mode - use dev branch
     $apiUrl = "https://api.github.com/repos/$repo/zipball/$branch";
-    logMessage("Downloading latest from branch: $branch");
+    logMessage("Development mode detected - downloading latest from branch: $branch");
+} else {
+    // Production mode - use latest release tag
+    $target = $latestRelease ?? 'main';
+    $apiUrl = "https://api.github.com/repos/$repo/zipball/$target";
+    logMessage("Downloading latest release: $target");
 }
 
-$rootPath = dirname(__DIR__, 2); // path to dcs-stats
 $upgradeDir = $rootPath . '/UPGRADE';
 $backupDir = $rootPath . '/backups';
 
@@ -51,29 +86,6 @@ if (!is_dir($upgradeDir)) {
 
 if ($backup && !is_dir($backupDir)) {
     mkdir($backupDir, 0755, true);
-}
-
-// Always check for latest release
-logMessage("Checking for latest release...");
-$releaseUrl = "https://api.github.com/repos/$repo/releases/latest";
-$ch = curl_init($releaseUrl);
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-curl_setopt($ch, CURLOPT_USERAGENT, 'DCS-Stats-Updater');
-$releaseData = curl_exec($ch);
-curl_close($ch);
-
-if ($releaseData) {
-    $release = json_decode($releaseData, true);
-    if (isset($release['tag_name'])) {
-        logMessage("Latest release: " . $release['tag_name']);
-        // Compare versions (handle V prefix)
-        $current = ltrim($currentVersion, 'Vv');
-        $latest = ltrim($release['tag_name'], 'Vv');
-        if (version_compare($current, $latest, '>=') && !$specificVersion) {
-            logMessage("You are already running the latest version.");
-            exit;
-        }
-    }
 }
 
 // CRITICAL: Backup config files before ANY update
@@ -115,7 +127,7 @@ foreach ($configFiles as $file) {
 }
 logMessage("Config backup complete: $configBackupDir");
 
-$downloadLabel = $specificVersion ? "version $specificVersion" : "latest release";
+$downloadLabel = $specificVersion ? "version $specificVersion" : ($isDev ? 'dev branch' : 'latest release');
 logMessage("Downloading $downloadLabel...");
 $zipFile = $upgradeDir . '/update.zip';
 $ch = curl_init($apiUrl);
