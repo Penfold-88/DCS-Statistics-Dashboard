@@ -9,6 +9,12 @@
 
 ## 🎯 What's New in v1.0.0
 
+### 🔄 **Latest Updates**
+- 🌐 **Default Port Changed** - Now uses port 9080 (was 8080) to avoid conflicts
+- 🛠️ **Unified Management Script** - Single `dcs-docker-manager.bat` for all Docker operations
+- 🧹 **Complete Cleanup Option** - New `destroy` command removes all Docker artifacts
+- ✈️ **Pre-Flight Checks** - Automated Windows issue detection and resolution
+
 ### 🚀 **Advanced Admin Panel**
 - 🎛️ **Role-Based Access Control** - Multi-tier permission system (Air Boss, Squadron Leader, Pilot)
 - 🔐 **Secure Authentication** - Modern login system with session management
@@ -54,22 +60,28 @@ Experience a professional-grade statistics platform featuring:
 **Quick Start:**
 1. **Install Docker Desktop** from [docker.com](https://www.docker.com/products/docker-desktop/)
 2. **Extract the downloaded folder** to your preferred location
-3. **Run `launch.bat`** - Double-click or run from command prompt
-4. **Browser opens automatically** when ready
+3. **Run `dcs-docker-manager.bat`** - Double-click or run from command prompt
+4. **Access at `http://localhost:9080`** when ready
+5. **Complete setup** at `http://localhost:9080/site-config/install.php`
 
 **What happens automatically:**
-- ✅ Docker Desktop detection and startup
-- ✅ Windows-specific issue resolution
-- ✅ Environment configuration
-- ✅ Port availability checking (auto-selects if 8080 is busy)
-- ✅ Container initialization
-- ✅ Database setup
-- ✅ Web server configuration
+- ✅ Docker Desktop detection and startup assistance
+- ✅ Windows-specific issue resolution (line endings, permissions)
+- ✅ Environment configuration (.env file creation)
+- ✅ Port availability checking (auto-selects if 9080 is busy)
+- ✅ Container build and initialization
+- ✅ PHP and nginx server configuration
+- ✅ Health check verification
+- ✅ Network IP discovery and display
 
 **Managing the Application:**
-- **Start:** Run `launch.bat`
-- **Stop:** Run `shutdown.bat`
-- **Pre-Flight Check:** Run `dcs-docker-manager.bat pre-flight` (recommended)
+- **Start:** Run `dcs-docker-manager.bat` or `dcs-docker-manager.bat start`
+- **Stop:** Run `dcs-docker-manager.bat stop`
+- **Restart:** Run `dcs-docker-manager.bat restart`
+- **View Logs:** Run `dcs-docker-manager.bat logs`
+- **Check Status:** Run `dcs-docker-manager.bat status`
+- **Pre-Flight Check:** Run `dcs-docker-manager.bat pre-flight` (recommended for first-time setup)
+- **Complete Removal:** Run `dcs-docker-manager.bat destroy` (removes everything except your data)
 
 ##### **Linux/Mac Users**
 
@@ -83,7 +95,7 @@ chmod +x docker-start.sh
 # Start the application
 ./docker-start.sh
 
-# Access at http://localhost:8080
+# Access at http://localhost:9080
 
 # To stop:
 ./docker-start.sh stop
@@ -104,7 +116,7 @@ chmod +x docker-start.sh
 2. **Click "Start Setup"** on the welcome screen
 3. **Create your admin account** (you'll be the Air Boss!)
 4. **Configure DCSServerBot API**:
-   - Enter your API URL (e.g., `http://localhost:8080`)
+   - Enter your API URL (e.g., `http://localhost:8080` for DCSServerBot)
    - Test the connection
    - Save configuration
 5. **Customize your dashboard**:
@@ -227,12 +239,12 @@ dcs-docker-manager.bat [pre-flight|start|stop|restart|status|logs|destroy]
 **Windows Specific Issues:**
 
 1. **"Docker Desktop is not running"**
-   - Solution: `launch.bat` will attempt to start it automatically
+   - Solution: `dcs-docker-manager.bat` will attempt to start it automatically
    - Manual: Start Docker Desktop from Start Menu
 
-2. **"Port 8080 is already in use"**
+2. **"Port 9080 is already in use"**
    - Solution: The scripts automatically find an available port
-   - Manual: Edit `.env` file and change `WEB_PORT=8080` to another port
+   - Manual: Edit `.env` file and change `WEB_PORT=9080` to another port
 
 3. **"Permission denied" errors**
    - Solution: Run `dcs-docker-manager.bat pre-flight` first
@@ -267,9 +279,6 @@ dcs-docker-manager.bat [pre-flight|start|stop|restart|status|logs|destroy]
 ```powershell
 # Navigate to the extracted folder
 cd DCS-Statistics-Dashboard
-
-# Run pre-flight check first (recommended)
-dcs-docker-manager.bat pre-flight
 
 # Run pre-flight checks first (recommended for new installs)
 dcs-docker-manager.bat pre-flight
@@ -322,13 +331,31 @@ cd DCS-Statistics-Dashboard
 docker compose build --no-cache
 docker compose up -d
 
-# Access at http://localhost:8080
+# Access at http://localhost:9080
 ```
+
+### 🗑️ Complete Cleanup with Destroy Command
+
+**Windows:**
+```batch
+# Remove everything Docker-related for this project
+dcs-docker-manager.bat destroy
+```
+
+This command will:
+- Stop and remove the DCS Statistics container
+- Delete the Docker image
+- Remove all Docker volumes
+- Clean up Docker networks
+- Delete your .env configuration file
+- **Preserve your data in ./dcs-stats directory**
+
+After destroy, run `dcs-docker-manager.bat pre-flight` to start fresh.
 
 ### 🎨 What the Launcher Scripts Do
 
 1. **Check Docker Installation** - Verify Docker and Docker Compose are available
-2. **Port Availability** - Check if port 8080 is free, find alternative if not
+2. **Port Availability** - Check if port 9080 is free, find alternative if not
 3. **Container Management** - Stop any existing containers before starting
 4. **Build Fresh** - Always build with `--no-cache` for consistency
 5. **Network Discovery** - Display all available access URLs:
@@ -381,7 +408,7 @@ The launcher scripts automatically handle port selection, but you can set a pref
 echo "WEB_PORT=8090" > .env
 
 # Run launcher - it will use 8090 or find next available
-./docker-start.sh  # or .\docker-start.ps1 on Windows
+./docker-start.sh  # or .\dcs-docker-manager.bat on Windows
 ```
 
 **Method 2: Manual Docker Compose**
@@ -418,11 +445,11 @@ dcs-docker-manager.bat pre-flight
 #### Port Already in Use
 The launcher scripts automatically find an available port. If running manually:
 ```bash
-# Check what's using port 8080
+# Check what's using port 9080
 # Linux/Mac
-lsof -i :8080
+lsof -i :9080
 # Windows PowerShell
-Get-NetTCPConnection -LocalPort 8080
+Get-NetTCPConnection -LocalPort 9080
 
 # Use a different port
 WEB_PORT=8090 docker compose up -d
@@ -514,14 +541,14 @@ Control exactly what your community sees:
 ### 📊 **API Connection Issues**
 ```bash
 # Test API directly
-curl http://localhost:8080/ping
+curl http://localhost:8080/ping  # DCSServerBot API endpoint
 
 # Check admin panel
 Dashboard → API Configuration → Test Connection
 
 # For Docker users
-Use http://host.docker.internal:8080 on Windows/Mac
-Use http://172.17.0.1:8080 on Linux
+Use http://host.docker.internal:8080 on Windows/Mac  # For DCSServerBot API
+Use http://172.17.0.1:8080 on Linux  # For DCSServerBot API
 ```
 
 ### 🎨 **Theme Not Applying**
