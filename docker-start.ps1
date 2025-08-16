@@ -15,7 +15,7 @@ param(
 )
 
 # Default configuration
-$DefaultPort = 8080
+$DefaultPort = 9080
 $ContainerName = "dcs-statistics"
 $EnvFile = ".env"
 
@@ -48,7 +48,7 @@ function Test-PortAvailable {
 # Function to find an available port
 function Find-AvailablePort {
     param(
-        [int]$StartPort = 8080,
+        [int]$StartPort = 9080,
         [int]$MaxAttempts = 100
     )
     

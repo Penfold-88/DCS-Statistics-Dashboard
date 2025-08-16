@@ -32,7 +32,7 @@ if %errorlevel% neq 0 (
     echo Common solutions:
     echo - Make sure Docker Desktop is running
     echo - Run fix-windows-issues.bat first
-    echo - Check if port 8080 is available
+    echo - Check if port 9080 is available
     pause
     exit /b %errorlevel%
 )

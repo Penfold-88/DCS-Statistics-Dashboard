@@ -9,7 +9,7 @@ services:
     container_name: ${CONTAINER_NAME:-dcs-statistics}
     hostname: ${HOSTNAME:-dcs-stats}
     ports:
-      - "${WEB_PORT:-8080}:${INTERNAL_PORT:-80}"
+      - "${WEB_PORT:-9080}:${INTERNAL_PORT:-80}"
     volumes:
       # Mount the entire dcs-stats directory
       # Windows users: Docker Desktop handles path conversion automatically
@@ -38,7 +38,7 @@ services:
       - RATE_LIMIT_WINDOW=${RATE_LIMIT_WINDOW:-60}
       
       # Application Configuration  
-      - SITE_URL=${SITE_URL:-http://localhost:8080}
+      - SITE_URL=${SITE_URL:-http://localhost:9080}
       - TZ=${TIMEZONE:-UTC}
       - DEBUG_MODE=${DEBUG_MODE:-false}
       - MAINTENANCE_MODE=${MAINTENANCE_MODE:-false}
