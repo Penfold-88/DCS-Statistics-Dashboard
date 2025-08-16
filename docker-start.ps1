@@ -256,7 +256,7 @@ function Start-DCSStatistics {
         Write-Host "💅 Just FYI: " -NoNewline
         Write-Host './fix-windows-issues.ps1' -ForegroundColor Cyan -NoNewline
         Write-Host " exists for a reason"
-        Write-Host "   (It`'s like a pre-flight check, but cooler)"
+        Write-Host "   (It is like a pre-flight check, but cooler)"
         Write-Host ""
     }
     
@@ -269,10 +269,10 @@ function Start-DCSStatistics {
     # Check Docker installation
     Write-Info "Checking Docker installation..."
     if (-not (Test-DockerInstalled)) {
-        Write-Error "Docker`'s not home right now..."
-        Write-Host "🫠 Once you get Docker Desktop installed, there`'s " -NoNewline
+        Write-Error "Docker is not home right now..."
+        Write-Host "🫠 Once you get Docker Desktop installed, there is " -NoNewline
         Write-Host './fix-windows-issues.ps1' -ForegroundColor Cyan
-        Write-Host "   (It`'ll make sure everything`'s perfect for Windows)"
+        Write-Host "   (It will make sure everything is perfect for Windows)"
         return
     }
     Write-Success "Docker is installed and running"
@@ -300,7 +300,7 @@ function Start-DCSStatistics {
         $selectedPort = Find-AvailablePort -StartPort $desiredPort
         if (-not $selectedPort) {
             Write-Error "No available ports found in range $desiredPort-$($desiredPort + 100)"
-            Write-Host "😤 Wow, ALL those ports are taken? That`'s... impressive"
+            Write-Host "😤 Wow, ALL those ports are taken? That is... impressive"
             Write-Host "   Maybe " -NoNewline
             Write-Host "fix-windows-issues.ps1" -ForegroundColor Cyan -NoNewline
             Write-Host " can help clear things up?"
@@ -324,7 +324,7 @@ function Start-DCSStatistics {
         $buildError = $buildOutput -join " "
         if ($buildError -match "invalid pool" -or $buildError -match "pool request") {
             Write-Warning "Oh snap! Network configuration went sideways!"
-            Write-Host "🙄 There`'s a script for that: " -NoNewline
+            Write-Host "🙄 There is a script for that: " -NoNewline
             Write-Host "fix-windows-issues.ps1" -ForegroundColor Cyan -NoNewline
             Write-Host ""
             Write-Host "   (It literally fixes this in 2 seconds, just saying...)"
@@ -344,11 +344,11 @@ function Start-DCSStatistics {
             Write-Host "   (Windows being Windows, as usual...)"
         }
         else {
-            Write-Host "🤯 Well, that`'s a new one! Haven`'t seen this error before..."
+            Write-Host "🤯 Well, that is a new one! Have not seen this error before..."
             Write-Host "   Maybe try " -NoNewline
             Write-Host "fix-windows-issues.ps1" -ForegroundColor Cyan -NoNewline
             Write-Host " first? It fixes most things"
-            Write-Host "   (Or run `"$ComposeCmd build --no-cache`" for the gory details)"
+            Write-Host "   (Or run $ComposeCmd build --no-cache for the gory details)"
         }
         return
     }
@@ -367,25 +367,25 @@ function Start-DCSStatistics {
             Write-Host "🎭 Plot twist: " -NoNewline
             Write-Host "fix-windows-issues.ps1" -ForegroundColor Cyan -NoNewline
             Write-Host " handles permissions"
-            Write-Host "   (I know, I know... should`'ve mentioned it earlier)"
+            Write-Host "   (I know, I know... should have mentioned it earlier)"
         }
         elseif ($startError -match "network.*not found") {
             Write-Warning "Docker networks playing hide and seek again!"
             Write-Host "🎯 Pro tip: " -NoNewline
             Write-Host "fix-windows-issues.ps1" -ForegroundColor Cyan -NoNewline
             Write-Host " cleans these up"
-            Write-Host "   (It`'s like a spa day for your Docker networks)"
+            Write-Host "   (It is like a spa day for your Docker networks)"
         }
         elseif ($startError -match "port is already allocated" -or $startError -match "bind.*address already in use") {
-            Write-Warning "Port $selectedPort is being a diva - says it`'s already taken!"
-            Write-Host "🤷 That`'s awkward... I usually catch this. Try running again?"
+            Write-Warning "Port $selectedPort is being a diva - says it is already taken!"
+            Write-Host "🤷 That is awkward... I usually catch this. Try running again?"
             Write-Host "   (Sometimes ports are just moody like that)"
         }
         else {
             Write-Host "🫨 Something weird happened... and not the good kind of weird"
             Write-Host "   First aid kit: " -NoNewline
             Write-Host './fix-windows-issues.ps1' -ForegroundColor Cyan
-            Write-Host "   (If that doesn`'t help, run `"$ComposeCmd up`" for the full drama)"
+            Write-Host "   (If that does not help, run $ComposeCmd up for the full drama)"
         }
         return
     }
