@@ -222,7 +222,7 @@ if [ ! -f "/var/www/html/site-config/data/users.json" ]; then
     echo "========================================"
     echo ""
     echo "Please navigate to:"
-    echo "http://localhost:${WEB_PORT:-8080}/site-config/install.php"
+    echo "http://localhost:${WEB_PORT:-9080}/site-config/install.php"
     echo ""
     echo "========================================"
     echo ""

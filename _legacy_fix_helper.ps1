@@ -177,8 +177,8 @@ function Ensure-EnvFile {
             Copy-Item ".\.env.example" ".\.env"
             Write-Host "  Created .env file from .env.example" -ForegroundColor Green
             
-            # Update default port if 8080 is in use
-            $port = 8080
+            # Update default port if 9080 is in use
+            $port = 9080
             $tcpListener = $null
             try {
                 $tcpListener = New-Object System.Net.Sockets.TcpListener([System.Net.IPAddress]::Any, $port)
@@ -205,9 +205,9 @@ function Ensure-EnvFile {
                 
                 # Update .env with new port
                 $envContent = Get-Content ".\.env"
-                $envContent = $envContent -replace "WEB_PORT=8080", "WEB_PORT=$port"
+                $envContent = $envContent -replace "WEB_PORT=9080", "WEB_PORT=$port"
                 Set-Content ".\.env" $envContent
-                Write-Host "  Updated WEB_PORT to $port (8080 was in use)" -ForegroundColor Yellow
+                Write-Host "  Updated WEB_PORT to $port (9080 was in use)" -ForegroundColor Yellow
             }
             finally {
                 if ($tcpListener) {
