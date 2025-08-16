@@ -207,7 +207,7 @@ shutdown.bat
 fix-windows-issues.bat
 
 # Advanced users can use PowerShell scripts directly:
-dcs-docker-manager.bat [start|stop|restart|status|logs|destroy]
+dcs-docker-manager.bat [pre-flight|start|stop|restart|status|logs|destroy]
 ```
 
 **Linux/Mac Users:**
@@ -277,7 +277,10 @@ cd DCS-Statistics-Dashboard
 # Fix Windows-specific issues first (recommended)
 .\fix-windows-issues.ps1
 
-# Run the launcher
+# Run pre-flight checks first (recommended for new installs)
+dcs-docker-manager.bat pre-flight
+
+# Start the containers
 dcs-docker-manager.bat
 
 # Other commands

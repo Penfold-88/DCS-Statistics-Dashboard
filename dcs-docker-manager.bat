@@ -1,7 +1,7 @@
 @echo off
 :: DCS Statistics Docker Manager - Windows Batch Wrapper
 :: This file manages Docker containers for DCS Statistics
-:: Supports: start, stop, restart, status, logs, destroy
+:: Supports: pre-flight, start, stop, restart, status, logs, destroy
 
 echo ========================================
 echo DCS Statistics Docker Manager

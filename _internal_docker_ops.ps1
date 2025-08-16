@@ -10,7 +10,7 @@
 
 param(
     [Parameter(Position=0)]
-    [ValidateSet("start", "stop", "restart", "status", "logs", "destroy")]
+    [ValidateSet("start", "stop", "restart", "status", "logs", "destroy", "pre-flight")]
     [string]$Action = "start"
 )
 
@@ -456,6 +456,106 @@ switch ($Action) {
     }
     "logs" {
         docker logs -f $ContainerName
+    }
+    "pre-flight" {
+        Write-Host "========================================"
+        Write-Host "Pre-Flight Check for DCS Statistics"
+        Write-Host "========================================"
+        Write-Host ""
+        Write-Info "Running pre-flight checks and fixes..."
+        Write-Host ""
+        
+        # Check Docker installation
+        Write-Info "Checking Docker installation..."
+        $dockerOk = $false
+        try {
+            $null = docker --version 2>&1
+            if ($LASTEXITCODE -eq 0) {
+                Write-Success "Docker is installed"
+                
+                $dockerInfo = docker info 2>&1
+                if ($LASTEXITCODE -eq 0) {
+                    Write-Success "Docker daemon is running"
+                    $dockerOk = $true
+                }
+                else {
+                    Write-Warning "Docker daemon is not running"
+                    Write-Host "Please start Docker Desktop and try again"
+                }
+            }
+            else {
+                Write-Error "Docker is not installed"
+                Write-Host "Please install Docker Desktop from: https://www.docker.com/products/docker-desktop/"
+            }
+        }
+        catch {
+            Write-Error "Error checking Docker: $_"
+        }
+        Write-Host ""
+        
+        if ($dockerOk) {
+            # Fix line endings
+            Write-Info "Fixing line endings for Docker files..."
+            $filesToFix = @("*.sh", "Dockerfile*", "docker-compose*.yml", ".dockerignore", ".env*")
+            foreach ($pattern in $filesToFix) {
+                $files = Get-ChildItem -Path . -Filter $pattern -ErrorAction SilentlyContinue
+                foreach ($file in $files) {
+                    if (Test-Path $file.FullName -PathType Leaf) {
+                        $content = Get-Content $file.FullName -Raw -ErrorAction SilentlyContinue
+                        if ($content) {
+                            $fixed = $content -replace "`r`n", "`n"
+                            [System.IO.File]::WriteAllText($file.FullName, $fixed, [System.Text.Encoding]::UTF8)
+                            Write-Host "  Fixed: $($file.Name)" -ForegroundColor Green
+                        }
+                    }
+                }
+            }
+            Write-Host ""
+            
+            # Create required directories
+            Write-Info "Ensuring required directories exist..."
+            $dirs = @("./dcs-stats/data", "./dcs-stats/site-config/data", "./dcs-stats/backups")
+            foreach ($dir in $dirs) {
+                if (-not (Test-Path $dir)) {
+                    New-Item -ItemType Directory -Path $dir -Force | Out-Null
+                    Write-Success "Created directory: $dir"
+                }
+                else {
+                    Write-Host "  Directory exists: $dir" -ForegroundColor Gray
+                }
+            }
+            Write-Host ""
+            
+            # Create .env file if missing
+            Write-Info "Checking .env file..."
+            if (-not (Test-Path "./.env")) {
+                if (Test-Path "./.env.example") {
+                    Copy-Item "./.env.example" "./.env"
+                    Write-Success "Created .env file from .env.example"
+                }
+                else {
+                    Write-Warning "No .env.example file found"
+                }
+            }
+            else {
+                Write-Success ".env file exists"
+            }
+            Write-Host ""
+            
+            # Clean up Docker networks
+            Write-Info "Cleaning up Docker networks..."
+            docker network prune -f 2>&1 | Out-Null
+            Write-Success "Docker networks cleaned"
+            Write-Host ""
+            
+            Write-Success "Pre-flight check complete!"
+            Write-Host ""
+            Write-Host "You can now run:" -ForegroundColor Cyan
+            Write-Host "  dcs-docker-manager.bat start" -ForegroundColor Cyan
+        }
+        else {
+            Write-Error "Pre-flight check failed. Please fix the issues above."
+        }
     }
     "destroy" {
         Write-Warning "This will DESTROY everything related to DCS Statistics Docker setup!"
