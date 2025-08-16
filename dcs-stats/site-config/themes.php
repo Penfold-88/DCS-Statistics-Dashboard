@@ -689,7 +689,7 @@ $pageTitle = 'Theme Management';
                                 </div>
 
                                 <div class="color-input-group">
-                                    <label for="title_color" title="Site title gradient start">Site Title Color:</label>
+                                    <label for="title_color" title="Site title color">Site Title Color:</label>
                                     <input type="color" id="title_color" name="title_color"
                                            value="<?= htmlspecialchars($customColors['title_color']) ?>">
                                 </div>

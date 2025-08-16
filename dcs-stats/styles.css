@@ -99,13 +99,9 @@ body {
     color: var(--title_color);
     margin: 0;
     text-shadow:
-        0 0 20px rgba(76, 175, 80, 0.6),
+        0 0 20px var(--title_color),
         2px 2px 4px rgba(0, 0, 0, 0.8);
     letter-spacing: -0.5px;
-    background: linear-gradient(135deg, var(--title_color) 0%, var(--table_header_color) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
 }
 
 .site-subtitle {
