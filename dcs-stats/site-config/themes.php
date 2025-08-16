@@ -120,7 +120,19 @@ if (file_exists($menuConfigFile)) {
     }
 }
 
-$defaultColors = [
+// Load default colors from styles.css
+$defaultColors = [];
+$stylesCss = @file_get_contents(__DIR__ . '/../styles.css');
+if ($stylesCss !== false && preg_match('/:root\s*{([^}]*)}/', $stylesCss, $matches)) {
+    $varsBlock = $matches[1];
+    if (preg_match_all('/--([a-z_]+):\s*(#[0-9A-Fa-f]{6});/', $varsBlock, $colorMatches, PREG_SET_ORDER)) {
+        foreach ($colorMatches as $match) {
+            $defaultColors[$match[1]] = $match[2];
+        }
+    }
+}
+// Fallback values if styles.css couldn't be read
+$defaultColors += [
     'primary_color' => '#1a1a1a',
     'secondary_color' => '#2a2a2a',
     'background_color' => '#121212',
@@ -245,7 +257,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 foreach ($colors as $key => $value) {
                     if (preg_match('/^#[0-9A-Fa-f]{6}$/', $value)) {
                         $cssVars .= "    --{$key}: {$value};\n";
-                        if (strcasecmp($value, $defaultColors[$key]) !== 0) {
+                        if (!isset($defaultColors[$key]) || strcasecmp($value, $defaultColors[$key]) !== 0) {
                             $hasCustom = true;
                         }
                     }
@@ -1065,22 +1077,14 @@ $pageTitle = 'Theme Management';
         
         // Restore default colors
         function restoreDefaultColors() {
-            const defaults = {
-                'primary_color': '#1a1a1a',
-                'secondary_color': '#2a2a2a',
-                'background_color': '#121212',
-                'text_color': '#ffffff',
-                'link_color': '#4a9eff',
-                'border_color': '#556b2f',
-                'title_color': '#ffffff',
-                'title_color_secondary': '#4CAF50',
-                'table_color': '#2c2c2c',
-                'table_header_color': '#4CAF50'
-            };
+            const defaults = <?= json_encode($defaultColors, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>;
             
             // Set the color inputs to default values
             for (const [id, value] of Object.entries(defaults)) {
-                document.getElementById(id).value = value;
+                const input = document.getElementById(id);
+                if (input) {
+                    input.value = value;
+                }
             }
             
             // Update preview immediately
