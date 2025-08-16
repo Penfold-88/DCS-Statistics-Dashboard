@@ -149,7 +149,6 @@ function Test-DockerInstalled {
         }
         return $false
     }
-}
 
 # Function to get local IP addresses
 function Get-LocalIPAddresses {
