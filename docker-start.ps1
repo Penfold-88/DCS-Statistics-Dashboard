@@ -277,7 +277,7 @@ function Start-DCSStatistics {
     Write-Success "Docker is installed and running"
     
     # Stop existing container if running
-    $existingContainer = docker ps -a --format "{{.Names}}" | Where-Object { $_ -eq $ContainerName }
+    $existingContainer = docker ps -aq -f "name=$ContainerName"
     if ($existingContainer) {
         Write-Info "Stopping existing container..."
         & $ComposeCmd down 2>&1 | Out-Null
@@ -368,7 +368,7 @@ function Start-DCSStatistics {
             Write-Host " handles permissions"
             Write-Host "   (I know, I know... should've mentioned it earlier)"
         }
-        elseif ($startError -match "network .* not found") {
+        elseif ($startError -match 'network .* not found') {
             Write-Warning "Docker networks playing hide and seek again!"
             Write-Host "🎯 Pro tip: " -NoNewline
             Write-Host "fix-windows-issues.ps1" -ForegroundColor Cyan -NoNewline
@@ -427,7 +427,7 @@ switch ($Action) {
         Start-DCSStatistics
     }
     "status" {
-        $running = docker ps --format "{{.Names}}" | Where-Object { $_ -eq $ContainerName }
+        $running = docker ps -q -f "name=$ContainerName"
         if ($running) {
             $port = Get-CurrentPort
             Write-Success "DCS Statistics is running on port $port"
