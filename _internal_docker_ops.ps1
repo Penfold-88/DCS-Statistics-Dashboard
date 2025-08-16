@@ -3,7 +3,7 @@
 #
 # EXECUTION POLICY ERROR FIX:
 # If you get "running scripts is disabled on this system" error, run:
-#   powershell -ExecutionPolicy Bypass -File .\docker-start.ps1
+#   powershell -ExecutionPolicy Bypass -File .\_internal_docker_ops.ps1
 #
 # Or permanently allow scripts for current user:
 #   Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
@@ -217,7 +217,7 @@ function Show-AccessInfo {
     Write-Host "http://localhost:$Port/site-config/install.php" -ForegroundColor Yellow
     Write-Host ""
     Write-Host "To stop the server, run:"
-    Write-Host '  ./docker-start.ps1 stop' -ForegroundColor Gray
+    Write-Host '  dcs-docker-manager.bat stop' -ForegroundColor Gray
     Write-Host "  or"
     Write-Host "  $ComposeCmd down" -ForegroundColor Gray
     Write-Host ""
@@ -408,7 +408,7 @@ function Start-DCSStatistics {
     catch {
         Write-Warning "Service is being shy... might still be waking up"
         Write-Host "Check the logs with: " -NoNewline
-        Write-Host './docker-start.ps1 logs' -ForegroundColor Cyan
+        Write-Host 'dcs-docker-manager.bat logs' -ForegroundColor Cyan
         Write-Host "   (Or just wait a sec and refresh the browser)"
     }
     
@@ -502,7 +502,7 @@ switch ($Action) {
             Write-Host "  - Your .env configuration file" -ForegroundColor Green
             Write-Host ""
             Write-Host "To completely start fresh, run:" -ForegroundColor Cyan
-            Write-Host "  ./docker-start.ps1 start" -ForegroundColor Cyan
+            Write-Host "  dcs-docker-manager.bat start" -ForegroundColor Cyan
         }
         else {
             Write-Info "Destruction cancelled"

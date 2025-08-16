@@ -207,7 +207,7 @@ shutdown.bat
 fix-windows-issues.bat
 
 # Advanced users can use PowerShell scripts directly:
-powershell -ExecutionPolicy Bypass -File .\docker-start.ps1 [start|stop|restart|status|logs]
+dcs-docker-manager.bat [start|stop|restart|status|logs|destroy]
 ```
 
 **Linux/Mac Users:**
@@ -278,13 +278,14 @@ cd DCS-Statistics-Dashboard
 .\fix-windows-issues.ps1
 
 # Run the launcher
-.\docker-start.ps1
+dcs-docker-manager.bat
 
 # Other commands
-.\docker-start.ps1 stop      # Stop the container
-.\docker-start.ps1 restart   # Restart the container
-.\docker-start.ps1 status    # Check if running
-.\docker-start.ps1 logs      # View live logs
+dcs-docker-manager.bat stop      # Stop the container
+dcs-docker-manager.bat restart   # Restart the container
+dcs-docker-manager.bat status    # Check if running
+dcs-docker-manager.bat logs      # View live logs
+dcs-docker-manager.bat destroy   # Remove everything (with confirmation)
 ```
 
 **Windows Command Prompt (Batch):**
@@ -293,7 +294,7 @@ REM Navigate to the extracted folder
 cd DCS-Statistics-Dashboard
 
 REM Run the launcher (double-click or run in cmd)
-docker-start.bat
+dcs-docker-manager.bat
 ```
 
 **Linux/macOS (Bash):**

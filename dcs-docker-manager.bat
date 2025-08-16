@@ -1,10 +1,10 @@
 @echo off
-:: DCS Statistics Docker Startup - Windows Batch Wrapper
-:: This file automatically handles PowerShell execution policy
-:: Users can double-click this file or run it from command prompt
+:: DCS Statistics Docker Manager - Windows Batch Wrapper
+:: This file manages Docker containers for DCS Statistics
+:: Supports: start, stop, restart, status, logs, destroy
 
 echo ========================================
-echo DCS Statistics Docker Startup
+echo DCS Statistics Docker Manager
 echo ========================================
 echo.
 
@@ -22,7 +22,7 @@ if %errorlevel% neq 0 (
 echo Starting Docker containers...
 echo.
 
-powershell.exe -ExecutionPolicy Bypass -NoProfile -File "%~dp0docker-start.ps1" %*
+powershell.exe -ExecutionPolicy Bypass -NoProfile -File "%~dp0_internal_docker_ops.ps1" %*
 
 :: Check if the script ran successfully
 if %errorlevel% neq 0 (
