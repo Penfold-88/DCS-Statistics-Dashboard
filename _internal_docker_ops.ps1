@@ -574,6 +574,7 @@ switch ($Action) {
         Write-Host "  - The DCS Statistics Docker image" -ForegroundColor Yellow
         Write-Host "  - All Docker volumes created by this project" -ForegroundColor Yellow
         Write-Host "  - The Docker network (if created)" -ForegroundColor Yellow
+        Write-Host "  - Your .env configuration file" -ForegroundColor Yellow
         Write-Host ""
         Write-Warning "Your data in ./dcs-stats will be preserved"
         Write-Host ""
@@ -604,13 +605,20 @@ switch ($Action) {
             Write-Info "Cleaning up networks..."
             docker network prune -f 2>&1 | Out-Null
             
+            # Remove .env file
+            Write-Info "Removing .env configuration file..."
+            if (Test-Path "./.env") {
+                Remove-Item "./.env" -Force
+                Write-Success "Removed .env file"
+            }
+            
             Write-Success "Destruction complete!"
             Write-Host ""
             Write-Host "The following items were preserved:" -ForegroundColor Green
             Write-Host "  - Your data in ./dcs-stats directory" -ForegroundColor Green
-            Write-Host "  - Your .env configuration file" -ForegroundColor Green
             Write-Host ""
             Write-Host "To completely start fresh, run:" -ForegroundColor Cyan
+            Write-Host "  dcs-docker-manager.bat pre-flight" -ForegroundColor Cyan
             Write-Host "  dcs-docker-manager.bat start" -ForegroundColor Cyan
         }
         else {
