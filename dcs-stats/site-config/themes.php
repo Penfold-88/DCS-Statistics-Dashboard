@@ -219,7 +219,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'background_color' => $_POST['background_color'] ?? '',
                     'text_color' => $_POST['text_color'] ?? '',
                     'link_color' => $_POST['link_color'] ?? '',
-                    'border_color' => $_POST['border_color'] ?? ''
+                    'border_color' => $_POST['border_color'] ?? '',
+                    'title_color' => $_POST['title_color'] ?? '',
+                    'table_color' => $_POST['table_color'] ?? '',
+                    'table_header_color' => $_POST['table_header_color'] ?? ''
                 ];
                 
                 // Generate CSS variables
@@ -296,7 +299,10 @@ $customColors = [
     'background_color' => '#0f0f0f',
     'text_color' => '#e0e0e0',
     'link_color' => '#4a9eff',
-    'border_color' => '#333333'
+    'border_color' => '#333333',
+    'title_color' => '#ffffff',
+    'table_color' => '#2c2c2c',
+    'table_header_color' => '#4CAF50'
 ];
 
 $customCSS = __DIR__ . '/../custom_theme.css';
@@ -604,6 +610,9 @@ $pageTitle = 'Theme Management';
                         'text' => substr($customColors['text_color'], 1),
                         'link' => substr($customColors['link_color'], 1),
                         'border' => substr($customColors['border_color'], 1),
+                        'title' => substr($customColors['title_color'], 1),
+                        'table' => substr($customColors['table_color'], 1),
+                        'table_header' => substr($customColors['table_header_color'], 1),
                     ];
                     // Build URL to parent directory
                     $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
@@ -675,8 +684,26 @@ $pageTitle = 'Theme Management';
                                 
                                 <div class="color-input-group">
                                     <label for="border_color" title="Border and accent color">Border/Accent Color:</label>
-                                    <input type="color" id="border_color" name="border_color" 
+                                    <input type="color" id="border_color" name="border_color"
                                            value="<?= htmlspecialchars($customColors['border_color']) ?>">
+                                </div>
+
+                                <div class="color-input-group">
+                                    <label for="title_color" title="Site title gradient start">Site Title Color:</label>
+                                    <input type="color" id="title_color" name="title_color"
+                                           value="<?= htmlspecialchars($customColors['title_color']) ?>">
+                                </div>
+
+                                <div class="color-input-group">
+                                    <label for="table_color" title="Table background color">Table Color:</label>
+                                    <input type="color" id="table_color" name="table_color"
+                                           value="<?= htmlspecialchars($customColors['table_color']) ?>">
+                                </div>
+
+                                <div class="color-input-group">
+                                    <label for="table_header_color" title="Table header text color">Table Header Color:</label>
+                                    <input type="color" id="table_header_color" name="table_header_color"
+                                           value="<?= htmlspecialchars($customColors['table_header_color']) ?>">
                                 </div>
                             </div>
                             
@@ -845,7 +872,10 @@ $pageTitle = 'Theme Management';
                 'background': document.getElementById('background_color').value.replace('#', ''),
                 'text': document.getElementById('text_color').value.replace('#', ''),
                 'link': document.getElementById('link_color').value.replace('#', ''),
-                'border': document.getElementById('border_color').value.replace('#', '')
+                'border': document.getElementById('border_color').value.replace('#', ''),
+                'title': document.getElementById('title_color').value.replace('#', ''),
+                'table': document.getElementById('table_color').value.replace('#', ''),
+                'table_header': document.getElementById('table_header_color').value.replace('#', '')
             };
             
             // Build URL with preview parameters
@@ -1018,7 +1048,10 @@ $pageTitle = 'Theme Management';
                 'background_color': '#121212',
                 'text_color': '#ffffff',
                 'link_color': '#4a9eff',
-                'border_color': '#556b2f'
+                'border_color': '#556b2f',
+                'title_color': '#ffffff',
+                'table_color': '#2c2c2c',
+                'table_header_color': '#4CAF50'
             };
             
             // Set the color inputs to default values

@@ -15,6 +15,9 @@ html {
     --text_color: #ffffff;
     --link_color: #4a9eff;
     --border_color: #556b2f;
+    --title_color: #ffffff;
+    --table_color: #2c2c2c;
+    --table_header_color: #4CAF50;
 }
 
 body {
@@ -93,13 +96,13 @@ body {
 .site-title {
     font-size: 2.2rem;
     font-weight: 800;
-    color: #ffffff;
+    color: var(--title_color);
     margin: 0;
-    text-shadow: 
+    text-shadow:
         0 0 20px rgba(76, 175, 80, 0.6),
         2px 2px 4px rgba(0, 0, 0, 0.8);
     letter-spacing: -0.5px;
-    background: linear-gradient(135deg, #ffffff 0%, #4CAF50 100%);
+    background: linear-gradient(135deg, var(--title_color) 0%, var(--table_header_color) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -107,7 +110,7 @@ body {
 
 .site-subtitle {
     font-size: 0.9rem;
-    color: #e0e0e0;
+    color: var(--text_color);
     margin: 0;
     font-weight: 500;
     text-transform: uppercase;
@@ -559,7 +562,7 @@ h2 {
 }
 
 .pagination-controls span {
-  color: #fff;
+  color: var(--text_color);
   margin: 0 10px;
 }
 
@@ -575,25 +578,25 @@ h2 {
 table {
   width: 100%;
   border-collapse: collapse;
-  background: linear-gradient(135deg, #2c2c2c 0%, #1e1e1e 100%);
-  color: #fff;
+  background-color: var(--table_color);
+  color: var(--text_color);
   overflow: hidden;
 }
 
 th, td {
   padding: 14px 18px;
   text-align: left;
-  border-bottom: 1px solid rgba(76, 175, 80, 0.2);
+  border-bottom: 1px solid var(--border_color);
 }
 
 th {
-  background-color: rgba(76, 175, 80, 0.1);
+  background-color: var(--table_color);
   font-weight: bold;
-  color: #4CAF50;
+  color: var(--table_header_color);
   text-transform: uppercase;
   letter-spacing: 1px;
   font-size: 0.9rem;
-  border-bottom: 2px solid rgba(76, 175, 80, 0.3);
+  border-bottom: 2px solid var(--border_color);
 }
 
 tr {
@@ -607,7 +610,7 @@ tbody tr:nth-child(even) {
 tbody tr:hover {
   background-color: rgba(76, 175, 80, 0.1);
   transform: translateX(2px);
-  box-shadow: -2px 0 0 #4CAF50;
+  box-shadow: -2px 0 0 var(--table_header_color);
 }
 
 /* Unified Search Styling */
