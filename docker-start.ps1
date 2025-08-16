@@ -415,6 +415,20 @@ function Start-DCSStatistics {
     Show-AccessInfo -Port $selectedPort
 }
 
+# Detect docker-compose command
+$null = docker-compose version 2>&1
+if ($LASTEXITCODE -eq 0) {
+    $ComposeCmd = "docker-compose"
+} else {
+    $null = docker compose version 2>&1
+    if ($LASTEXITCODE -eq 0) {
+        $ComposeCmd = "docker compose"
+    } else {
+        Write-Error "Docker Compose not found"
+        exit 1
+    }
+}
+
 # Handle script actions
 switch ($Action) {
     "start" {
