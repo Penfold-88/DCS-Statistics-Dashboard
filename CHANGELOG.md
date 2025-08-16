@@ -4,6 +4,9 @@ All notable changes to the DCS Statistics Website Uploader project.
 
 ## [Unreleased] - 2025-07-31
 
+### 🖌️ Theme Customization Options
+- Added global font family selection in theme management for greater frontend personalization.
+
 ### 🎨 **Modern Professional Interface Overhaul**
 
 #### Cinematic Header Design

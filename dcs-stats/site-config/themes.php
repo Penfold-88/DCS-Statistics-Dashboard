@@ -212,32 +212,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 break;
                 
             case 'update_colors':
-                // Handle color updates
-                $colors = [
+                // Handle style updates (colors and fonts)
+                $styles = [
                     'primary_color' => $_POST['primary_color'] ?? '',
                     'secondary_color' => $_POST['secondary_color'] ?? '',
                     'background_color' => $_POST['background_color'] ?? '',
                     'text_color' => $_POST['text_color'] ?? '',
                     'link_color' => $_POST['link_color'] ?? '',
-                    'border_color' => $_POST['border_color'] ?? ''
+                    'border_color' => $_POST['border_color'] ?? '',
+                    'font_family' => $_POST['font_family'] ?? ''
                 ];
-                
+
                 // Generate CSS variables
                 $cssVars = ":root {\n";
-                foreach ($colors as $key => $value) {
-                    if (preg_match('/^#[0-9A-Fa-f]{6}$/', $value)) {
+                foreach ($styles as $key => $value) {
+                    if ($key === 'font_family') {
+                        $safeFont = preg_replace("/[^a-zA-Z0-9,\s'-]/", '', $value);
+                        if ($safeFont !== '') {
+                            $cssVars .= "    --{$key}: {$safeFont};\n";
+                        }
+                    } elseif (preg_match('/^#[0-9A-Fa-f]{6}$/', $value)) {
                         $cssVars .= "    --{$key}: {$value};\n";
                     }
                 }
                 $cssVars .= "}\n\n";
-                
+
                 // Save to custom theme file
                 $customCSS = __DIR__ . '/../custom_theme.css';
                 file_put_contents($customCSS, $cssVars);
-                
-                $message = 'Color theme updated successfully';
+
+                $message = 'Theme updated successfully';
                 if (function_exists('logActivity')) {
-                    logActivity('THEME_COLORS', 'Updated theme colors');
+                    logActivity('THEME_COLORS', 'Updated theme colors and fonts');
                 }
                 break;
                 
@@ -296,17 +302,18 @@ $customColors = [
     'background_color' => '#0f0f0f',
     'text_color' => '#e0e0e0',
     'link_color' => '#4a9eff',
-    'border_color' => '#333333'
+    'border_color' => '#333333',
+    'font_family' => 'Arial, sans-serif'
 ];
 
 $customCSS = __DIR__ . '/../custom_theme.css';
 if (file_exists($customCSS)) {
     $content = file_get_contents($customCSS);
-    preg_match_all('/--([a-z_]+):\s*(#[0-9a-fA-F]{6});/', $content, $matches);
+    preg_match_all('/--([a-z_]+):\s*([^;]+);/', $content, $matches);
     if (!empty($matches[1]) && !empty($matches[2])) {
         foreach ($matches[1] as $i => $varName) {
             if (isset($customColors[$varName])) {
-                $customColors[$varName] = $matches[2][$i];
+                $customColors[$varName] = trim($matches[2][$i]);
             }
         }
     }
@@ -604,6 +611,7 @@ $pageTitle = 'Theme Management';
                         'text' => substr($customColors['text_color'], 1),
                         'link' => substr($customColors['link_color'], 1),
                         'border' => substr($customColors['border_color'], 1),
+                        'font' => $customColors['font_family'],
                     ];
                     // Build URL to parent directory
                     $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
@@ -675,8 +683,14 @@ $pageTitle = 'Theme Management';
                                 
                                 <div class="color-input-group">
                                     <label for="border_color" title="Border and accent color">Border/Accent Color:</label>
-                                    <input type="color" id="border_color" name="border_color" 
+                                    <input type="color" id="border_color" name="border_color"
                                            value="<?= htmlspecialchars($customColors['border_color']) ?>">
+                                </div>
+                                <div class="color-input-group">
+                                    <label for="font_family" title="Global font family">Font Family:</label>
+                                    <input type="text" id="font_family" name="font_family"
+                                           value="<?= htmlspecialchars($customColors['font_family']) ?>"
+                                           placeholder="Arial, sans-serif">
                                 </div>
                             </div>
                             
@@ -834,29 +848,30 @@ $pageTitle = 'Theme Management';
             };
         }
         
-        // Live color preview
-        function updatePreviewColors() {
+        // Live style preview
+        function updatePreviewTheme() {
             const iframe = document.getElementById('preview-frame');
-            
-            // Get current color values (remove # from hex colors for URL)
-            const colors = {
+
+            // Get current values (remove # from hex colors for URL)
+            const styles = {
                 'primary': document.getElementById('primary_color').value.replace('#', ''),
                 'secondary': document.getElementById('secondary_color').value.replace('#', ''),
                 'background': document.getElementById('background_color').value.replace('#', ''),
                 'text': document.getElementById('text_color').value.replace('#', ''),
                 'link': document.getElementById('link_color').value.replace('#', ''),
-                'border': document.getElementById('border_color').value.replace('#', '')
+                'border': document.getElementById('border_color').value.replace('#', ''),
+                'font': document.getElementById('font_family').value
             };
-            
+
             // Build URL with preview parameters
             const params = new URLSearchParams();
             params.set('preview', '1');
-            for (const [key, value] of Object.entries(colors)) {
+            for (const [key, value] of Object.entries(styles)) {
                 params.set(key, value);
             }
-            
+
             // Update iframe source with preview parameters
-            // Build URL to parent directory  
+            // Build URL to parent directory
             const protocol = window.location.protocol;
             const host = window.location.host;
             const currentPath = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/'));
@@ -864,12 +879,12 @@ $pageTitle = 'Theme Management';
             const baseUrl = protocol + '//' + host + parentPath + '/index.php';
             iframe.src = baseUrl + '?' + params.toString();
         }
-        
-        // Debounced version of updatePreviewColors
-        const debouncedUpdate = debounce(updatePreviewColors, 500);
-        
+
+        // Debounced version of updatePreviewTheme
+        const debouncedUpdate = debounce(updatePreviewTheme, 500);
+
         // Add event listeners for real-time updates
-        document.querySelectorAll('input[type="color"]').forEach(input => {
+        document.querySelectorAll('input[type="color"], #font_family').forEach(input => {
             input.addEventListener('input', function() {
                 // Show status message immediately
                 const status = document.getElementById('preview-status');
@@ -879,7 +894,7 @@ $pageTitle = 'Theme Management';
                 // Update preview with debounce
                 debouncedUpdate();
             });
-            
+
             input.addEventListener('change', function() {
                 // Show completed message
                 const status = document.getElementById('preview-status');
@@ -1018,17 +1033,18 @@ $pageTitle = 'Theme Management';
                 'background_color': '#121212',
                 'text_color': '#ffffff',
                 'link_color': '#4a9eff',
-                'border_color': '#556b2f'
+                'border_color': '#556b2f',
+                'font_family': 'Arial, sans-serif'
             };
-            
-            // Set the color inputs to default values
+
+            // Set the inputs to default values
             for (const [id, value] of Object.entries(defaults)) {
                 document.getElementById(id).value = value;
             }
-            
+
             // Update preview immediately
-            updatePreviewColors();
-            
+            updatePreviewTheme();
+
             // Show status message
             const status = document.getElementById('preview-status');
             status.textContent = '🔄 Colors restored to defaults';
@@ -1043,7 +1059,7 @@ $pageTitle = 'Theme Management';
             initMenuDragDrop();
             
             // Initialize preview with current colors
-            updatePreviewColors();
+            updatePreviewTheme();
         });
     </script>
 </body>
