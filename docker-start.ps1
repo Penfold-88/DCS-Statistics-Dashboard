@@ -347,7 +347,7 @@ function Start-DCSStatistics {
             Write-Host "   Maybe try " -NoNewline
             Write-Host "fix-windows-issues.ps1" -ForegroundColor Cyan -NoNewline
             Write-Host " first? It fixes most things"
-            Write-Host "   (Or run '$ComposeCmd build --no-cache' for the gory details)"
+            Write-Host "   (Or run `"$ComposeCmd build --no-cache`" for the gory details)"
         }
         return
     }
@@ -368,14 +368,14 @@ function Start-DCSStatistics {
             Write-Host " handles permissions"
             Write-Host "   (I know, I know... should've mentioned it earlier)"
         }
-        elseif ($startError -match 'network .* not found') {
+        elseif ($startError -match "network.*not found") {
             Write-Warning "Docker networks playing hide and seek again!"
             Write-Host "🎯 Pro tip: " -NoNewline
             Write-Host "fix-windows-issues.ps1" -ForegroundColor Cyan -NoNewline
             Write-Host " cleans these up"
             Write-Host "   (It's like a spa day for your Docker networks)"
         }
-        elseif ($startError -match "port is already allocated" -or $startError -match "bind: address already in use") {
+        elseif ($startError -match "port is already allocated" -or $startError -match "bind.*address already in use") {
             Write-Warning "Port $selectedPort is being a diva - says it's already taken!"
             Write-Host "🤷 That's awkward... I usually catch this. Try running again?"
             Write-Host "   (Sometimes ports are just moody like that)"
@@ -384,7 +384,7 @@ function Start-DCSStatistics {
             Write-Host "🫨 Something weird happened... and not the good kind of weird"
             Write-Host "   First aid kit: " -NoNewline
             Write-Host ".\fix-windows-issues.ps1" -ForegroundColor Cyan
-            Write-Host "   (If that doesn't help, run '$ComposeCmd up' for the full drama)"
+            Write-Host "   (If that doesn't help, run `"$ComposeCmd up`" for the full drama)"
         }
         return
     }
