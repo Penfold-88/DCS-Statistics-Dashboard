@@ -120,6 +120,19 @@ if (file_exists($menuConfigFile)) {
     }
 }
 
+$defaultColors = [
+    'primary_color' => '#1a1a1a',
+    'secondary_color' => '#2a2a2a',
+    'background_color' => '#121212',
+    'text_color' => '#ffffff',
+    'link_color' => '#4a9eff',
+    'border_color' => '#556b2f',
+    'title_color' => '#ffffff',
+    'title_color_secondary' => '#4CAF50',
+    'table_color' => '#2c2c2c',
+    'table_header_color' => '#4CAF50'
+];
+
 // Handle theme actions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // CSRF protection
@@ -225,23 +238,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'table_color' => $_POST['table_color'] ?? '',
                     'table_header_color' => $_POST['table_header_color'] ?? ''
                 ];
-                
-                // Generate CSS variables
-                $cssVars = ":root {\n";
+
+                $customCSS = __DIR__ . '/../custom_theme.css';
+                $cssVars = '';
+                $hasCustom = false;
                 foreach ($colors as $key => $value) {
                     if (preg_match('/^#[0-9A-Fa-f]{6}$/', $value)) {
                         $cssVars .= "    --{$key}: {$value};\n";
+                        if (strcasecmp($value, $defaultColors[$key]) !== 0) {
+                            $hasCustom = true;
+                        }
                     }
                 }
-                $cssVars .= "}\n\n";
-                
-                // Save to custom theme file
-                $customCSS = __DIR__ . '/../custom_theme.css';
-                file_put_contents($customCSS, $cssVars);
-                
-                $message = 'Color theme updated successfully';
-                if (function_exists('logActivity')) {
-                    logActivity('THEME_COLORS', 'Updated theme colors');
+
+                if ($hasCustom) {
+                    $cssContent = ":root {\n{$cssVars}}\n";
+                    file_put_contents($customCSS, $cssContent);
+                    $message = 'Color theme updated successfully';
+                    if (function_exists('logActivity')) {
+                        logActivity('THEME_COLORS', 'Updated theme colors');
+                    }
+                } else {
+                    if (file_exists($customCSS)) {
+                        unlink($customCSS);
+                    }
+                    $message = 'Using default theme colors';
+                    if (function_exists('logActivity')) {
+                        logActivity('THEME_COLORS', 'Restored default theme colors');
+                    }
                 }
                 break;
                 
@@ -294,18 +318,7 @@ if (is_dir($backupDir)) {
 }
 
 // Load current custom colors if they exist
-$customColors = [
-    'primary_color' => '#1a1a1a',
-    'secondary_color' => '#2a2a2a',
-    'background_color' => '#0f0f0f',
-    'text_color' => '#e0e0e0',
-    'link_color' => '#4a9eff',
-    'border_color' => '#333333',
-    'title_color' => '#ffffff',
-    'title_color_secondary' => '#4CAF50',
-    'table_color' => '#2c2c2c',
-    'table_header_color' => '#4CAF50'
-];
+$customColors = $defaultColors;
 
 $customCSS = __DIR__ . '/../custom_theme.css';
 if (file_exists($customCSS)) {
