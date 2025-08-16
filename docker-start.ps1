@@ -214,7 +214,7 @@ function Show-AccessInfo {
     Write-Host "http://localhost:$Port/site-config/install.php" -ForegroundColor Yellow
     Write-Host ""
     Write-Host "To stop the server, run:"
-    Write-Host "  .\docker-start.ps1 stop" -ForegroundColor Gray
+    Write-Host '  .\docker-start.ps1 stop' -ForegroundColor Gray
     Write-Host "  or"
     Write-Host "  $ComposeCmd down" -ForegroundColor Gray
     Write-Host ""
@@ -247,14 +247,14 @@ function Start-DCSStatistics {
     if (-not (Test-Path $EnvFile) -and (Test-Path ".env.example")) {
         $needsFix = $true
     }
-    if (-not (Test-Path ".\dcs-stats\data")) {
+    if (-not (Test-Path '.\dcs-stats\data')) {
         $needsFix = $true
     }
     
     if ($needsFix) {
         Write-Warning "Hold up! Looks like this is your first rodeo..."
         Write-Host "💅 Just FYI: " -NoNewline
-        Write-Host ".\fix-windows-issues.ps1" -ForegroundColor Cyan -NoNewline
+        Write-Host '.\fix-windows-issues.ps1' -ForegroundColor Cyan -NoNewline
         Write-Host " exists for a reason"
         Write-Host "   (It`'s like a pre-flight check, but cooler)"
         Write-Host ""
@@ -271,7 +271,7 @@ function Start-DCSStatistics {
     if (-not (Test-DockerInstalled)) {
         Write-Error "Docker`'s not home right now..."
         Write-Host "🫠 Once you get Docker Desktop installed, there`'s " -NoNewline
-        Write-Host ".\fix-windows-issues.ps1" -ForegroundColor Cyan
+        Write-Host '.\fix-windows-issues.ps1' -ForegroundColor Cyan
         Write-Host "   (It`'ll make sure everything`'s perfect for Windows)"
         return
     }
@@ -384,7 +384,7 @@ function Start-DCSStatistics {
         else {
             Write-Host "🫨 Something weird happened... and not the good kind of weird"
             Write-Host "   First aid kit: " -NoNewline
-            Write-Host ".\fix-windows-issues.ps1" -ForegroundColor Cyan
+            Write-Host '.\fix-windows-issues.ps1' -ForegroundColor Cyan
             Write-Host "   (If that doesn`'t help, run `"$ComposeCmd up`" for the full drama)"
         }
         return
@@ -405,7 +405,7 @@ function Start-DCSStatistics {
     catch {
         Write-Warning "Service is being shy... might still be waking up"
         Write-Host "🔍 Check the logs with: " -NoNewline
-        Write-Host ".\docker-start.ps1 logs" -ForegroundColor Cyan
+        Write-Host '.\docker-start.ps1 logs' -ForegroundColor Cyan
         Write-Host "   (Or just wait a sec and refresh the browser)"
     }
     
