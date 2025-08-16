@@ -526,7 +526,7 @@ switch ($Action) {
             }
             Write-Host ""
             
-            # Create .env file if missing
+            # Create or update .env file
             Write-Info "Checking .env file..."
             if (-not (Test-Path "./.env")) {
                 if (Test-Path "./.env.example") {
@@ -539,6 +539,15 @@ switch ($Action) {
             }
             else {
                 Write-Success ".env file exists"
+                
+                # Check if using old port 8080 and update to 9080
+                $envContent = Get-Content "./.env" -Raw
+                if ($envContent -match "WEB_PORT=8080") {
+                    $envContent = $envContent -replace "WEB_PORT=8080", "WEB_PORT=9080"
+                    $envContent = $envContent -replace "SITE_URL=http://localhost:8080", "SITE_URL=http://localhost:9080"
+                    Set-Content "./.env" $envContent
+                    Write-Success "Updated .env file from port 8080 to 9080"
+                }
             }
             Write-Host ""
             
