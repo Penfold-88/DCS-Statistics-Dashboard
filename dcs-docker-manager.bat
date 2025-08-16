@@ -31,7 +31,7 @@ if %errorlevel% neq 0 (
     echo.
     echo Common solutions:
     echo - Make sure Docker Desktop is running
-    echo - Run fix-windows-issues.bat first
+    echo - Run 'dcs-docker-manager.bat pre-flight' first
     echo - Check if port 9080 is available
     pause
     exit /b %errorlevel%

@@ -73,7 +73,7 @@ function Get-CurrentPort {
         if (Test-Path ".env.example") {
             Write-Warning "No .env file? Bold choice..."
             Write-Host "BTW, " -NoNewline
-            Write-Host "fix-windows-issues.ps1" -ForegroundColor Cyan -NoNewline
+            Write-Host "dcs-docker-manager.bat pre-flight" -ForegroundColor Cyan -NoNewline
             Write-Host " creates one for you"
             Write-Host "   (Just a thought, no pressure...)"
             Write-Host ""
@@ -257,7 +257,7 @@ function Start-DCSStatistics {
     if ($needsFix) {
         Write-Warning "Hold up! Looks like this is your first rodeo..."
         Write-Host "Just FYI: " -NoNewline
-        Write-Host './fix-windows-issues.ps1' -ForegroundColor Cyan -NoNewline
+        Write-Host './dcs-docker-manager.bat pre-flight' -ForegroundColor Cyan -NoNewline
         Write-Host " exists for a reason"
         Write-Host "   (It is like a pre-flight check, but cooler)"
         Write-Host ""
@@ -274,7 +274,7 @@ function Start-DCSStatistics {
     if (-not (Test-DockerInstalled)) {
         Write-Error "Docker is not home right now..."
         Write-Host "Once you get Docker Desktop installed, there is " -NoNewline
-        Write-Host './fix-windows-issues.ps1' -ForegroundColor Cyan
+        Write-Host './dcs-docker-manager.bat pre-flight' -ForegroundColor Cyan
         Write-Host "   (It will make sure everything is perfect for Windows)"
         return
     }
@@ -305,7 +305,7 @@ function Start-DCSStatistics {
             Write-Error "No available ports found in range $desiredPort-$($desiredPort + 100)"
             Write-Host "Wow, ALL those ports are taken? That is... impressive"
             Write-Host "   Maybe " -NoNewline
-            Write-Host "fix-windows-issues.ps1" -ForegroundColor Cyan -NoNewline
+            Write-Host "dcs-docker-manager.bat pre-flight" -ForegroundColor Cyan -NoNewline
             Write-Host " can help clear things up?"
             return
         }
@@ -328,28 +328,28 @@ function Start-DCSStatistics {
         if ($buildError -match "invalid pool" -or $buildError -match "pool request") {
             Write-Warning "Oh snap! Network configuration went sideways!"
             Write-Host "There is a script for that: " -NoNewline
-            Write-Host "fix-windows-issues.ps1" -ForegroundColor Cyan -NoNewline
+            Write-Host "dcs-docker-manager.bat pre-flight" -ForegroundColor Cyan -NoNewline
             Write-Host ""
             Write-Host "   (It literally fixes this in 2 seconds, just saying...)"
         }
         elseif ($buildError -match "no such file" -or $buildError -match "not found") {
             Write-Warning "Uh-oh! Missing some directories here!"
             Write-Host "Fun fact: " -NoNewline
-            Write-Host "fix-windows-issues.ps1" -ForegroundColor Cyan -NoNewline
+            Write-Host "dcs-docker-manager.bat pre-flight" -ForegroundColor Cyan -NoNewline
             Write-Host " creates these for you"
             Write-Host "   (But hey, who reads documentation, right?)"
         }
         elseif ($buildError -match "/bin/sh" -or $buildError -match "exec format") {
             Write-Warning "Classic Windows vs Linux line endings drama!"
             Write-Host "Psst... " -NoNewline
-            Write-Host "fix-windows-issues.ps1" -ForegroundColor Cyan -NoNewline
+            Write-Host "dcs-docker-manager.bat pre-flight" -ForegroundColor Cyan -NoNewline
             Write-Host " sorts this out automatically"
             Write-Host "   (Windows being Windows, as usual...)"
         }
         else {
             Write-Host "Well, that is a new one! Have not seen this error before..."
             Write-Host "   Maybe try " -NoNewline
-            Write-Host "fix-windows-issues.ps1" -ForegroundColor Cyan -NoNewline
+            Write-Host "dcs-docker-manager.bat pre-flight" -ForegroundColor Cyan -NoNewline
             Write-Host " first? It fixes most things"
             Write-Host "   (Or run $ComposeCmd build --no-cache for the gory details)"
         }
@@ -368,14 +368,14 @@ function Start-DCSStatistics {
         if ($startError -match "permission denied" -or $startError -match "access denied") {
             Write-Warning "Permission denied! The Docker gods are angry!"
             Write-Host "Plot twist: " -NoNewline
-            Write-Host "fix-windows-issues.ps1" -ForegroundColor Cyan -NoNewline
+            Write-Host "dcs-docker-manager.bat pre-flight" -ForegroundColor Cyan -NoNewline
             Write-Host " handles permissions"
             Write-Host "   (I know, I know... should have mentioned it earlier)"
         }
         elseif ($startError -match "network.*not found") {
             Write-Warning "Docker networks playing hide and seek again!"
             Write-Host "Pro tip: " -NoNewline
-            Write-Host "fix-windows-issues.ps1" -ForegroundColor Cyan -NoNewline
+            Write-Host "dcs-docker-manager.bat pre-flight" -ForegroundColor Cyan -NoNewline
             Write-Host " cleans these up"
             Write-Host "   (It is like a spa day for your Docker networks)"
         }
@@ -387,7 +387,7 @@ function Start-DCSStatistics {
         else {
             Write-Host "Something weird happened... and not the good kind of weird"
             Write-Host "   First aid kit: " -NoNewline
-            Write-Host './fix-windows-issues.ps1' -ForegroundColor Cyan
+            Write-Host './dcs-docker-manager.bat pre-flight' -ForegroundColor Cyan
             Write-Host "   (If that does not help, run $ComposeCmd up for the full drama)"
         }
         return

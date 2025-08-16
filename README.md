@@ -69,7 +69,7 @@ Experience a professional-grade statistics platform featuring:
 **Managing the Application:**
 - **Start:** Run `launch.bat`
 - **Stop:** Run `shutdown.bat`
-- **Fix Issues:** Run `fix-windows-issues.bat` (if needed)
+- **Pre-Flight Check:** Run `dcs-docker-manager.bat pre-flight` (recommended)
 
 ##### **Linux/Mac Users**
 
@@ -195,16 +195,10 @@ Our Docker deployment provides enterprise-grade containerization with intelligen
 
 ### Docker Commands Reference
 
-**Windows Users (using launch.bat):**
+**Windows Users:**
 ```batch
-# Start application
-launch.bat
-
-# Stop application  
-shutdown.bat
-
-# Fix common issues
-fix-windows-issues.bat
+# Run pre-flight checks (recommended for first time)
+dcs-docker-manager.bat pre-flight
 
 # Advanced users can use PowerShell scripts directly:
 dcs-docker-manager.bat [pre-flight|start|stop|restart|status|logs|destroy]
@@ -241,7 +235,7 @@ dcs-docker-manager.bat [pre-flight|start|stop|restart|status|logs|destroy]
    - Manual: Edit `.env` file and change `WEB_PORT=8080` to another port
 
 3. **"Permission denied" errors**
-   - Solution: Run `fix-windows-issues.bat` first
+   - Solution: Run `dcs-docker-manager.bat pre-flight` first
    - This fixes file permissions and line endings
 
 4. **"WSL2 not installed"**
@@ -274,8 +268,8 @@ dcs-docker-manager.bat [pre-flight|start|stop|restart|status|logs|destroy]
 # Navigate to the extracted folder
 cd DCS-Statistics-Dashboard
 
-# Fix Windows-specific issues first (recommended)
-.\fix-windows-issues.ps1
+# Run pre-flight check first (recommended)
+dcs-docker-manager.bat pre-flight
 
 # Run pre-flight checks first (recommended for new installs)
 dcs-docker-manager.bat pre-flight
@@ -403,12 +397,12 @@ docker compose up -d
 
 **"Invalid pool request" Error:**
 - Fixed in this version - network configuration simplified
-- Run `.\fix-windows-issues.ps1` to ensure proper setup
+- Run `dcs-docker-manager.bat pre-flight` to ensure proper setup
 
 **Line Ending Issues (CRLF vs LF):**
 ```powershell
 # Auto-fix all line endings
-.\fix-windows-issues.ps1
+dcs-docker-manager.bat pre-flight
 ```
 
 **Permission/Volume Issues:**
@@ -418,7 +412,7 @@ docker compose up -d
 **Docker Desktop Not Running:**
 ```powershell
 # The fix script will detect and prompt to start Docker Desktop
-.\fix-windows-issues.ps1
+dcs-docker-manager.bat pre-flight
 ```
 
 #### Port Already in Use
@@ -453,7 +447,7 @@ newgrp docker
 docker compose logs
 
 # Windows: Fix common issues first
-.\fix-windows-issues.ps1
+dcs-docker-manager.bat pre-flight
 
 # Rebuild from scratch
 docker compose down
