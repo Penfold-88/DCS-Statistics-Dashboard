@@ -710,7 +710,7 @@ $pageTitle = 'Theme Management';
                                 </div>
 
                                 <div class="color-input-group">
-                                    <label for="table_header_color" title="Table header text color">Table Header Color:</label>
+                                    <label for="table_header_color" title="Table header text color">Table Header Text:</label>
                                     <input type="color" id="table_header_color" name="table_header_color"
                                            value="<?= htmlspecialchars($customColors['table_header_color']) ?>">
                                 </div>
