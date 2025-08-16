@@ -20,10 +20,10 @@ $ContainerName = "dcs-statistics"
 $EnvFile = ".env"
 
 # Color functions
-function Write-Info { Write-Host "ℹ $($args[0])" -ForegroundColor Blue }
-function Write-Success { Write-Host "✓ $($args[0])" -ForegroundColor Green }
-function Write-Warning { Write-Host "⚠ $($args[0])" -ForegroundColor Yellow }
-function Write-Error { Write-Host "✗ $($args[0])" -ForegroundColor Red }
+function Write-Info { Write-Host "[INFO] $($args[0])" -ForegroundColor Blue }
+function Write-Success { Write-Host "[OK] $($args[0])" -ForegroundColor Green }
+function Write-Warning { Write-Host "[WARN] $($args[0])" -ForegroundColor Yellow }
+function Write-Error { Write-Host "[ERROR] $($args[0])" -ForegroundColor Red }
 
 # Function to check if a port is available
 function Test-PortAvailable {
@@ -72,7 +72,7 @@ function Get-CurrentPort {
         # .env file does not exist
         if (Test-Path ".env.example") {
             Write-Warning "No .env file? Bold choice..."
-            Write-Host "🤓 BTW, " -NoNewline
+            Write-Host "BTW, " -NoNewline
             Write-Host "fix-windows-issues.ps1" -ForegroundColor Cyan -NoNewline
             Write-Host " creates one for you"
             Write-Host "   (Just a thought, no pressure...)"
@@ -256,7 +256,7 @@ function Start-DCSStatistics {
     
     if ($needsFix) {
         Write-Warning "Hold up! Looks like this is your first rodeo..."
-        Write-Host "💅 Just FYI: " -NoNewline
+        Write-Host "Just FYI: " -NoNewline
         Write-Host './fix-windows-issues.ps1' -ForegroundColor Cyan -NoNewline
         Write-Host " exists for a reason"
         Write-Host "   (It is like a pre-flight check, but cooler)"
@@ -273,7 +273,7 @@ function Start-DCSStatistics {
     Write-Info "Checking Docker installation..."
     if (-not (Test-DockerInstalled)) {
         Write-Error "Docker is not home right now..."
-        Write-Host "🫠 Once you get Docker Desktop installed, there is " -NoNewline
+        Write-Host "Once you get Docker Desktop installed, there is " -NoNewline
         Write-Host './fix-windows-issues.ps1' -ForegroundColor Cyan
         Write-Host "   (It will make sure everything is perfect for Windows)"
         return
@@ -303,7 +303,7 @@ function Start-DCSStatistics {
         $selectedPort = Find-AvailablePort -StartPort $desiredPort
         if (-not $selectedPort) {
             Write-Error "No available ports found in range $desiredPort-$($desiredPort + 100)"
-            Write-Host "😤 Wow, ALL those ports are taken? That is... impressive"
+            Write-Host "Wow, ALL those ports are taken? That is... impressive"
             Write-Host "   Maybe " -NoNewline
             Write-Host "fix-windows-issues.ps1" -ForegroundColor Cyan -NoNewline
             Write-Host " can help clear things up?"
@@ -327,27 +327,27 @@ function Start-DCSStatistics {
         $buildError = $buildOutput -join " "
         if ($buildError -match "invalid pool" -or $buildError -match "pool request") {
             Write-Warning "Oh snap! Network configuration went sideways!"
-            Write-Host "🙄 There is a script for that: " -NoNewline
+            Write-Host "There is a script for that: " -NoNewline
             Write-Host "fix-windows-issues.ps1" -ForegroundColor Cyan -NoNewline
             Write-Host ""
             Write-Host "   (It literally fixes this in 2 seconds, just saying...)"
         }
         elseif ($buildError -match "no such file" -or $buildError -match "not found") {
             Write-Warning "Uh-oh! Missing some directories here!"
-            Write-Host "🤔 Fun fact: " -NoNewline
+            Write-Host "Fun fact: " -NoNewline
             Write-Host "fix-windows-issues.ps1" -ForegroundColor Cyan -NoNewline
             Write-Host " creates these for you"
             Write-Host "   (But hey, who reads documentation, right?)"
         }
         elseif ($buildError -match "/bin/sh" -or $buildError -match "exec format") {
             Write-Warning "Classic Windows vs Linux line endings drama!"
-            Write-Host "😏 Psst... " -NoNewline
+            Write-Host "Psst... " -NoNewline
             Write-Host "fix-windows-issues.ps1" -ForegroundColor Cyan -NoNewline
             Write-Host " sorts this out automatically"
             Write-Host "   (Windows being Windows, as usual...)"
         }
         else {
-            Write-Host "🤯 Well, that is a new one! Have not seen this error before..."
+            Write-Host "Well, that is a new one! Have not seen this error before..."
             Write-Host "   Maybe try " -NoNewline
             Write-Host "fix-windows-issues.ps1" -ForegroundColor Cyan -NoNewline
             Write-Host " first? It fixes most things"
@@ -367,25 +367,25 @@ function Start-DCSStatistics {
         $startError = $startOutput -join " "
         if ($startError -match "permission denied" -or $startError -match "access denied") {
             Write-Warning "Permission denied! The Docker gods are angry!"
-            Write-Host "🎭 Plot twist: " -NoNewline
+            Write-Host "Plot twist: " -NoNewline
             Write-Host "fix-windows-issues.ps1" -ForegroundColor Cyan -NoNewline
             Write-Host " handles permissions"
             Write-Host "   (I know, I know... should have mentioned it earlier)"
         }
         elseif ($startError -match "network.*not found") {
             Write-Warning "Docker networks playing hide and seek again!"
-            Write-Host "🎯 Pro tip: " -NoNewline
+            Write-Host "Pro tip: " -NoNewline
             Write-Host "fix-windows-issues.ps1" -ForegroundColor Cyan -NoNewline
             Write-Host " cleans these up"
             Write-Host "   (It is like a spa day for your Docker networks)"
         }
         elseif ($startError -match "port is already allocated" -or $startError -match "bind.*address already in use") {
             Write-Warning "Port $selectedPort is being a diva - says it is already taken!"
-            Write-Host "🤷 That is awkward... I usually catch this. Try running again?"
+            Write-Host "That is awkward... I usually catch this. Try running again?"
             Write-Host "   (Sometimes ports are just moody like that)"
         }
         else {
-            Write-Host "🫨 Something weird happened... and not the good kind of weird"
+            Write-Host "Something weird happened... and not the good kind of weird"
             Write-Host "   First aid kit: " -NoNewline
             Write-Host './fix-windows-issues.ps1' -ForegroundColor Cyan
             Write-Host "   (If that does not help, run $ComposeCmd up for the full drama)"
@@ -407,7 +407,7 @@ function Start-DCSStatistics {
     }
     catch {
         Write-Warning "Service is being shy... might still be waking up"
-        Write-Host "🔍 Check the logs with: " -NoNewline
+        Write-Host "Check the logs with: " -NoNewline
         Write-Host './docker-start.ps1 logs' -ForegroundColor Cyan
         Write-Host "   (Or just wait a sec and refresh the browser)"
     }
