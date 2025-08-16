@@ -120,9 +120,10 @@ function Test-DockerInstalled {
         if ($LASTEXITCODE -ne 0) {
             # Check if this is a permission issue on Windows
             if ($dockerInfo -match "permission denied" -or $dockerInfo -match "Access is denied") {
-                throw "Docker daemon is playing hard to get. Is Docker Desktop actually running? 🤔"
-            } else {
-                throw "Docker daemon is having a nap. Wake up Docker Desktop first! ☕"
+                throw "Docker daemon is playing hard to get. Is Docker Desktop actually running?"
+            }
+            else {
+                throw "Docker daemon is having a nap. Wake up Docker Desktop first!"
             }
         }
         
@@ -130,11 +131,13 @@ function Test-DockerInstalled {
         $null = docker-compose version 2>&1
         if ($LASTEXITCODE -eq 0) {
             $global:ComposeCmd = "docker-compose"
-        } else {
+        }
+        else {
             $null = docker compose version 2>&1
             if ($LASTEXITCODE -eq 0) {
                 $global:ComposeCmd = "docker compose"
-            } else {
+            }
+            else {
                 throw "Docker Compose not found"
             }
         }
