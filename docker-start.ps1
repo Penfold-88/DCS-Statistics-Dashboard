@@ -10,7 +10,7 @@
 
 param(
     [Parameter(Position=0)]
-    [ValidateSet("start", "stop", "restart", "status", "logs")]
+    [ValidateSet("start", "stop", "restart", "status", "logs", "destroy")]
     [string]$Action = "start"
 )
 
@@ -456,5 +456,56 @@ switch ($Action) {
     }
     "logs" {
         docker logs -f $ContainerName
+    }
+    "destroy" {
+        Write-Warning "This will DESTROY everything related to DCS Statistics Docker setup!"
+        Write-Host ""
+        Write-Host "This action will remove:" -ForegroundColor Yellow
+        Write-Host "  - The DCS Statistics container" -ForegroundColor Yellow
+        Write-Host "  - The DCS Statistics Docker image" -ForegroundColor Yellow
+        Write-Host "  - All Docker volumes created by this project" -ForegroundColor Yellow
+        Write-Host "  - The Docker network (if created)" -ForegroundColor Yellow
+        Write-Host ""
+        Write-Warning "Your data in ./dcs-stats will be preserved"
+        Write-Host ""
+        
+        $confirmation = Read-Host "Type 'DESTROY' to confirm (or anything else to cancel)"
+        
+        if ($confirmation -eq "DESTROY") {
+            Write-Info "Starting destruction process..."
+            
+            # Stop and remove container
+            Write-Info "Stopping and removing container..."
+            & $ComposeCmd down -v 2>&1 | Out-Null
+            
+            # Remove the image
+            Write-Info "Removing Docker image..."
+            docker rmi dcs-statistics:latest 2>&1 | Out-Null
+            docker rmi $(docker images -q -f "reference=dcs-statistics") 2>&1 | Out-Null
+            
+            # Clean up any dangling images
+            Write-Info "Cleaning up dangling images..."
+            docker image prune -f 2>&1 | Out-Null
+            
+            # Remove any project-specific volumes
+            Write-Info "Removing volumes..."
+            docker volume rm $(docker volume ls -q -f "name=dcs-statistics") 2>&1 | Out-Null
+            
+            # Clean up networks
+            Write-Info "Cleaning up networks..."
+            docker network prune -f 2>&1 | Out-Null
+            
+            Write-Success "Destruction complete!"
+            Write-Host ""
+            Write-Host "The following items were preserved:" -ForegroundColor Green
+            Write-Host "  - Your data in ./dcs-stats directory" -ForegroundColor Green
+            Write-Host "  - Your .env configuration file" -ForegroundColor Green
+            Write-Host ""
+            Write-Host "To completely start fresh, run:" -ForegroundColor Cyan
+            Write-Host "  ./docker-start.ps1 start" -ForegroundColor Cyan
+        }
+        else {
+            Write-Info "Destruction cancelled"
+        }
     }
 }
