@@ -100,10 +100,15 @@ body {
     color: var(--title_color);
     margin: 0;
     text-shadow:
-        0 0 20px var(--title_color_secondary),
+        0 0 20px color-mix(in srgb, var(--title_color) 50%, var(--title_color_secondary) 50%),
         2px 2px 4px rgba(0, 0, 0, 0.8);
     letter-spacing: -0.5px;
-    background: linear-gradient(135deg, var(--title_color) 0%, var(--title_color_secondary) 100%);
+    background: linear-gradient(
+        135deg,
+        var(--title_color) 0%,
+        color-mix(in srgb, var(--title_color) 70%, var(--title_color_secondary) 30%) 50%,
+        var(--title_color_secondary) 100%
+    );
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
