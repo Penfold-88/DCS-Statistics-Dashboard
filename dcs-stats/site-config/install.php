@@ -173,6 +173,10 @@ if (!$is_cli) {
                 width: 100%;
                 max-width: 600px;
             }
+            .system-requirements p {
+                display: flex;
+                justify-content: space-between;
+            }
         </style>
     </head>
     <body>
@@ -184,21 +188,28 @@ if (!$is_cli) {
                 <p class="text-center text-muted mb-3">DCS Statistics Management System</p>
             <div class="card mb-3">
                 <h3 class="text-success">System Requirements</h3>
-                <p class="<?= version_compare(PHP_VERSION, '7.4.0', '>=') ? 'success' : 'error' ?>">
-                    <?= version_compare(PHP_VERSION, '7.4.0', '>=') ? '✓' : '✗' ?> PHP version <?= PHP_VERSION ?> (7.4+ required)
-                </p>
-                <?php
-                $required_extensions = ['json', 'session', 'openssl', 'mbstring', 'zip'];
-                foreach ($required_extensions as $ext) {
-                    $loaded = extension_loaded($ext);
-                    echo '<p class="' . ($loaded ? 'success' : 'error') . '">';
-                    echo ($loaded ? '✓' : '✗') . ' ' . $ext . ' extension';
-                    echo '</p>';
-                }
-                ?>
-                <p class="<?= is_writable(dirname($dataDir)) ? 'success' : 'error' ?>">
-                    <?= is_writable(dirname($dataDir)) ? '✓' : '✗' ?> Write permissions
-                </p>
+                <div class="system-requirements">
+                    <p>
+                        <span>PHP version <?= PHP_VERSION ?> (7.4+ required)</span>
+                        <span class="<?= version_compare(PHP_VERSION, '7.4.0', '>=') ? 'text-success' : 'text-danger' ?>">
+                            <?= version_compare(PHP_VERSION, '7.4.0', '>=') ? '✓' : '✗' ?>
+                        </span>
+                    </p>
+                    <?php
+                    $required_extensions = ['json', 'session', 'openssl', 'mbstring', 'zip'];
+                    foreach ($required_extensions as $ext) {
+                        $loaded = extension_loaded($ext);
+                        echo '<p><span>' . $ext . ' extension</span>';
+                        echo '<span class="' . ($loaded ? 'text-success' : 'text-danger') . '">' . ($loaded ? '✓' : '✗') . '</span></p>';
+                    }
+                    ?>
+                    <p>
+                        <span>Write permissions</span>
+                        <span class="<?= is_writable(dirname($dataDir)) ? 'text-success' : 'text-danger' ?>">
+                            <?= is_writable(dirname($dataDir)) ? '✓' : '✗' ?>
+                        </span>
+                    </p>
+                </div>
             </div>
             
             <?php if (!empty($errors)): ?>
