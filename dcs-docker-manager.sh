@@ -753,6 +753,105 @@ run_destroy() {
     fi
 }
 
+# Run sanitize command - removes EVERYTHING including data
+run_sanitize() {
+    local force_mode=false
+    
+    # Check if -f or --force flag was passed
+    if [ "$1" = "-f" ] || [ "$1" = "--force" ]; then
+        force_mode=true
+    fi
+    
+    print_warning "*** COMPLETE SANITIZATION WARNING ***"
+    echo ""
+    echo -e "${RED}This will PERMANENTLY DELETE:"
+    echo "  - The DCS Statistics container"
+    echo "  - The DCS Statistics Docker image"
+    echo "  - All Docker volumes and networks"
+    echo "  - Your .env configuration file"
+    echo "  - ALL DATA in ./dcs-stats/data directory"
+    echo "  - ALL DATA in ./dcs-stats/site-config/data directory"
+    echo -e "  - ALL BACKUPS in ./dcs-stats/backups directory${NC}"
+    echo ""
+    print_warning "*** THIS CANNOT BE UNDONE! ***"
+    echo ""
+    
+    # Skip confirmation if force mode is enabled
+    if [ "$force_mode" = true ]; then
+        print_info "Force mode enabled - skipping confirmation"
+        confirmation="SANITIZE"
+    else
+        echo -n "Type 'SANITIZE' to confirm complete data wipe (or anything else to cancel): "
+        read confirmation
+    fi
+    
+    if [ "$confirmation" = "SANITIZE" ]; then
+        print_info "Starting complete sanitization..."
+        
+        # Stop and remove container
+        print_info "Stopping and removing container..."
+        $COMPOSE_CMD down -v >/dev/null 2>&1 || true
+        
+        # Remove the image
+        print_info "Removing Docker image..."
+        docker rmi dcs-statistics:latest >/dev/null 2>&1 || true
+        docker rmi $(docker images -q -f "reference=dcs-statistics") >/dev/null 2>&1 || true
+        
+        # Clean up any dangling images
+        print_info "Cleaning up dangling images..."
+        docker image prune -f >/dev/null 2>&1
+        
+        # Remove any project-specific volumes
+        print_info "Removing volumes..."
+        docker volume rm $(docker volume ls -q -f "name=dcs-statistics") >/dev/null 2>&1 || true
+        
+        # Clean up networks
+        print_info "Cleaning up networks..."
+        docker network prune -f >/dev/null 2>&1
+        
+        # Remove .env file
+        print_info "Removing .env configuration file..."
+        if [ -f "./.env" ]; then
+            rm -f "./.env"
+            print_success "Removed .env file"
+        fi
+        
+        # DELETE ALL DATA
+        print_warning "Deleting ALL user data..."
+        
+        # Remove data directories
+        if [ -d "./dcs-stats/data" ]; then
+            print_info "Removing ./dcs-stats/data directory..."
+            rm -rf "./dcs-stats/data"
+            print_success "Removed data directory"
+        fi
+        
+        if [ -d "./dcs-stats/site-config/data" ]; then
+            print_info "Removing ./dcs-stats/site-config/data directory..."
+            rm -rf "./dcs-stats/site-config/data"
+            print_success "Removed site-config data directory"
+        fi
+        
+        # Remove backups
+        if [ -d "./dcs-stats/backups" ]; then
+            print_info "Removing ./dcs-stats/backups directory..."
+            rm -rf "./dcs-stats/backups"
+            print_success "Removed backups directory"
+        fi
+        
+        print_success "Complete sanitization finished!"
+        echo ""
+        print_warning "ALL DATA HAS BEEN PERMANENTLY DELETED"
+        echo ""
+        echo -e "To start completely fresh:"
+        echo -e "  1. Run: ${CYAN}./dcs-docker-manager.sh pre-flight${NC}"
+        echo -e "  2. Run: ${CYAN}./dcs-docker-manager.sh start${NC}"
+        echo -e "  3. Complete setup at ${CYAN}http://localhost:9080/site-config/install.php${NC}"
+    else
+        print_info "Sanitization cancelled"
+    fi
+}
+
 # Main startup function
 start_dcs_statistics() {
     echo "========================================"
@@ -1015,8 +1114,9 @@ show_help() {
     echo -e "  ${CYAN}restart${NC}     - Restart DCS Statistics container"
     echo -e "  ${CYAN}rebuild${NC}     - Force rebuild of Docker image"
     echo -e "  ${CYAN}status${NC}      - Check if container is running"
-    echo -e "  ${CYAN}logs${NC}        - Show container logs (live)"
+    echo -e "  ${CYAN}logs${NC}        - Show container logs (last 100 lines)"
     echo -e "  ${CYAN}destroy${NC}     - Remove everything except your data (add -f to skip confirmation)"
+    echo -e "  ${CYAN}sanitize${NC}    - Remove EVERYTHING including all data (add -f to skip confirmation)"
     echo -e "  ${CYAN}help${NC}        - Show this help menu"
     echo ""
     echo -e "${YELLOW}Quick Start:${NC}"
@@ -1080,6 +1180,9 @@ case "$ACTION" in
         ;;
     destroy)
         run_destroy "$2"
+        ;;
+    sanitize)
+        run_sanitize "$2"
         ;;
     help|--help|-h)
         show_help

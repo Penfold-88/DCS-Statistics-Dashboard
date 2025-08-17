@@ -10,7 +10,7 @@
 
 param(
     [Parameter(Position=0)]
-    [ValidateSet("start", "stop", "restart", "status", "logs", "destroy", "pre-flight", "rebuild", "help")]
+    [ValidateSet("start", "stop", "restart", "status", "logs", "destroy", "sanitize", "pre-flight", "rebuild", "help")]
     [string]$Action = "start",
     
     [Parameter(Position=1)]
@@ -755,6 +755,97 @@ switch ($Action) {
             Write-Info "Destruction cancelled"
         }
     }
+    "sanitize" {
+        Write-Warning "*** COMPLETE SANITIZATION WARNING ***"
+        Write-Host ""
+        Write-Host "This will PERMANENTLY DELETE:" -ForegroundColor Red
+        Write-Host "  - The DCS Statistics container" -ForegroundColor Red
+        Write-Host "  - The DCS Statistics Docker image" -ForegroundColor Red
+        Write-Host "  - All Docker volumes and networks" -ForegroundColor Red
+        Write-Host "  - Your .env configuration file" -ForegroundColor Red
+        Write-Host "  - ALL DATA in ./dcs-stats/data directory" -ForegroundColor Red
+        Write-Host "  - ALL DATA in ./dcs-stats/site-config/data directory" -ForegroundColor Red
+        Write-Host "  - ALL BACKUPS in ./dcs-stats/backups directory" -ForegroundColor Red
+        Write-Host ""
+        Write-Warning "*** THIS CANNOT BE UNDONE! ***"
+        Write-Host ""
+        
+        # Check if force flag is provided
+        if ($Flag -eq "-f" -or $Flag -eq "--force") {
+            Write-Info "Force mode enabled - skipping confirmation"
+            $confirmation = "SANITIZE"
+        }
+        else {
+            $confirmation = Read-Host "Type 'SANITIZE' to confirm complete data wipe (or anything else to cancel)"
+        }
+        
+        if ($confirmation -eq "SANITIZE") {
+            Write-Info "Starting complete sanitization..."
+            
+            # Stop and remove container
+            Write-Info "Stopping and removing container..."
+            & $ComposeCmd down -v 2>&1 | Out-Null
+            
+            # Remove the image
+            Write-Info "Removing Docker image..."
+            docker rmi dcs-statistics:latest 2>&1 | Out-Null
+            docker rmi $(docker images -q -f "reference=dcs-statistics") 2>&1 | Out-Null
+            
+            # Clean up any dangling images
+            Write-Info "Cleaning up dangling images..."
+            docker image prune -f 2>&1 | Out-Null
+            
+            # Remove any project-specific volumes
+            Write-Info "Removing volumes..."
+            docker volume rm $(docker volume ls -q -f "name=dcs-statistics") 2>&1 | Out-Null
+            
+            # Clean up networks
+            Write-Info "Cleaning up networks..."
+            docker network prune -f 2>&1 | Out-Null
+            
+            # Remove .env file
+            Write-Info "Removing .env configuration file..."
+            if (Test-Path "./.env") {
+                Remove-Item "./.env" -Force
+                Write-Success "Removed .env file"
+            }
+            
+            # DELETE ALL DATA
+            Write-Warning "Deleting ALL user data..."
+            
+            # Remove data directories
+            if (Test-Path "./dcs-stats/data") {
+                Write-Info "Removing ./dcs-stats/data directory..."
+                Remove-Item "./dcs-stats/data" -Recurse -Force
+                Write-Success "Removed data directory"
+            }
+            
+            if (Test-Path "./dcs-stats/site-config/data") {
+                Write-Info "Removing ./dcs-stats/site-config/data directory..."
+                Remove-Item "./dcs-stats/site-config/data" -Recurse -Force
+                Write-Success "Removed site-config data directory"
+            }
+            
+            # Remove backups
+            if (Test-Path "./dcs-stats/backups") {
+                Write-Info "Removing ./dcs-stats/backups directory..."
+                Remove-Item "./dcs-stats/backups" -Recurse -Force
+                Write-Success "Removed backups directory"
+            }
+            
+            Write-Success "Complete sanitization finished!"
+            Write-Host ""
+            Write-Warning "ALL DATA HAS BEEN PERMANENTLY DELETED"
+            Write-Host ""
+            Write-Host "To start completely fresh:" -ForegroundColor Cyan
+            Write-Host "  1. Run: dcs-docker-manager.bat pre-flight" -ForegroundColor Cyan
+            Write-Host "  2. Run: dcs-docker-manager.bat start" -ForegroundColor Cyan
+            Write-Host "  3. Complete setup at http://localhost:9080/site-config/install.php" -ForegroundColor Cyan
+        }
+        else {
+            Write-Info "Sanitization cancelled"
+        }
+    }
     "help" {
         # Help is handled by the BAT file, but if called directly show basic help
         Write-Host "========================================"
@@ -772,7 +863,8 @@ switch ($Action) {
         Write-Host "  restart     - Restart container"
         Write-Host "  status      - Check status"
         Write-Host "  logs        - Show logs"
-        Write-Host "  destroy     - Remove everything"
+        Write-Host "  destroy     - Remove everything except data"
+        Write-Host "  sanitize    - Remove EVERYTHING including all data"
         Write-Host "  help        - Show help"
     }
 }
