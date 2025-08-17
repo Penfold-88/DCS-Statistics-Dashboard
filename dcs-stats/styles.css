@@ -16,6 +16,8 @@ html {
     --link_color: #4a9eff;
     --border_color: #556b2f;
     --nav_link_color: #c2d4c9;
+    --nav_link_hover_bg: #2e3e47;
+    --nav_link_hover_color: #ffffff;
 }
 
 body {
@@ -431,8 +433,8 @@ h2 {
 
 .nav-link:hover,
 .nav-link:focus {
-    background-color: #2e3e47;
-    color: #ffffff;
+    background-color: var(--nav_link_hover_bg);
+    color: var(--nav_link_hover_color);
 }
 
 .nav-link:active {
