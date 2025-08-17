@@ -809,7 +809,7 @@ start_dcs_statistics() {
         print_info "Docker image not found, building now..."
         print_info "This may take a few minutes on first run..."
         
-        if $COMPOSE_CMD build 2>&1 | tee /tmp/docker_build.log | grep -E "^#[0-9]+" ; then
+        if $COMPOSE_CMD build --no-cache 2>&1 | tee /tmp/docker_build.log | grep -E "^#[0-9]+" ; then
             print_success "Docker image built successfully"
         else
             print_error "Failed to build Docker image"

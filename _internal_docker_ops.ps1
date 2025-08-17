@@ -371,7 +371,7 @@ function Start-DCSStatistics {
         Write-Info "Docker image not found, building now..."
         Write-Info "This may take a few minutes on first run..."
         
-        $buildOutput = & $ComposeCmd build 2>&1
+        $buildOutput = & $ComposeCmd build --no-cache 2>&1
         if ($LASTEXITCODE -ne 0) {
             Write-Error "Failed to build Docker image"
         
