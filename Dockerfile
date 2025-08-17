@@ -34,11 +34,11 @@ WORKDIR /var/www/html
 # Copy the web application files
 COPY --chown=www:www dcs-stats/ /var/www/html/
 
-# Create required directories in the container
+# Create required directories in the container with proper permissions
 RUN mkdir -p /var/www/html/site-config/data \
     /var/www/html/data \
     /var/www/html/backups \
-    && chmod 700 /var/www/html/site-config/data \
+    && chmod 777 /var/www/html/site-config/data \
     && chmod 755 /var/www/html/data \
     && chmod 755 /var/www/html/backups \
     && chown -R www:www /var/www/html/site-config/data \
@@ -166,6 +166,7 @@ else
     sed -i '/^user /d' /etc/nginx/nginx.conf
     sed -i '1s/^/user www;\n/' /etc/nginx/nginx.conf
     # Ensure directories are writable by www user
+    chmod 777 /var/www/html/site-config/data 2>/dev/null || true
     chown -R www:www /var/www/html/site-config/data /var/www/html/data /run/nginx /var/log/supervisor 2>/dev/null || true
     # Create pid directory
     mkdir -p /var/run/supervisor && chown www:www /var/run/supervisor
@@ -206,12 +207,15 @@ EOL
 
 # Ensure directories exist (in case of bind mount)
 mkdir -p /var/www/html/site-config/data /var/www/html/data /var/www/html/backups
-chmod 700 /var/www/html/site-config/data
+chmod 777 /var/www/html/site-config/data
 chmod 755 /var/www/html/data /var/www/html/backups
 
 # Set ownership based on runtime user
 if [ "$RUNTIME_USER" = "www" ]; then
     chown -R www:www /var/www/html/site-config/data /var/www/html/data /var/www/html/backups
+else
+    # Even as root, ensure write permissions
+    chmod 777 /var/www/html/site-config/data
 fi
 
 # Check if installation is needed

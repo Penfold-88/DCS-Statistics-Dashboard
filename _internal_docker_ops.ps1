@@ -10,7 +10,7 @@
 
 param(
     [Parameter(Position=0)]
-    [ValidateSet("start", "stop", "restart", "status", "logs", "destroy", "pre-flight")]
+    [ValidateSet("start", "stop", "restart", "status", "logs", "destroy", "pre-flight", "rebuild", "help")]
     [string]$Action = "start"
 )
 
@@ -238,6 +238,50 @@ function Show-AccessInfo {
     }
 }
 
+# Function to rebuild Docker image
+function Rebuild-DockerImage {
+    Write-Host "========================================"
+    Write-Host "Rebuilding DCS Statistics Docker Image"
+    Write-Host "========================================"
+    Write-Host ""
+    
+    # Check Docker installation
+    Write-Info "Checking Docker..."
+    if (-not (Test-DockerInstalled)) {
+        Write-Error "Docker is not available"
+        return
+    }
+    
+    # Stop existing container if running
+    $existingContainer = docker ps -aq -f "name=$ContainerName"
+    if ($existingContainer) {
+        Write-Info "Stopping existing container..."
+        & $ComposeCmd down 2>&1 | Out-Null
+    }
+    
+    # Remove old image
+    Write-Info "Removing old Docker image..."
+    docker rmi dcs-statistics:latest 2>&1 | Out-Null
+    docker rmi $(docker images -q -f "reference=*dcs-statistics*") 2>&1 | Out-Null
+    Write-Success "Old image removed"
+    
+    # Build new image
+    Write-Info "Building new Docker image..."
+    Write-Info "This will take a few minutes..."
+    
+    $buildOutput = & $ComposeCmd build --no-cache 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        Write-Error "Failed to rebuild Docker image"
+        Write-Host "Check the full output above for errors"
+        return
+    }
+    
+    Write-Success "Docker image rebuilt successfully!"
+    Write-Host ""
+    Write-Host "You can now start the container with: " -NoNewline
+    Write-Host "dcs-docker-manager.bat start" -ForegroundColor Cyan
+}
+
 # Main execution
 function Start-DCSStatistics {
     Write-Host "========================================"
@@ -316,12 +360,20 @@ function Start-DCSStatistics {
     # Update .env file with selected port
     Update-EnvPort -Port $selectedPort
     
-    # Build and start container
-    Write-Info "Building Docker image (this may take a few minutes on first run)..."
+    # Check if Docker image exists
+    $imageExists = docker images --format "{{.Repository}}:{{.Tag}}" | Where-Object { $_ -match "dcs-statistics:latest" }
     
-    $buildOutput = & $ComposeCmd build --no-cache 2>&1
-    if ($LASTEXITCODE -ne 0) {
-        Write-Error "Failed to build Docker image"
+    if ($imageExists) {
+        Write-Success "Docker image exists, skipping build"
+        Write-Info "Use 'dcs-docker-manager.bat rebuild' to force a rebuild"
+    }
+    else {
+        Write-Info "Docker image not found, building now..."
+        Write-Info "This may take a few minutes on first run..."
+        
+        $buildOutput = & $ComposeCmd build 2>&1
+        if ($LASTEXITCODE -ne 0) {
+            Write-Error "Failed to build Docker image"
         
         # Check for common issues that fix script would solve
         $buildError = $buildOutput -join " "
@@ -351,11 +403,12 @@ function Start-DCSStatistics {
             Write-Host "   Maybe try " -NoNewline
             Write-Host "dcs-docker-manager.bat pre-flight" -ForegroundColor Cyan -NoNewline
             Write-Host " first? It fixes most things"
-            Write-Host "   (Or run $ComposeCmd build --no-cache for the gory details)"
+            Write-Host "   (Or run $ComposeCmd build for the gory details)"
         }
         return
     }
     Write-Success "Docker image built successfully"
+    }
     
     Write-Info "Starting container..."
     
@@ -456,6 +509,9 @@ switch ($Action) {
     }
     "logs" {
         docker logs -f $ContainerName
+    }
+    "rebuild" {
+        Rebuild-DockerImage
     }
     "pre-flight" {
         Write-Host "========================================"
@@ -624,5 +680,25 @@ switch ($Action) {
         else {
             Write-Info "Destruction cancelled"
         }
+    }
+    "help" {
+        # Help is handled by the BAT file, but if called directly show basic help
+        Write-Host "========================================"
+        Write-Host "DCS Statistics Docker Manager" -ForegroundColor Cyan
+        Write-Host "========================================"
+        Write-Host ""
+        Write-Host "This script should be called via dcs-docker-manager.bat"
+        Write-Host ""
+        Write-Host "Usage: dcs-docker-manager.bat [COMMAND]"
+        Write-Host ""
+        Write-Host "Available Commands:"
+        Write-Host "  pre-flight  - Run pre-flight checks"
+        Write-Host "  start       - Start container"
+        Write-Host "  stop        - Stop container" 
+        Write-Host "  restart     - Restart container"
+        Write-Host "  status      - Check status"
+        Write-Host "  logs        - Show logs"
+        Write-Host "  destroy     - Remove everything"
+        Write-Host "  help        - Show help"
     }
 }
