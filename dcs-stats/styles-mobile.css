@@ -226,7 +226,8 @@ html, body {
     }
     
     .nav-link:hover {
-        background: rgba(76, 175, 80, 0.2);
+        background-color: var(--nav_link_hover_bg);
+        color: var(--nav_link_hover_color);
     }
     
     /* Main content adjustments */
@@ -485,7 +486,8 @@ html, body {
 /* Touch-friendly hover states */
 @media (hover: none) and (pointer: coarse) {
     .nav-link:hover {
-        background: transparent;
+        background-color: transparent;
+        color: var(--nav_link_color);
     }
     
     .nav-link:active {

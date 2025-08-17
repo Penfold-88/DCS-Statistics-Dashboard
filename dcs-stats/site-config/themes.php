@@ -220,7 +220,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'text_color' => $_POST['text_color'] ?? '',
                     'link_color' => $_POST['link_color'] ?? '',
                     'border_color' => $_POST['border_color'] ?? '',
-                    'nav_link_color' => $_POST['nav_link_color'] ?? ''
+                    'nav_link_color' => $_POST['nav_link_color'] ?? '',
+                    'nav_link_hover_bg' => $_POST['nav_link_hover_bg'] ?? '',
+                    'nav_link_hover_color' => $_POST['nav_link_hover_color'] ?? ''
                 ];
                 
                 // Generate CSS variables
@@ -298,7 +300,9 @@ $customColors = [
     'text_color' => '#e0e0e0',
     'link_color' => '#4a9eff',
     'border_color' => '#333333',
-    'nav_link_color' => '#c2d4c9'
+    'nav_link_color' => '#c2d4c9',
+    'nav_link_hover_bg' => '#2e3e47',
+    'nav_link_hover_color' => '#ffffff'
 ];
 
 $customCSS = __DIR__ . '/../custom_theme.css';
@@ -607,6 +611,8 @@ $pageTitle = 'Theme Management';
                         'link' => substr($customColors['link_color'], 1),
                         'border' => substr($customColors['border_color'], 1),
                         'navlink' => substr($customColors['nav_link_color'], 1),
+                        'navhoverbg' => substr($customColors['nav_link_hover_bg'], 1),
+                        'navhover' => substr($customColors['nav_link_hover_color'], 1),
                     ];
                     // Build URL to parent directory
                     $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
@@ -686,6 +692,18 @@ $pageTitle = 'Theme Management';
                                     <label for="nav_link_color" title="Navigation text color">Navigation Text Color:</label>
                                     <input type="color" id="nav_link_color" name="nav_link_color"
                                            value="<?= htmlspecialchars($customColors['nav_link_color']) ?>">
+                                </div>
+
+                                <div class="color-input-group">
+                                    <label for="nav_link_hover_bg" title="Navigation hover background">Nav Hover Background:</label>
+                                    <input type="color" id="nav_link_hover_bg" name="nav_link_hover_bg"
+                                           value="<?= htmlspecialchars($customColors['nav_link_hover_bg']) ?>">
+                                </div>
+
+                                <div class="color-input-group">
+                                    <label for="nav_link_hover_color" title="Navigation hover text color">Nav Hover Text:</label>
+                                    <input type="color" id="nav_link_hover_color" name="nav_link_hover_color"
+                                           value="<?= htmlspecialchars($customColors['nav_link_hover_color']) ?>">
                                 </div>
                             </div>
                             
@@ -855,7 +873,9 @@ $pageTitle = 'Theme Management';
                 'text': document.getElementById('text_color').value.replace('#', ''),
                 'link': document.getElementById('link_color').value.replace('#', ''),
                 'border': document.getElementById('border_color').value.replace('#', ''),
-                'navlink': document.getElementById('nav_link_color').value.replace('#', '')
+                'navlink': document.getElementById('nav_link_color').value.replace('#', ''),
+                'navhoverbg': document.getElementById('nav_link_hover_bg').value.replace('#', ''),
+                'navhover': document.getElementById('nav_link_hover_color').value.replace('#', '')
             };
             
             // Build URL with preview parameters
@@ -1029,7 +1049,9 @@ $pageTitle = 'Theme Management';
                 'text_color': '#ffffff',
                 'link_color': '#4a9eff',
                 'border_color': '#556b2f',
-                'nav_link_color': '#c2d4c9'
+                'nav_link_color': '#c2d4c9',
+                'nav_link_hover_bg': '#2e3e47',
+                'nav_link_hover_color': '#ffffff'
             };
             
             // Set the color inputs to default values
