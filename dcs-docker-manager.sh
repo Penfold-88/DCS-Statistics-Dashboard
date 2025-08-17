@@ -799,11 +799,10 @@ start_dcs_statistics() {
         print_success "Using port $SELECTED_PORT instead"
     fi
     
-    # Update .env file with selected port
-    update_env_port $SELECTED_PORT
-    
-    # Check if Docker image exists
+    # Check if Docker image exists BEFORE updating .env
     if docker images | grep -q "^dcs-statistics.*latest"; then
+        # Update .env file with selected port only if image already exists
+        update_env_port $SELECTED_PORT
         print_success "Docker image exists, skipping build"
         print_info "Use './dcs-docker-manager.sh rebuild' to force a rebuild"
     else
@@ -848,6 +847,10 @@ start_dcs_statistics() {
         echo ""
         print_success "Pre-flight checks completed successfully!"
         echo ""
+        
+        # NOW update .env file with selected port after pre-flight has set up the file
+        update_env_port $SELECTED_PORT
+        
         print_info "Continuing with Docker build..."
         echo ""
         

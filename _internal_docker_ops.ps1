@@ -358,13 +358,12 @@ function Start-DCSStatistics {
         Write-Success "Using port $selectedPort instead"
     }
     
-    # Update .env file with selected port
-    Update-EnvPort -Port $selectedPort
-    
-    # Check if Docker image exists
+    # Check if Docker image exists BEFORE updating .env
     $imageExists = docker images --format "{{.Repository}}:{{.Tag}}" | Where-Object { $_ -match "dcs-statistics:latest" }
     
     if ($imageExists) {
+        # Update .env file with selected port only if image already exists
+        Update-EnvPort -Port $selectedPort
         Write-Success "Docker image exists, skipping build"
         Write-Info "Use 'dcs-docker-manager.bat rebuild' to force a rebuild"
     }
@@ -414,6 +413,10 @@ function Start-DCSStatistics {
         Write-Host ""
         Write-Success "Pre-flight checks completed successfully!"
         Write-Host ""
+        
+        # NOW update .env file with selected port after pre-flight has set up the file
+        Update-EnvPort -Port $selectedPort
+        
         Write-Info "Continuing with Docker build..."
         Write-Host ""
         
