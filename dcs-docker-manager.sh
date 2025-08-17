@@ -672,7 +672,10 @@ run_preflight() {
     
     print_success "Pre-flight check complete!"
     echo ""
-    echo -e "You can now run: ${CYAN}./dcs-docker-manager.sh start${NC}"
+    # Only show the "run start" message if we're not already in the start process
+    if [ "$FROM_START" != "true" ]; then
+        echo -e "You can now run: ${CYAN}./dcs-docker-manager.sh start${NC}"
+    fi
 }
 
 # Destroy function
@@ -837,7 +840,8 @@ start_dcs_statistics() {
         print_info "Running pre-flight checks before continuing..."
         echo ""
         
-        # Run pre-flight checks
+        # Run pre-flight checks (set flag to suppress the "run start" message)
+        FROM_START=true
         run_preflight
         if [ $? -ne 0 ]; then
             print_error "Pre-flight checks failed. Please fix the issues and try again."

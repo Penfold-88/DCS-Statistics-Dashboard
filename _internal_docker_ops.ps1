@@ -667,9 +667,12 @@ switch ($Action) {
             
             Write-Success "Pre-flight checks completed successfully!"
             Write-Host ""
-            Write-Host "You can now run: " -NoNewline
-            Write-Host "dcs-docker-manager.bat start" -ForegroundColor Cyan
-            Write-Host "to launch the DCS Statistics website."
+            # Only show the "run start" message if we're not already in the start process
+            if ($Action -eq "pre-flight") {
+                Write-Host "You can now run: " -NoNewline
+                Write-Host "dcs-docker-manager.bat start" -ForegroundColor Cyan
+                Write-Host "to launch the DCS Statistics website."
+            }
         }
         else {
             Write-Error "Pre-flight checks failed. Please fix the issues above and try again."
