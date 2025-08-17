@@ -30,7 +30,12 @@ if %errorlevel% neq 0 (
 echo Starting Docker containers...
 echo.
 
-powershell.exe -ExecutionPolicy Bypass -NoProfile -File "%~dp0_internal_docker_ops.ps1" "%~1" "%~2"
+:: Pass arguments to PowerShell, handling optional second parameter
+if "%~2"=="" (
+    powershell.exe -ExecutionPolicy Bypass -NoProfile -File "%~dp0_internal_docker_ops.ps1" "%~1" ""
+) else (
+    powershell.exe -ExecutionPolicy Bypass -NoProfile -File "%~dp0_internal_docker_ops.ps1" "%~1" "%~2"
+)
 goto :End
 
 :ShowHelp
