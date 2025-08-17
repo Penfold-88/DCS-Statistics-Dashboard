@@ -806,56 +806,49 @@ start_dcs_statistics() {
         print_success "Docker image exists, skipping build"
         print_info "Use './dcs-docker-manager.sh rebuild' to force a rebuild"
     else
-        # First time run detection
-        first_run_indicators=0
-        [ ! -f "./.env" ] && ((first_run_indicators++))
-        [ ! -d "./dcs-stats/data" ] && ((first_run_indicators++))
-        [ ! -d "./dcs-stats/backups" ] && ((first_run_indicators++))
-        
-        if [ $first_run_indicators -gt 0 ]; then
+        # If no Docker image exists, this is a first build - prompt the user
+        echo ""
+        print_warning "🚨 FIRST TIME SETUP DETECTED 🚨"
+        echo ""
+        echo "No Docker image found. This appears to be your first time building DCS Statistics."
+        echo "Pre-flight checks are REQUIRED for first-time setup."
+        echo ""
+        echo "Pre-flight will:"
+        echo "  • Create necessary directories"
+        echo "  • Set up environment files"
+        echo "  • Fix common permission issues"
+        echo "  • Ensure Docker is properly configured"
+        echo ""
+        echo "Type CONTINUE to run pre-flight checks and proceed with setup"
+        echo "Type anything else or press Enter to exit"
+        echo ""
+        echo -n "Your choice: "
+        read -r response
+        if [[ "$response" != "CONTINUE" ]]; then
             echo ""
-            print_warning "🚨 FIRST TIME SETUP DETECTED 🚨"
-            echo ""
-            echo "It looks like this is your first time running DCS Statistics."
-            echo "Pre-flight checks are REQUIRED for first-time setup."
-            echo ""
-            echo "Pre-flight will:"
-            echo "  • Create necessary directories"
-            echo "  • Set up environment files"
-            echo "  • Fix common permission issues"
-            echo "  • Ensure Docker is properly configured"
-            echo ""
-            echo "Type CONTINUE to run pre-flight checks and proceed with setup"
-            echo "Type anything else or press Enter to exit"
-            echo ""
-            echo -n "Your choice: "
-            read -r response
-            if [[ "$response" != "CONTINUE" ]]; then
-                echo ""
-                print_info "Setup cancelled. To set up DCS Statistics, either:"
-                echo -e "  1. Run: ${CYAN}./dcs-docker-manager.sh pre-flight${NC} first, then"
-                echo -e "     Run: ${CYAN}./dcs-docker-manager.sh start${NC}"
-                echo "  OR"
-                echo -e "  2. Run: ${CYAN}./dcs-docker-manager.sh start${NC} and type CONTINUE when prompted"
-                exit 0
-            fi
-            echo ""
-            print_info "Running pre-flight checks before continuing..."
-            echo ""
-            
-            # Run pre-flight checks
-            run_preflight
-            if [ $? -ne 0 ]; then
-                print_error "Pre-flight checks failed. Please fix the issues and try again."
-                exit 1
-            fi
-            
-            echo ""
-            print_success "Pre-flight checks completed successfully!"
-            echo ""
-            print_info "Continuing with Docker build..."
-            echo ""
+            print_info "Setup cancelled. To set up DCS Statistics, either:"
+            echo -e "  1. Run: ${CYAN}./dcs-docker-manager.sh pre-flight${NC} first, then"
+            echo -e "     Run: ${CYAN}./dcs-docker-manager.sh start${NC}"
+            echo "  OR"
+            echo -e "  2. Run: ${CYAN}./dcs-docker-manager.sh start${NC} and type CONTINUE when prompted"
+            exit 0
         fi
+        echo ""
+        print_info "Running pre-flight checks before continuing..."
+        echo ""
+        
+        # Run pre-flight checks
+        run_preflight
+        if [ $? -ne 0 ]; then
+            print_error "Pre-flight checks failed. Please fix the issues and try again."
+            exit 1
+        fi
+        
+        echo ""
+        print_success "Pre-flight checks completed successfully!"
+        echo ""
+        print_info "Continuing with Docker build..."
+        echo ""
         
         print_info "Docker image not found, building now..."
         print_info "This may take a few minutes on first run..."
