@@ -11,9 +11,12 @@
 
 ### 🔄 **Latest Updates**
 - 🌐 **Default Port Changed** - Now uses port 9080 (was 8080) to avoid conflicts
-- 🛠️ **Unified Management Script** - Single `dcs-docker-manager.bat` for all Docker operations
-- 🧹 **Complete Cleanup Option** - New `destroy` command removes all Docker artifacts
-- ✈️ **Pre-Flight Checks** - Automated Windows issue detection and resolution
+- 🛠️ **Unified Management Script** - Single `dcs-docker-manager.bat`/`.sh` for all Docker operations
+- 🧹 **Two Cleanup Options** - `destroy` preserves data, `sanitize` removes everything
+- 🚀 **Force Flags** - Add `-f` to skip confirmation prompts for automation
+- 📜 **Improved Logs** - Shows last 100 lines without requiring Ctrl+C to exit
+- 🔨 **Rebuild Command** - Force fresh Docker image builds when needed
+- ✈️ **Pre-Flight Checks** - Automated Windows/Linux issue detection and resolution
 
 ### 🚀 **Advanced Admin Panel**
 - 🎛️ **Role-Based Access Control** - Multi-tier permission system (Air Boss, Squadron Leader, Pilot)
@@ -78,10 +81,12 @@ Experience a professional-grade statistics platform featuring:
 - **Start:** Run `dcs-docker-manager.bat` or `dcs-docker-manager.bat start`
 - **Stop:** Run `dcs-docker-manager.bat stop`
 - **Restart:** Run `dcs-docker-manager.bat restart`
-- **View Logs:** Run `dcs-docker-manager.bat logs`
+- **View Logs:** Run `dcs-docker-manager.bat logs` (shows last 100 lines)
 - **Check Status:** Run `dcs-docker-manager.bat status`
+- **Rebuild Image:** Run `dcs-docker-manager.bat rebuild` (forces fresh Docker build)
 - **Pre-Flight Check:** Run `dcs-docker-manager.bat pre-flight` (recommended for first-time setup)
-- **Complete Removal:** Run `dcs-docker-manager.bat destroy` (removes everything except your data)
+- **Partial Removal:** Run `dcs-docker-manager.bat destroy` (removes everything except your data)
+- **Complete Wipe:** Run `dcs-docker-manager.bat sanitize` (removes EVERYTHING including all data)
 
 ##### **Linux Users**
 
@@ -209,14 +214,40 @@ Our Docker deployment provides enterprise-grade containerization with intelligen
 # Run pre-flight checks (recommended for first time)
 dcs-docker-manager.bat pre-flight
 
-# Advanced users can use PowerShell scripts directly:
-dcs-docker-manager.bat [pre-flight|start|stop|restart|status|logs|destroy]
+# Start the application
+dcs-docker-manager.bat start
+
+# Stop the application
+dcs-docker-manager.bat stop
+
+# Restart the application
+dcs-docker-manager.bat restart
+
+# Check status
+dcs-docker-manager.bat status
+
+# View logs (last 100 lines)
+dcs-docker-manager.bat logs
+
+# Force rebuild Docker image
+dcs-docker-manager.bat rebuild
+
+# Remove Docker artifacts (preserves data)
+dcs-docker-manager.bat destroy     # Prompts for confirmation
+dcs-docker-manager.bat destroy -f  # Skip confirmation
+
+# Complete removal including ALL data
+dcs-docker-manager.bat sanitize    # Prompts for confirmation
+dcs-docker-manager.bat sanitize -f # Skip confirmation
 ```
 
 **Linux Users:**
 ```bash
+# Run pre-flight checks (recommended for first time)
+./dcs-docker-manager.sh pre-flight
+
 # Start application
-./dcs-docker-manager.sh
+./dcs-docker-manager.sh start
 
 # Stop application
 ./dcs-docker-manager.sh stop
@@ -227,8 +258,19 @@ dcs-docker-manager.bat [pre-flight|start|stop|restart|status|logs|destroy]
 # View status
 ./dcs-docker-manager.sh status
 
-# View logs
+# View logs (last 100 lines)
 ./dcs-docker-manager.sh logs
+
+# Force rebuild Docker image
+./dcs-docker-manager.sh rebuild
+
+# Remove Docker artifacts (preserves data)
+./dcs-docker-manager.sh destroy     # Prompts for confirmation
+./dcs-docker-manager.sh destroy -f  # Skip confirmation
+
+# Complete removal including ALL data
+./dcs-docker-manager.sh sanitize    # Prompts for confirmation
+./dcs-docker-manager.sh sanitize -f # Skip confirmation
 ```
 
 ### Troubleshooting Docker Issues
@@ -331,23 +373,50 @@ docker compose up -d
 # Access at http://localhost:9080
 ```
 
-### 🗑️ Complete Cleanup with Destroy Command
+### 🗑️ Cleanup Commands
 
-**Windows:**
+#### **Destroy Command (Preserves Data)**
+
 ```batch
-# Remove everything Docker-related for this project
-dcs-docker-manager.bat destroy
+# Windows
+dcs-docker-manager.bat destroy     # With confirmation prompt
+dcs-docker-manager.bat destroy -f  # Skip confirmation
+
+# Linux
+./dcs-docker-manager.sh destroy     # With confirmation prompt
+./dcs-docker-manager.sh destroy -f  # Skip confirmation
 ```
 
-This command will:
+The `destroy` command will:
 - Stop and remove the DCS Statistics container
 - Delete the Docker image
 - Remove all Docker volumes
 - Clean up Docker networks
 - Delete your .env configuration file
-- **Preserve your data in ./dcs-stats directory**
+- **✅ PRESERVE your data in ./dcs-stats directory**
 
-After destroy, run `dcs-docker-manager.bat pre-flight` to start fresh.
+After destroy, run `pre-flight` to start fresh with your data intact.
+
+#### **Sanitize Command (Complete Wipe)**
+
+```batch
+# Windows
+dcs-docker-manager.bat sanitize     # With confirmation prompt
+dcs-docker-manager.bat sanitize -f  # Skip confirmation
+
+# Linux
+./dcs-docker-manager.sh sanitize     # With confirmation prompt
+./dcs-docker-manager.sh sanitize -f  # Skip confirmation
+```
+
+The `sanitize` command will:
+- Everything that `destroy` does, PLUS:
+- **❌ DELETE ./dcs-stats/data directory**
+- **❌ DELETE ./dcs-stats/site-config/data directory**
+- **❌ DELETE ./dcs-stats/backups directory**
+- **⚠️ THIS CANNOT BE UNDONE!**
+
+Use `sanitize` when you need a complete fresh start with no data.
 
 ### 🎨 What the Launcher Scripts Do
 
