@@ -347,10 +347,10 @@ $pageTitle = 'Theme Management';
         
         .color-inputs {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: repeat(4, 1fr);
             gap: 20px;
             margin-top: 20px;
-            max-width: 600px;
+            max-width: 1000px;
         }
         
         .color-input-group {
