@@ -44,7 +44,7 @@ if (version_compare(PHP_VERSION, '7.4.0', '<')) {
 }
 
 // Check required extensions
-$required_extensions = ['json', 'session', 'openssl', 'mbstring'];
+$required_extensions = ['json', 'session', 'openssl', 'mbstring', 'zip'];
 $missing_extensions = [];
 
 foreach ($required_extensions as $ext) {
@@ -188,7 +188,7 @@ if (!$is_cli) {
                     <?= version_compare(PHP_VERSION, '7.4.0', '>=') ? '✓' : '✗' ?> PHP version <?= PHP_VERSION ?> (7.4+ required)
                 </p>
                 <?php
-                $required_extensions = ['json', 'session', 'openssl', 'mbstring'];
+                $required_extensions = ['json', 'session', 'openssl', 'mbstring', 'zip'];
                 foreach ($required_extensions as $ext) {
                     $loaded = extension_loaded($ext);
                     echo '<p class="' . ($loaded ? 'success' : 'error') . '">';
