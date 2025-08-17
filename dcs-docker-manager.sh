@@ -809,7 +809,7 @@ start_dcs_statistics() {
     else
         # If no Docker image exists, this is a first build - prompt the user
         echo ""
-        print_warning "🚨 FIRST TIME SETUP DETECTED 🚨"
+        print_warning "*** FIRST TIME SETUP DETECTED ***"
         echo ""
         echo "No Docker image found. This appears to be your first time building DCS Statistics."
         echo "Pre-flight checks are REQUIRED for first-time setup."

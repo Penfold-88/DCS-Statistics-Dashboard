@@ -371,7 +371,7 @@ function Start-DCSStatistics {
     else {
         # If no Docker image exists, this is a first build - prompt the user
         Write-Host ""
-        Write-Warning "🚨 FIRST TIME SETUP DETECTED 🚨"
+        Write-Warning "*** FIRST TIME SETUP DETECTED ***"
         Write-Host ""
         Write-Host "No Docker image found. This appears to be your first time building DCS Statistics."
         Write-Host "Pre-flight checks are REQUIRED for first-time setup."
