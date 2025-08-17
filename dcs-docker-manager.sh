@@ -686,7 +686,8 @@ run_destroy() {
     echo "  - The Docker network (if created)"
     echo -e "  - Your .env configuration file${NC}"
     echo ""
-    print_warning "Your data in ./dcs-stats will be preserved"
+    # Blinking cyan text for preserved data message
+    echo -e "\033[5;36m[INFO] Your data in ./dcs-stats will be preserved\033[0m"
     echo ""
     
     echo -n "Type 'DESTROY' to confirm (or anything else to cancel): "

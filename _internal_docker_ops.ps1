@@ -238,6 +238,7 @@ function Show-AccessInfo {
     }
 }
 
+
 # Function to rebuild Docker image
 function Rebuild-DockerImage {
     Write-Host "========================================"
@@ -403,8 +404,8 @@ function Start-DCSStatistics {
         Write-Info "Running pre-flight checks before continuing..."
         Write-Host ""
         
-        # Run pre-flight checks
-        Run-PreFlight
+        # Run pre-flight checks by calling the script with pre-flight argument
+        & powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$PSScriptRoot\_internal_docker_ops.ps1" "pre-flight"
         if ($LASTEXITCODE -ne 0) {
             Write-Error "Pre-flight checks failed. Please fix the issues and try again."
             return
@@ -661,13 +662,14 @@ switch ($Action) {
             Write-Success "Docker networks cleaned"
             Write-Host ""
             
-            Write-Success "Pre-flight check complete!"
+            Write-Success "Pre-flight checks completed successfully!"
             Write-Host ""
-            Write-Host "You can now run:" -ForegroundColor Cyan
-            Write-Host "  dcs-docker-manager.bat start" -ForegroundColor Cyan
+            Write-Host "You can now run: " -NoNewline
+            Write-Host "dcs-docker-manager.bat start" -ForegroundColor Cyan
+            Write-Host "to launch the DCS Statistics website."
         }
         else {
-            Write-Error "Pre-flight check failed. Please fix the issues above."
+            Write-Error "Pre-flight checks failed. Please fix the issues above and try again."
         }
     }
     "destroy" {
@@ -680,7 +682,8 @@ switch ($Action) {
         Write-Host "  - The Docker network (if created)" -ForegroundColor Yellow
         Write-Host "  - Your .env configuration file" -ForegroundColor Yellow
         Write-Host ""
-        Write-Warning "Your data in ./dcs-stats will be preserved"
+        # Display preserved data message in cyan (blinking not supported in PowerShell)
+        Write-Host "[INFO] Your data in ./dcs-stats will be preserved" -ForegroundColor Cyan
         Write-Host ""
         
         $confirmation = Read-Host "Type 'DESTROY' to confirm (or anything else to cancel)"
