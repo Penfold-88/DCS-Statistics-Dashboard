@@ -563,7 +563,17 @@ switch ($Action) {
         }
     }
     "logs" {
-        docker logs -f $ContainerName
+        Write-Info "Showing last 50 lines of logs (following live updates)..."
+        Write-Host "Press Ctrl+C to stop viewing logs" -ForegroundColor Cyan
+        Write-Host ""
+        try {
+            docker logs --tail 50 -f $ContainerName
+        }
+        catch {
+            # Catch Ctrl+C and exit cleanly
+            Write-Host ""
+            Write-Info "Stopped viewing logs"
+        }
     }
     "rebuild" {
         Rebuild-DockerImage

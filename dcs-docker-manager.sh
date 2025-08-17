@@ -1056,7 +1056,14 @@ case "$ACTION" in
         fi
         ;;
     logs)
-        docker logs -f $CONTAINER_NAME
+        print_info "Showing last 50 lines of logs (following live updates)..."
+        echo -e "${CYAN}Press Ctrl+C to stop viewing logs${NC}"
+        echo ""
+        # Trap Ctrl+C to exit cleanly from logs
+        trap 'echo ""; print_info "Stopped viewing logs"; exit 0' INT
+        docker logs --tail 50 -f $CONTAINER_NAME
+        # Reset trap
+        trap - INT
         ;;
     pre-flight)
         run_preflight
