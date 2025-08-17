@@ -680,6 +680,13 @@ run_preflight() {
 
 # Destroy function
 run_destroy() {
+    local force_mode=false
+    
+    # Check if -f or --force flag was passed
+    if [ "$1" = "-f" ] || [ "$1" = "--force" ]; then
+        force_mode=true
+    fi
+    
     print_warning "This will DESTROY everything related to DCS Statistics Docker setup!"
     echo ""
     echo -e "${YELLOW}This action will remove:"
@@ -693,8 +700,14 @@ run_destroy() {
     echo -e "\033[5;36m[INFO] Your data in ./dcs-stats will be preserved\033[0m"
     echo ""
     
-    echo -n "Type 'DESTROY' to confirm (or anything else to cancel): "
-    read confirmation
+    # Skip confirmation if force mode is enabled
+    if [ "$force_mode" = true ]; then
+        print_info "Force mode enabled - skipping confirmation"
+        confirmation="DESTROY"
+    else
+        echo -n "Type 'DESTROY' to confirm (or anything else to cancel): "
+        read confirmation
+    fi
     
     if [ "$confirmation" = "DESTROY" ]; then
         print_info "Starting destruction process..."
@@ -1003,7 +1016,7 @@ show_help() {
     echo -e "  ${CYAN}rebuild${NC}     - Force rebuild of Docker image"
     echo -e "  ${CYAN}status${NC}      - Check if container is running"
     echo -e "  ${CYAN}logs${NC}        - Show container logs (live)"
-    echo -e "  ${CYAN}destroy${NC}     - Remove everything except your data"
+    echo -e "  ${CYAN}destroy${NC}     - Remove everything except your data (add -f to skip confirmation)"
     echo -e "  ${CYAN}help${NC}        - Show this help menu"
     echo ""
     echo -e "${YELLOW}Quick Start:${NC}"
@@ -1056,20 +1069,17 @@ case "$ACTION" in
         fi
         ;;
     logs)
-        print_info "Showing last 50 lines of logs (following live updates)..."
-        echo -e "${CYAN}Press Ctrl+C to stop viewing logs${NC}"
+        print_info "Showing last 100 lines of logs..."
         echo ""
-        # Trap Ctrl+C to exit cleanly from logs
-        trap 'echo ""; print_info "Stopped viewing logs"; exit 0' INT
-        docker logs --tail 50 -f $CONTAINER_NAME
-        # Reset trap
-        trap - INT
+        docker logs --tail 100 $CONTAINER_NAME
+        echo ""
+        print_info "End of logs. Use 'docker logs -f $CONTAINER_NAME' if you want to follow live logs."
         ;;
     pre-flight)
         run_preflight
         ;;
     destroy)
-        run_destroy
+        run_destroy "$2"
         ;;
     help|--help|-h)
         show_help

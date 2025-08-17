@@ -11,7 +11,10 @@
 param(
     [Parameter(Position=0)]
     [ValidateSet("start", "stop", "restart", "status", "logs", "destroy", "pre-flight", "rebuild", "help")]
-    [string]$Action = "start"
+    [string]$Action = "start",
+    
+    [Parameter(Position=1)]
+    [string]$Flag = ""
 )
 
 # Default configuration
@@ -563,17 +566,11 @@ switch ($Action) {
         }
     }
     "logs" {
-        Write-Info "Showing last 50 lines of logs (following live updates)..."
-        Write-Host "Press Ctrl+C to stop viewing logs" -ForegroundColor Cyan
+        Write-Info "Showing last 100 lines of logs..."
         Write-Host ""
-        try {
-            docker logs --tail 50 -f $ContainerName
-        }
-        catch {
-            # Catch Ctrl+C and exit cleanly
-            Write-Host ""
-            Write-Info "Stopped viewing logs"
-        }
+        docker logs --tail 100 $ContainerName
+        Write-Host ""
+        Write-Info "End of logs. Use 'docker logs -f $ContainerName' if you want to follow live logs."
     }
     "rebuild" {
         Rebuild-DockerImage
@@ -705,7 +702,14 @@ switch ($Action) {
         Write-Host "[INFO] Your data in ./dcs-stats will be preserved" -ForegroundColor Cyan
         Write-Host ""
         
-        $confirmation = Read-Host "Type 'DESTROY' to confirm (or anything else to cancel)"
+        # Check if force flag is provided
+        if ($Flag -eq "-f" -or $Flag -eq "--force") {
+            Write-Info "Force mode enabled - skipping confirmation"
+            $confirmation = "DESTROY"
+        }
+        else {
+            $confirmation = Read-Host "Type 'DESTROY' to confirm (or anything else to cancel)"
+        }
         
         if ($confirmation -eq "DESTROY") {
             Write-Info "Starting destruction process..."

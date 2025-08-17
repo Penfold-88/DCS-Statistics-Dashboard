@@ -49,7 +49,7 @@ echo   restart     - Restart DCS Statistics container
 echo   rebuild     - Force rebuild of Docker image
 echo   status      - Check if container is running
 echo   logs        - Show container logs (live)
-echo   destroy     - Remove everything except your data
+echo   destroy     - Remove everything except your data (add -f to skip confirmation)
 echo   help        - Show this help menu
 echo.
 echo Quick Start:
