@@ -60,6 +60,42 @@ if (file_exists($menuConfigFile)) {
         $menuItems = $savedMenu;
     }
 }
+// Apply feature flags to standard navigation items
+foreach ($menuItems as &$item) {
+    switch ($item['url'] ?? '') {
+        case 'index.php':
+            if (!isFeatureEnabled('nav_home')) {
+                $item['enabled'] = false;
+            }
+            break;
+        case 'leaderboard.php':
+            if (!isFeatureEnabled('nav_leaderboard')) {
+                $item['enabled'] = false;
+            }
+            break;
+        case 'pilot_statistics.php':
+            if (!isFeatureEnabled('nav_pilot_statistics')) {
+                $item['enabled'] = false;
+            }
+            break;
+        case 'pilot_credits.php':
+            if (!isFeatureEnabled('nav_pilot_credits')) {
+                $item['enabled'] = false;
+            }
+            break;
+        case 'squadrons.php':
+            if (!isFeatureEnabled('nav_squadrons')) {
+                $item['enabled'] = false;
+            }
+            break;
+        case 'servers.php':
+            if (!isFeatureEnabled('nav_servers')) {
+                $item['enabled'] = false;
+            }
+            break;
+    }
+}
+unset($item);
 // Check if menu config exists, if not check for Discord/Squadron links to add
 $hasDiscordInMenu = false;
 $hasSquadronInMenu = false;

@@ -11,8 +11,18 @@ include 'header.php';
 
 <?php
 // Check if this is a fresh install
-$isConfigured = file_exists(__DIR__ . '/api_config.json') || 
+$isConfigured = file_exists(__DIR__ . '/api_config.json') ||
                 file_exists(__DIR__ . '/site-config/data/users.json');
+
+// If homepage is disabled and site is configured, show message
+if (!isFeatureEnabled('nav_home') && $isConfigured) {
+    echo '<main><div class="alert" style="text-align: center; padding: 50px;">'
+       . '<h2>Homepage Disabled</h2>'
+       . '<p>The homepage is currently disabled.</p>'
+       . '</div></main>';
+    include 'footer.php';
+    exit;
+}
 
 if (!$isConfigured):
 ?>

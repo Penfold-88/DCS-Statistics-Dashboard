@@ -6,7 +6,17 @@ if (session_status() === PHP_SESSION_NONE) {
 include "header.php"; 
 require_once __DIR__ . '/site_features.php';
 require_once __DIR__ . '/table-responsive.php';
-include "nav.php"; ?>
+include "nav.php";
+
+if (!isFeatureEnabled('nav_leaderboard')) {
+    echo '<main><div class="alert" style="text-align: center; padding: 50px;">'
+       . '<h2>Leaderboard Disabled</h2>'
+       . '<p>The leaderboard is currently disabled.</p>'
+       . '</div></main>';
+    include 'footer.php';
+    exit;
+}
+?>
 
 <style>
   /* Professional Leaderboard Styling */

@@ -10,6 +10,17 @@ include 'header.php';
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <?php include 'nav.php'; ?>
 
+<?php
+if (!isFeatureEnabled('nav_pilot_statistics')) {
+    echo '<main><div class="alert" style="text-align: center; padding: 50px;">'
+       . '<h2>Pilot Statistics Disabled</h2>'
+       . '<p>The pilot statistics page is currently disabled.</p>'
+       . '</div></main>';
+    include 'footer.php';
+    exit;
+}
+?>
+
 <main>
     <div class="dashboard-header">
         <h1>Pilot Statistics</h1>
