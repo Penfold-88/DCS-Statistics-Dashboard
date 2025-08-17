@@ -404,7 +404,10 @@ function Start-DCSStatistics {
         Write-Host ""
         
         # Run pre-flight checks by calling the script with pre-flight argument
+        # Set environment variable to indicate we're calling from start
+        $env:FROM_START = "true"
         & powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$PSScriptRoot\_internal_docker_ops.ps1" "pre-flight"
+        $env:FROM_START = $null
         if ($LASTEXITCODE -ne 0) {
             Write-Error "Pre-flight checks failed. Please fix the issues and try again."
             return
@@ -668,7 +671,7 @@ switch ($Action) {
             Write-Success "Pre-flight checks completed successfully!"
             Write-Host ""
             # Only show the "run start" message if we're not already in the start process
-            if ($Action -eq "pre-flight") {
+            if ($env:FROM_START -ne "true") {
                 Write-Host "You can now run: " -NoNewline
                 Write-Host "dcs-docker-manager.bat start" -ForegroundColor Cyan
                 Write-Host "to launch the DCS Statistics website."
