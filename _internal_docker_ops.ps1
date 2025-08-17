@@ -368,6 +368,61 @@ function Start-DCSStatistics {
         Write-Info "Use 'dcs-docker-manager.bat rebuild' to force a rebuild"
     }
     else {
+        # First time run detection
+        $firstRunIndicators = 0
+        if (-not (Test-Path ".\.env")) { $firstRunIndicators++ }
+        if (-not (Test-Path ".\dcs-stats\data")) { $firstRunIndicators++ }
+        if (-not (Test-Path ".\dcs-stats\backups")) { $firstRunIndicators++ }
+        
+        if ($firstRunIndicators -gt 0) {
+            Write-Host ""
+            Write-Warning "🚨 FIRST TIME SETUP DETECTED 🚨"
+            Write-Host ""
+            Write-Host "It looks like this is your first time running DCS Statistics."
+            Write-Host "Pre-flight checks are REQUIRED for first-time setup."
+            Write-Host ""
+            Write-Host "Pre-flight will:"
+            Write-Host "  • Create necessary directories"
+            Write-Host "  • Set up environment files"
+            Write-Host "  • Fix common permission issues"
+            Write-Host "  • Ensure Docker is properly configured"
+            Write-Host ""
+            Write-Host "Type CONTINUE to run pre-flight checks and proceed with setup"
+            Write-Host "Type anything else or press Enter to exit"
+            Write-Host ""
+            $response = Read-Host "Your choice"
+            if ($response -ne "CONTINUE") {
+                Write-Host ""
+                Write-Info "Setup cancelled. To set up DCS Statistics, either:"
+                Write-Host "  1. Run: " -NoNewline
+                Write-Host "dcs-docker-manager.bat pre-flight" -ForegroundColor Cyan -NoNewline
+                Write-Host " first, then"
+                Write-Host "     Run: " -NoNewline
+                Write-Host "dcs-docker-manager.bat start" -ForegroundColor Cyan
+                Write-Host "  OR"
+                Write-Host "  2. Run: " -NoNewline
+                Write-Host "dcs-docker-manager.bat start" -ForegroundColor Cyan -NoNewline
+                Write-Host " and type CONTINUE when prompted"
+                return
+            }
+            Write-Host ""
+            Write-Info "Running pre-flight checks before continuing..."
+            Write-Host ""
+            
+            # Run pre-flight checks
+            Run-PreFlight
+            if ($LASTEXITCODE -ne 0) {
+                Write-Error "Pre-flight checks failed. Please fix the issues and try again."
+                return
+            }
+            
+            Write-Host ""
+            Write-Success "Pre-flight checks completed successfully!"
+            Write-Host ""
+            Write-Info "Continuing with Docker build..."
+            Write-Host ""
+        }
+        
         Write-Info "Docker image not found, building now..."
         Write-Info "This may take a few minutes on first run..."
         

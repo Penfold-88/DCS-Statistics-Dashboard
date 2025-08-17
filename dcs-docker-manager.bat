@@ -22,7 +22,6 @@ where powershell >nul 2>&1
 if %errorlevel% neq 0 (
     echo ERROR: PowerShell is not installed or not in PATH
     echo Please install PowerShell to continue
-    pause
     exit /b 1
 )
 
@@ -65,7 +64,6 @@ echo   - Configure environment files
 echo   - Fix any line ending issues
 echo.
 echo ========================================
-pause
 exit /b 0
 
 :End
@@ -79,9 +77,7 @@ if %errorlevel% neq 0 (
     echo - Make sure Docker Desktop is running
     echo - Run 'dcs-docker-manager.bat pre-flight' first
     echo - Check if port 9080 is available
-    pause
     exit /b %errorlevel%
 )
 
 :: Success message is handled by the PowerShell script
-pause
