@@ -32,9 +32,9 @@ echo.
 
 :: Pass arguments to PowerShell, handling optional second parameter
 if "%~2"=="" (
-    powershell.exe -ExecutionPolicy Bypass -NoProfile -File "%~dp0_internal_docker_ops.ps1" "%~1" ""
+    powershell.exe -ExecutionPolicy Bypass -NoProfile -Command "& '%~dp0_internal_docker_ops.ps1' -Action '%~1'"
 ) else (
-    powershell.exe -ExecutionPolicy Bypass -NoProfile -File "%~dp0_internal_docker_ops.ps1" "%~1" "%~2"
+    powershell.exe -ExecutionPolicy Bypass -NoProfile -Command "& '%~dp0_internal_docker_ops.ps1' -Action '%~1' -Flag '%~2'"
 )
 goto :End
 
