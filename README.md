@@ -343,6 +343,6 @@ This project is licensed under the **MIT License** - see [LICENSE](LICENSE) file
 - 💬 [**Discord Support**](https://discord.gg/uTk8uQ2hxC) - Get help and chat with the community
 - 📖 [**Documentation**](https://github.com/Penfold-88/DCS-Statistics-Website-Uploader/wiki)
 - 🐛 [**Issue Tracker**](https://github.com/Penfold-88/DCS-Statistics-Website-Uploader/issues)
-- 🌐 [**Live Demo**](http://skypirates.uk/DCS-Stats-Demo/dcs-stats/)
+- 🌐 [**Live Demo**](https://stats.skypirates.uk/)
 
 **Transform your DCS server into a professional gaming platform today!** 🎖️
