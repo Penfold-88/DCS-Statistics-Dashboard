@@ -102,6 +102,7 @@ function loadSiteFeatures() {
         'pilot_flight_stats' => true,
         'pilot_session_stats' => true,
         'pilot_aircraft_chart' => true,
+        'pilot_carrier_traps' => true,
         
         // Credits System
         'credits_enabled' => true,
@@ -262,7 +263,8 @@ function getFeatureGroups() {
             'pilot_combat_stats' => 'Combat Statistics (Kills/Deaths)',
             'pilot_flight_stats' => 'Flight Statistics (Takeoffs/Landings)',
             'pilot_session_stats' => 'Last Session Statistics',
-            'pilot_aircraft_chart' => 'Aircraft Usage Chart'
+            'pilot_aircraft_chart' => 'Aircraft Usage Chart',
+            'pilot_carrier_traps' => 'Carrier Landing / LSO Stats'
         ],
         'Credits System' => [
             'credits_enabled' => 'Enable Credits System',

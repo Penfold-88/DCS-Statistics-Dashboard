@@ -311,6 +311,43 @@ class DCSStatsAPI {
         return safeCredits;
     }
 
+    async getPilotTraps(playerName, playerDate = null, options = {}) {
+        const cleanName = String(playerName || '').trim();
+        if (!cleanName) {
+            return [];
+        }
+
+        const cacheName = `pilot_traps_${cleanName.toLowerCase()}_${playerDate || 'latest'}_${options.limit || 10}_${options.offset || 0}`;
+        const cacheTtlMs = 15 * 60 * 1000;
+        const cached = this.getCachedValue(cacheName, cacheTtlMs, options);
+        if (cached !== null) {
+            return cached;
+        }
+
+        const requestData = {
+            nick: cleanName,
+            limit: options.limit || 10,
+            offset: options.offset || 0
+        };
+
+        if (playerDate) {
+            requestData.date = playerDate;
+        }
+
+        const response = await this.makeAPICall('/traps', {
+            ...options,
+            method: 'POST',
+            data: requestData
+        });
+
+        const traps = Array.isArray(response)
+            ? response
+            : (response?.data || response?.traps || response?.rows || []);
+        const safeTraps = Array.isArray(traps) ? traps : [];
+        this.setCachedValue(cacheName, safeTraps, options);
+        return safeTraps;
+    }
+
     async getRefreshIntervalMs() {
         const config = await this.loadConfig();
         const seconds = Number(config.refresh_interval || 300);

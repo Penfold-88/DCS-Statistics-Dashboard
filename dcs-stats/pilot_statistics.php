@@ -80,6 +80,29 @@ include 'header.php';
                 <?php endif; ?>
             </div>
         </div>
+
+        <?php if (isFeatureEnabled('pilot_carrier_traps')): ?>
+        <div class="pilot-card carrier-traps-card" id="carrier-traps-group" style="display: none;">
+            <h3><?php echo htmlspecialchars(dcs_t('pilot.carrier_landings')); ?></h3>
+            <p class="carrier-traps-status" id="carrier-traps-status"></p>
+            <div class="stats-grid" id="carrier-traps-summary"></div>
+            <div class="carrier-traps-table-wrap" id="carrier-traps-table-wrap" style="display: none;">
+                <table class="carrier-traps-table">
+                    <thead>
+                        <tr>
+                            <th><?php echo htmlspecialchars(dcs_t('pilot.trap_grade')); ?></th>
+                            <th><?php echo htmlspecialchars(dcs_t('pilot.trap_points')); ?></th>
+                            <th><?php echo htmlspecialchars(dcs_t('pilot.trap_wire')); ?></th>
+                            <th><?php echo htmlspecialchars(dcs_t('pilot.trap_aircraft')); ?></th>
+                            <th><?php echo htmlspecialchars(dcs_t('pilot.trap_location')); ?></th>
+                            <th><?php echo htmlspecialchars(dcs_t('pilot.trap_time')); ?></th>
+                        </tr>
+                    </thead>
+                    <tbody id="carrier-traps-table-body"></tbody>
+                </table>
+            </div>
+        </div>
+        <?php endif; ?>
     </div>
     
     <div id="no-results" style="display: none; text-align: center; color: #ccc; margin-top: 30px;">
@@ -125,7 +148,17 @@ const i18n = <?php echo json_encode([
     'successfulLandings' => dcs_t('pilot.successful_landings'),
     'inFlight' => dcs_t('pilot.in_flight'),
     'timesUsed' => dcs_t('pilot.times_used'),
-    'aircraftType' => dcs_t('pilot.aircraft_type')
+    'aircraftType' => dcs_t('pilot.aircraft_type'),
+    'carrierLandings' => dcs_t('pilot.carrier_landings'),
+    'loadingTraps' => dcs_t('pilot.loading_traps'),
+    'noTrapData' => dcs_t('pilot.no_trap_data'),
+    'trapLoadError' => dcs_t('pilot.trap_load_error'),
+    'trapLatestGrade' => dcs_t('pilot.trap_latest_grade'),
+    'trapLatestPoints' => dcs_t('pilot.trap_latest_points'),
+    'trapLatestWire' => dcs_t('pilot.trap_latest_wire'),
+    'trapLatestAircraft' => dcs_t('pilot.trap_latest_aircraft'),
+    'trapLatestCase' => dcs_t('pilot.trap_latest_case'),
+    'trapLatestLocation' => dcs_t('pilot.trap_latest_location')
 ], JSON_UNESCAPED_UNICODE); ?>;
 
 // Feature flags from PHP
@@ -139,7 +172,8 @@ const siteFeatures = {
     pilot_combat_stats: <?php echo json_encode(isFeatureEnabled('pilot_combat_stats')); ?>,
     pilot_flight_stats: <?php echo json_encode(isFeatureEnabled('pilot_flight_stats')); ?>,
     pilot_session_stats: <?php echo json_encode(isFeatureEnabled('pilot_session_stats')); ?>,
-    pilot_aircraft_chart: <?php echo json_encode(isFeatureEnabled('pilot_aircraft_chart')); ?>
+    pilot_aircraft_chart: <?php echo json_encode(isFeatureEnabled('pilot_aircraft_chart')); ?>,
+    pilot_carrier_traps: <?php echo json_encode(isFeatureEnabled('pilot_carrier_traps')); ?>
 };
 
 // Function to create stat items dynamically
@@ -528,6 +562,8 @@ async function loadPilotStats(player) {
         // Show results
         document.getElementById('loading').style.display = 'none';
         document.getElementById('search-results').style.display = 'block';
+
+        loadCarrierTraps(player);
         
         // Create charts based on enabled features
         if (siteFeatures.pilot_combat_stats) {
@@ -591,6 +627,94 @@ let trapScoresChart = null;
 function cssThemeValue(name, fallback) {
     const value = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
     return value || fallback;
+}
+
+function firstValue(source, keys, fallback = '') {
+    for (const key of keys) {
+        if (source && source[key] !== undefined && source[key] !== null && source[key] !== '') {
+            return source[key];
+        }
+    }
+    return fallback;
+}
+
+function normaliseTrap(trap) {
+    return {
+        grade: firstValue(trap, ['grade', 'Grade', 'lso_grade'], '-'),
+        points: firstValue(trap, ['points', 'Points', 'score'], '-'),
+        wire: firstValue(trap, ['wire', 'Wire'], '-'),
+        aircraft: firstValue(trap, ['unit_type', 'aircraft', 'Aircraft', 'module', 'unit'], '-'),
+        caseType: firstValue(trap, ['trapcase', 'case', 'Case'], '-'),
+        location: firstValue(trap, ['place', 'location', 'carrier'], '-'),
+        comment: firstValue(trap, ['comment', 'details'], ''),
+        time: firstValue(trap, ['time', 'date'], '-'),
+        night: firstValue(trap, ['night'], null)
+    };
+}
+
+function formatTrapTime(value) {
+    if (!value || value === '-') {
+        return '-';
+    }
+
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+        return String(value);
+    }
+
+    return date.toLocaleString();
+}
+
+async function loadCarrierTraps(player) {
+    if (!siteFeatures.pilot_carrier_traps || !window.dcsAPI?.getPilotTraps) return;
+
+    const group = document.getElementById('carrier-traps-group');
+    const status = document.getElementById('carrier-traps-status');
+    const summary = document.getElementById('carrier-traps-summary');
+    const tableWrap = document.getElementById('carrier-traps-table-wrap');
+    const tableBody = document.getElementById('carrier-traps-table-body');
+    if (!group || !status || !summary || !tableWrap || !tableBody) return;
+
+    group.style.display = 'block';
+    status.textContent = i18n.loadingTraps;
+    summary.innerHTML = '';
+    tableBody.innerHTML = '';
+    tableWrap.style.display = 'none';
+
+    try {
+        const traps = await window.dcsAPI.getPilotTraps(player.nick, null, { limit: 10 });
+        if (!Array.isArray(traps) || traps.length === 0) {
+            status.textContent = i18n.noTrapData;
+            return;
+        }
+
+        const normalised = traps.map(normaliseTrap);
+        const latest = normalised[0];
+        status.textContent = '';
+        summary.innerHTML = [
+            createStatItem(i18n.trapLatestGrade, escapeHtml(String(latest.grade)), 'trap-latest-grade'),
+            createStatItem(i18n.trapLatestPoints, escapeHtml(String(latest.points)), 'trap-latest-points'),
+            createStatItem(i18n.trapLatestWire, escapeHtml(String(latest.wire)), 'trap-latest-wire'),
+            createStatItem(i18n.trapLatestAircraft, escapeHtml(String(latest.aircraft)), 'trap-latest-aircraft'),
+            createStatItem(i18n.trapLatestCase, escapeHtml(String(latest.caseType)), 'trap-latest-case'),
+            createStatItem(i18n.trapLatestLocation, escapeHtml(String(latest.location)), 'trap-latest-location')
+        ].join('');
+
+        tableBody.innerHTML = normalised.map(trap => `
+            <tr>
+                <td>${escapeHtml(String(trap.grade))}</td>
+                <td>${escapeHtml(String(trap.points))}</td>
+                <td>${escapeHtml(String(trap.wire))}</td>
+                <td>${escapeHtml(String(trap.aircraft))}</td>
+                <td>${escapeHtml(String(trap.location))}</td>
+                <td>${escapeHtml(formatTrapTime(trap.time))}</td>
+            </tr>
+        `).join('');
+        tableWrap.style.display = 'block';
+    } catch (error) {
+        console.warn('Could not load carrier trap data:', error);
+        status.textContent = i18n.trapLoadError;
+    }
 }
 
 function themeRgba(name, alpha, fallback) {
@@ -1129,6 +1253,39 @@ document.addEventListener('DOMContentLoaded', function() {
 .no-stats-message p:first-child {
     font-size: 1.2rem;
     color: #ccc;
+}
+
+.carrier-traps-card {
+    margin-top: 24px;
+}
+
+.carrier-traps-status {
+    color: var(--card_muted_text_color, #b0b0b0);
+    margin: 0 0 16px;
+}
+
+.carrier-traps-table-wrap {
+    margin-top: 18px;
+    overflow-x: auto;
+}
+
+.carrier-traps-table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+.carrier-traps-table th,
+.carrier-traps-table td {
+    border-bottom: 1px solid color-mix(in srgb, var(--border_color, #444) 60%, transparent);
+    color: var(--card_text_color, #e0e0e0);
+    padding: 10px 12px;
+    text-align: left;
+}
+
+.carrier-traps-table th {
+    color: var(--card_heading_color, #4CAF50);
+    font-size: 0.85rem;
+    text-transform: uppercase;
 }
 
 /* Enhanced tooltip styling */
