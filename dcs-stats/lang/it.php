@@ -285,6 +285,14 @@ $manual = [
     'admin.squadron_settings.save_failed' => 'Impossibile salvare le impostazioni',
 
     'maintenance.message' => 'Stiamo eseguendo alcuni interventi. Torna più tardi.',
+    'maintenance.status_label' => 'Modalità manutenzione',
+    'maintenance.progress_label' => 'Avanzamento manutenzione',
+    'maintenance.card_dashboard' => 'Dashboard in pausa',
+    'maintenance.card_dashboard_text' => 'Le statistiche pubbliche sono temporaneamente offline durante i lavori.',
+    'maintenance.card_data' => 'Dati protetti',
+    'maintenance.card_data_text' => 'I dati server e gli strumenti admin restano protetti durante la manutenzione.',
+    'maintenance.card_return' => 'Torniamo presto',
+    'maintenance.card_return_text' => 'Aggiorna questa pagina più tardi per controllare se l\'accesso è stato riaperto.',
 ];
 
 $glossary = [
