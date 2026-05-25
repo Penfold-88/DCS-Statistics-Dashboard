@@ -379,18 +379,6 @@ $pageTitle = dcs_t('admin.dashboard.title');
                     </div>
                 </div>
                 
-                <!-- Statistics Grid -->
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-label"><?= e(dcs_t('admin.dashboard.bridge_officers')) ?></div>
-                        <div class="stat-value"><?= number_format($stats['total_admins']) ?></div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-label"><?= e(dcs_t('admin.dashboard.active_pilots')) ?></div>
-                        <div class="stat-value"><?= number_format($stats['total_players']) ?></div>
-                    </div>
-                </div>
-                
                 <div class="dashboard-lower-grid">
                     <!-- Recent Activity -->
                     <div class="card compact-card">
