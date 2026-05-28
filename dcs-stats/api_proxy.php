@@ -9,6 +9,7 @@ header('X-Content-Type-Options: nosniff');
 
 // Load API configuration
 require_once __DIR__ . '/api_config_helper.php';
+require_once __DIR__ . '/api_cache.php';
 
 $apiConfig = loadApiConfigWithFix()['config'];
 if (!$apiConfig['use_api'] || empty($apiConfig['api_base_url'])) {
@@ -135,6 +136,19 @@ if (!empty($queryParams)) {
     $url .= '?' . http_build_query($queryParams);
 }
 
+$cacheEndpoint = $endpointPath;
+if (!empty($queryParams)) {
+    $cacheEndpoint .= '?' . http_build_query($queryParams);
+}
+$cacheData = $method === 'POST' ? $data : null;
+$cached = apiCacheRead($method, $apiConfig['api_base_url'], $cacheEndpoint, $cacheData, $apiConfig);
+if ($cached !== null) {
+    http_response_code((int)($cached['http_code'] ?? 200));
+    header('X-DCS-API-Cache: HIT');
+    echo $cached['body'];
+    exit;
+}
+
 // Initialize cURL
 $ch = curl_init();
 curl_setopt($ch, CURLOPT_URL, $url);
@@ -186,6 +200,8 @@ if ($error) {
 
 // Forward the HTTP status code
 http_response_code($httpCode);
+header('X-DCS-API-Cache: MISS');
+apiCacheWrite($method, $apiConfig['api_base_url'], $cacheEndpoint, $cacheData, $apiConfig, $response, $httpCode);
 
 // Return the response
 echo $response;

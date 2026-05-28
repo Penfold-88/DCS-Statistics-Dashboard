@@ -6,6 +6,7 @@ dcs-stats/.dev
 .php-sessions/
 dcs-stats/site-config/data/*.json
 !dcs-stats/site-config/data/.htaccess
+dcs-stats/site-config/data/api-cache/
 dcs-stats/api_config.json
 dcs-stats/site_config.json
 dcs-stats/menu_config.json

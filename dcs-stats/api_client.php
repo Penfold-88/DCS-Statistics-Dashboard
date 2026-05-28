@@ -8,18 +8,21 @@
 
 require_once __DIR__ . '/dev_mode.php';
 require_once __DIR__ . '/api_config_helper.php';
+require_once __DIR__ . '/api_cache.php';
 
 class DCSServerBotAPIClient {
     protected $apiBaseUrl;
     protected $apiKey;
     protected $timeout;
     protected $isDevMode;
+    protected $config;
     
     public function __construct($config = []) {
         $this->apiBaseUrl = $config['api_base_url'] ?? 'http://localhost:9876';
         $this->apiKey = $config['api_key'] ?? null;
         $this->timeout = $config['timeout'] ?? 30;
         $this->isDevMode = isDevMode();
+        $this->config = $config;
     }
     
     /**
@@ -32,6 +35,14 @@ class DCSServerBotAPIClient {
         }
         
         $url = $this->apiBaseUrl . $endpoint;
+        $requestEndpoint = $endpoint;
+        if ($method === 'GET' && $data) {
+            $requestEndpoint .= '?' . http_build_query($data);
+        }
+        $cached = apiCacheRead($method, $this->apiBaseUrl, $requestEndpoint, $method === 'POST' ? $data : null, $this->config);
+        if ($cached !== null) {
+            return json_decode($cached['body'], true);
+        }
         
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
@@ -79,6 +90,8 @@ class DCSServerBotAPIClient {
             throw new Exception('API returned error code: ' . $httpCode);
         }
         
+        apiCacheWrite($method, $this->apiBaseUrl, $requestEndpoint, $method === 'POST' ? $data : null, $this->config, $response, $httpCode);
+
         return json_decode($response, true);
     }
 
