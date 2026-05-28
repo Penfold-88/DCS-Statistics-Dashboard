@@ -3,6 +3,8 @@
  * Admin Panel Helper Functions
  */
 
+require_once __DIR__ . '/demo_helpers.php';
+
 // Ensure admin panel constant is defined
 if (!defined('ADMIN_PANEL')) {
     die('Direct access not permitted');

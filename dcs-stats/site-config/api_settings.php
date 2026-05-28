@@ -5,6 +5,7 @@
 
 require_once __DIR__ . '/auth.php';
 require_once __DIR__ . '/admin_functions.php';
+require_once __DIR__ . '/demo_helpers.php';
 require_once __DIR__ . '/../api_config_helper.php';
 require_once __DIR__ . '/../api_cache.php';
 require_once __DIR__ . '/../language.php';
@@ -15,6 +16,7 @@ requirePermission('manage_api');
 
 // Get current admin
 $currentAdmin = getCurrentAdmin();
+$demoRestricted = isDemoRestricted($currentAdmin);
 
 // Load current API configuration with auto-fixing
 $configResult = loadApiConfigWithFix();
@@ -44,6 +46,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $messageType = 'error';
     } else {
         if (isset($_POST['action'])) {
+            if ($demoRestricted && in_array($_POST['action'], ['save', 'test'], true)) {
+                $message = demoRestrictionMessage();
+                $messageType = 'error';
+            } else {
             switch ($_POST['action']) {
                 case 'save':
                     // Get form inputs
@@ -142,12 +148,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $messageType = 'success';
                     break;
             }
+            }
         }
     }
 }
 
 // Page title
 $pageTitle = dcs_t('admin.api.title');
+$apiHostValue = $apiConfig['api_host'] ?? preg_replace('#^https?://#', '', $apiConfig['api_base_url']);
+$displayApiHost = $demoRestricted ? maskDemoValue($apiHostValue) : $apiHostValue;
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -297,6 +306,12 @@ $pageTitle = dcs_t('admin.api.title');
                         <?= e($autoFixMessage) ?>
                     </div>
                 <?php endif; ?>
+
+                <?php if ($demoRestricted): ?>
+                    <div class="alert alert-info">
+                        <?= e(demoRestrictionMessage()) ?>
+                    </div>
+                <?php endif; ?>
                 
                 <div class="card">
                     <div class="card-header">
@@ -312,9 +327,10 @@ $pageTitle = dcs_t('admin.api.title');
                             <input type="text" 
                                    id="api_host" 
                                    name="api_host" 
-                                   value="<?= e($apiConfig['api_host'] ?? preg_replace('#^https?://#', '', $apiConfig['api_base_url'])) ?>"
+                                   value="<?= e($displayApiHost) ?>"
                                    placeholder="localhost:8080"
-                                   pattern="[a-zA-Z0-9.-]+:[0-9]+">
+                                   pattern="[a-zA-Z0-9.-]+:[0-9]+"
+                                   <?= $demoRestricted ? 'disabled' : '' ?>>
                             <div class="help-text"><?= e(dcs_t('admin.api.host_help')) ?></div>
                         </div>
 
@@ -328,7 +344,8 @@ $pageTitle = dcs_t('admin.api.title');
                                    name="api_key"
                                    value=""
                                    autocomplete="new-password"
-                                   placeholder="<?= !empty($apiConfig['api_key']) ? e(dcs_t('admin.api.api_key_saved')) : e(dcs_t('admin.api.api_key_placeholder')) ?>">
+                                   placeholder="<?= $demoRestricted ? '••••••••' : (!empty($apiConfig['api_key']) ? e(dcs_t('admin.api.api_key_saved')) : e(dcs_t('admin.api.api_key_placeholder'))) ?>"
+                                   <?= $demoRestricted ? 'disabled' : '' ?>>
                             <div class="help-text"><?= e(dcs_t('admin.api.api_key_help')) ?></div>
                         </div>
                         
@@ -340,14 +357,15 @@ $pageTitle = dcs_t('admin.api.title');
                                    name="timeout" 
                                    value="<?= $apiConfig['timeout'] ?>"
                                    min="5" 
-                                   max="300">
+                                   max="300"
+                                   <?= $demoRestricted ? 'disabled' : '' ?>>
                             <div class="help-text"><?= e(dcs_t('admin.api.timeout_help')) ?></div>
                         </div>
                         
                         <div class="form-group">
                             <label for="refresh_interval"><?= e(dcs_t('admin.api.refresh_rate')) ?></label>
                             <?php $refreshInterval = (int)($apiConfig['refresh_interval'] ?? 300); ?>
-                            <select id="refresh_interval" name="refresh_interval">
+                            <select id="refresh_interval" name="refresh_interval" <?= $demoRestricted ? 'disabled' : '' ?>>
                                 <option value="300" <?= $refreshInterval === 300 ? 'selected' : '' ?>><?= e(dcs_t('admin.api.refresh_5')) ?></option>
                                 <option value="600" <?= $refreshInterval === 600 ? 'selected' : '' ?>><?= e(dcs_t('admin.api.refresh_10')) ?></option>
                                 <option value="1800" <?= $refreshInterval === 1800 ? 'selected' : '' ?>><?= e(dcs_t('admin.api.refresh_30')) ?></option>
@@ -363,7 +381,8 @@ $pageTitle = dcs_t('admin.api.title');
                                    name="cache_ttl" 
                                    value="<?= $apiConfig['cache_ttl'] ?>"
                                    min="0" 
-                                   max="3600">
+                                   max="3600"
+                                   <?= $demoRestricted ? 'disabled' : '' ?>>
                             <div class="help-text"><?= e(dcs_t('admin.api.cache_help')) ?></div>
                         </div>
                         
@@ -372,14 +391,15 @@ $pageTitle = dcs_t('admin.api.title');
                                    id="use_api" 
                                    name="use_api" 
                                    value="1"
-                                   <?= $apiConfig['use_api'] ? 'checked' : '' ?>>
+                                   <?= $apiConfig['use_api'] ? 'checked' : '' ?>
+                                   <?= $demoRestricted ? 'disabled' : '' ?>>
                             <label for="use_api"><?= e(dcs_t('admin.api.enable_integration')) ?></label>
                         </div>
                         
                         
                         <div class="button-group">
-                            <button type="submit" class="btn btn-primary"><?= e(dcs_t('admin.api.save_configuration')) ?></button>
-                            <button type="submit" class="btn btn-secondary" name="action" value="test"><?= e(dcs_t('admin.api.test_connection')) ?></button>
+                            <button type="submit" class="btn btn-primary" <?= $demoRestricted ? 'disabled' : '' ?>><?= e(dcs_t('admin.api.save_configuration')) ?></button>
+                            <button type="submit" class="btn btn-secondary" name="action" value="test" <?= $demoRestricted ? 'disabled' : '' ?>><?= e(dcs_t('admin.api.test_connection')) ?></button>
                             <button type="submit" class="btn btn-secondary" formnovalidate onclick="this.form.querySelector('input[name=action]').value='clear_cache';"><?= e(dcs_t('admin.api.clear_cache')) ?></button>
                             <a href="api_health.php" class="btn btn-secondary"><?= e(dcs_t('admin.api.health_debug')) ?></a>
                         </div>

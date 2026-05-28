@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../auth.php';
 require_once __DIR__ . '/../admin_functions.php';
+require_once __DIR__ . '/../demo_helpers.php';
 
 requireAdmin();
 requirePermission('manage_updates');
@@ -9,6 +10,11 @@ set_time_limit(0);
 header('Content-Type: text/plain; charset=utf-8');
 header('Cache-Control: no-cache');
 header('X-Accel-Buffering: no');
+
+if (isDemoRestricted()) {
+    echo demoRestrictionMessage() . "\n";
+    exit;
+}
 
 function logMessage($msg) {
     echo $msg . "\n";

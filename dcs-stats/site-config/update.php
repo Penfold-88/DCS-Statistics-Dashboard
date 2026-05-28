@@ -4,6 +4,7 @@
  */
 require_once __DIR__ . '/auth.php';
 require_once __DIR__ . '/admin_functions.php';
+require_once __DIR__ . '/demo_helpers.php';
 require_once __DIR__ . '/update_channel.php';
 require_once dirname(__DIR__) . '/language.php';
 
@@ -11,6 +12,7 @@ requireAdmin();
 requirePermission('manage_updates');
 
 $currentAdmin = getCurrentAdmin();
+$demoRestricted = isDemoRestricted($currentAdmin);
 $updateChannel = getUpdateChannelConfig();
 
 $pageTitle = dcs_t('admin.update.title');
@@ -164,6 +166,11 @@ $pageTitle = dcs_t('admin.update.title');
             </div>
         </header>
         <div class="admin-content">
+            <?php if ($demoRestricted): ?>
+                <div class="alert alert-info">
+                    <?= e(demoRestrictionMessage()) ?>
+                </div>
+            <?php endif; ?>
             <div class="row">
                 <div class="col-md-6">
                     <div class="card">
@@ -262,16 +269,16 @@ $pageTitle = dcs_t('admin.update.title');
                             <h3 class="card-title"><?= e(dcs_t('admin.dashboard.quick_actions')) ?></h3>
                         </div>
                         <div class="card-content">
-                            <button class="btn btn-secondary btn-block mb-2" onclick="createBackup()">
+                            <button class="btn btn-secondary btn-block mb-2 demo-lockable" onclick="createBackup()" <?= $demoRestricted ? 'disabled' : '' ?>>
                                 <span class="nav-icon">💾</span> <?= e(dcs_t('admin.update.create_backup')) ?>
                             </button>
-                            <button class="btn btn-warning btn-block mb-2" onclick="showDowngradeModal()">
+                            <button class="btn btn-warning btn-block mb-2 demo-lockable" onclick="showDowngradeModal()" <?= $demoRestricted ? 'disabled' : '' ?>>
                                 <span class="nav-icon">⬇️</span> <?= e(dcs_t('admin.update.downgrade_version')) ?>
                             </button>
-                            <button class="btn btn-info btn-block mb-2" onclick="checkForUpdates()">
+                            <button class="btn btn-info btn-block mb-2 demo-lockable" onclick="checkForUpdates()" <?= $demoRestricted ? 'disabled' : '' ?>>
                                 <span class="nav-icon">🔍</span> <?= e(dcs_t('admin.update.check_for_updates')) ?>
                             </button>
-                            <button class="btn btn-primary btn-block mb-2" onclick="performUpdate()">
+                            <button class="btn btn-primary btn-block mb-2 demo-lockable" onclick="performUpdate()" <?= $demoRestricted ? 'disabled' : '' ?>>
                                 <span class="nav-icon">⬆️</span> <?= e(dcs_t('admin.update.update_now')) ?>
                             </button>
                         </div>
@@ -341,6 +348,8 @@ $pageTitle = dcs_t('admin.update.title');
 let updateAvailable = false;
 let latestVersion = null;
 const adminCsrfToken = <?= json_encode(getCSRFToken()) ?>;
+const demoRestricted = <?= json_encode($demoRestricted) ?>;
+const demoRestrictionMessage = <?= json_encode(demoRestrictionMessage()) ?>;
 const updateText = <?= json_encode([
     'supportCopied' => dcs_t('admin.update.support_copied'),
     'unavailable' => dcs_t('admin.update.unavailable'),
@@ -456,6 +465,10 @@ function checkUpdateStatus() {
 }
 
 function performUpdate() {
+    if (demoRestricted) {
+        alert(demoRestrictionMessage);
+        return;
+    }
     const formData = new FormData();
     formData.append('csrf_token', adminCsrfToken);
     
@@ -519,6 +532,10 @@ function loadBackups() {
 }
 
 function restoreBackup(filename) {
+    if (demoRestricted) {
+        alert(demoRestrictionMessage);
+        return;
+    }
     if (!confirm(updateText.confirmRestore)) {
         return;
     }
@@ -546,6 +563,10 @@ function restoreBackup(filename) {
 }
 
 function deleteBackup(filename) {
+    if (demoRestricted) {
+        alert(demoRestrictionMessage);
+        return;
+    }
     if (!confirm(updateText.confirmDelete)) {
         return;
     }
@@ -574,6 +595,10 @@ function deleteBackup(filename) {
 
 // Create manual backup
 function createBackup() {
+    if (demoRestricted) {
+        alert(demoRestrictionMessage);
+        return;
+    }
     const log = document.getElementById('log');
     log.textContent = updateText.creatingBackup + '\n';
     
@@ -595,6 +620,10 @@ function createBackup() {
 
 // Check for updates
 function checkForUpdates() {
+    if (demoRestricted) {
+        alert(demoRestrictionMessage);
+        return;
+    }
     const log = document.getElementById('log');
     log.textContent = updateText.checkingUpdates + '\n';
     
@@ -616,6 +645,10 @@ function showRestoreModal() {
 }
 
 function showDowngradeModal() {
+    if (demoRestricted) {
+        alert(demoRestrictionMessage);
+        return;
+    }
     document.getElementById('downgradeModal').classList.add('active');
 }
 
@@ -670,6 +703,10 @@ function populateVersionSelect(versions) {
 // Handle downgrade form
 document.getElementById('downgrade-form').addEventListener('submit', function(e) {
     e.preventDefault();
+    if (demoRestricted) {
+        alert(demoRestrictionMessage);
+        return;
+    }
     const version = document.getElementById('downgrade-version').value;
     if (!version) {
         alert(updateText.pleaseSelectVersion);

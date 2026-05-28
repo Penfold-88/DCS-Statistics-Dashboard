@@ -5,6 +5,7 @@
 
 require_once __DIR__ . '/auth.php';
 require_once __DIR__ . '/admin_functions.php';
+require_once __DIR__ . '/demo_helpers.php';
 require_once dirname(__DIR__) . '/language.php';
 require_once dirname(__DIR__) . '/site_metadata.php';
 
