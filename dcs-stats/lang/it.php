@@ -212,6 +212,11 @@ $manual = [
     'admin.settings.feature.pilot_carrier_traps' => 'Appontaggi / statistiche LSO',
 
     'admin.api.title' => 'Impostazioni API',
+    'admin.api.api_key' => 'Chiave API DCSServerBot',
+    'admin.api.api_key_optional' => '(Opzionale, ma consigliata)',
+    'admin.api.api_key_placeholder' => 'Lascia vuoto se DCSServerBot non richiede una chiave',
+    'admin.api.api_key_saved' => 'Chiave API salvata - inserisci una nuova chiave per sostituirla',
+    'admin.api.api_key_help' => 'Se la tua API REST DCSServerBot usa una chiave API, inseriscila qui. Lascia vuoto per mantenere la chiave esistente o usare l\'API senza chiave.',
     'admin.api.timeout' => 'Timeout',
     'admin.api.health_debug' => 'Salute/debug API',
     'admin.api.available_endpoints' => 'Endpoint disponibili',

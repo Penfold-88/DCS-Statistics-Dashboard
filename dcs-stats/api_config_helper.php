@@ -16,6 +16,7 @@ function getDefaultApiConfig($apiHost = '') {
         'timeout' => 30,
         'cache_ttl' => 300,
         'refresh_interval' => 300,
+        'verify_ssl' => true,
         
         // Feature flags
         'use_api' => true, // Always use API
@@ -94,7 +95,7 @@ function validateAndFixApiConfig($config) {
     }
     
     // Fix missing required fields
-    $requiredFields = ['timeout', 'cache_ttl', 'refresh_interval', 'use_api'];
+    $requiredFields = ['timeout', 'cache_ttl', 'refresh_interval', 'use_api', 'verify_ssl'];
     foreach ($requiredFields as $field) {
         if (!isset($config[$field])) {
             $config[$field] = $default[$field];
@@ -159,6 +160,8 @@ function validateAndFixApiConfig($config) {
         $changes[] = 'Fixed invalid refresh_interval value';
         $fixed = true;
     }
+
+    $config['verify_ssl'] = filter_var($config['verify_ssl'], FILTER_VALIDATE_BOOLEAN);
     
     // Always ensure use_api is true
     if ($config['use_api'] !== true) {
@@ -179,7 +182,11 @@ function validateAndFixApiConfig($config) {
  */
 function getWritableConfigPath($preferredFile = null) {
     if ($preferredFile === null) {
-        $preferredFile = __DIR__ . '/api_config.json';
+        $legacyFile = __DIR__ . '/api_config.json';
+        if (file_exists($legacyFile)) {
+            return $legacyFile;
+        }
+        $preferredFile = __DIR__ . '/site-config/data/api_config.json';
     }
     
     // First try the preferred location

@@ -5,16 +5,12 @@
  */
 
 header('Content-Type: application/json');
+header('X-Content-Type-Options: nosniff');
 
 // Load API configuration
-$configFile = __DIR__ . '/api_config.json';
-if (!file_exists($configFile)) {
-    http_response_code(500);
-    echo json_encode(['error' => 'API configuration not found']);
-    exit;
-}
+require_once __DIR__ . '/api_config_helper.php';
 
-$apiConfig = json_decode(file_get_contents($configFile), true);
+$apiConfig = loadApiConfigWithFix()['config'];
 if (!$apiConfig['use_api'] || empty($apiConfig['api_base_url'])) {
     http_response_code(503);
     echo json_encode(['error' => 'API not enabled']);
@@ -55,6 +51,52 @@ $allowedEndpoints = [
     '/weaponpk' => ['POST']
 ];
 
+$allowedQueryParams = [
+    '/airbase' => ['server_name', 'name'],
+    '/airbase/atis' => ['server_name', 'name'],
+    '/airbase/warehouse' => ['server_name', 'name'],
+    '/airbases' => ['server_name'],
+    '/convertCoordinates' => ['server_name', 'lat', 'lon', 'mgrs', 'format'],
+    '/current_server' => ['server_name'],
+    '/highscore' => ['server_name', 'what', 'limit', 'offset'],
+    '/leaderboard' => ['server', 'server_name', 'what', 'limit', 'offset', 'order'],
+    '/mission/group/waypoints' => ['server_name', 'group_name'],
+    '/server_attendance' => ['server', 'server_name'],
+    '/servers' => ['server', 'server_name'],
+    '/serverstats' => ['server', 'server_name'],
+    '/squadrons' => ['server_name', 'limit', 'offset'],
+    '/topkdr' => ['server', 'server_name', 'limit', 'offset'],
+    '/topkills' => ['server', 'server_name', 'limit', 'offset'],
+    '/trueskill' => ['server', 'server_name', 'limit', 'offset']
+];
+
+$allowedPostFields = [
+    '/credits' => ['ucid', 'nick', 'name'],
+    '/getuser' => ['ucid', 'nick', 'name', 'query', 'search', 'server_name'],
+    '/modulestats' => ['ucid', 'nick', 'name', 'server_name', 'limit', 'offset'],
+    '/player_info' => ['ucid', 'nick', 'name', 'server_name'],
+    '/player_squadrons' => ['ucid', 'nick', 'name', 'server_name'],
+    '/squadron_credits' => ['name', 'server_name'],
+    '/squadron_members' => ['name', 'server_name'],
+    '/stats' => ['ucid', 'nick', 'name', 'server_name'],
+    '/traps' => ['nick', 'date', 'limit', 'offset', 'server_name'],
+    '/weaponpk' => ['ucid', 'nick', 'name', 'server_name', 'limit', 'offset']
+];
+
+function filterAllowedParams($params, $allowedKeys) {
+    $filtered = [];
+    foreach ($params as $key => $value) {
+        if (!in_array($key, $allowedKeys, true)) {
+            continue;
+        }
+        if (is_array($value)) {
+            continue;
+        }
+        $filtered[$key] = is_bool($value) ? ($value ? '1' : '0') : (string)$value;
+    }
+    return $filtered;
+}
+
 // Handle POST data
 if ($method === 'POST') {
     // Get POST data from the request body
@@ -77,8 +119,21 @@ if (!isset($allowedEndpoints[$endpointPath]) || !in_array($method, $allowedEndpo
     exit;
 }
 
+$queryParams = [];
+if (!empty($endpointParts['query'])) {
+    parse_str($endpointParts['query'], $queryParams);
+}
+$queryParams = filterAllowedParams($queryParams, $allowedQueryParams[$endpointPath] ?? []);
+
+if ($method === 'POST') {
+    $data = filterAllowedParams($data, $allowedPostFields[$endpointPath] ?? []);
+}
+
 // Build full URL
-$url = rtrim($apiConfig['api_base_url'], '/') . '/' . ltrim($endpoint, '/');
+$url = rtrim($apiConfig['api_base_url'], '/') . '/' . ltrim($endpointPath, '/');
+if (!empty($queryParams)) {
+    $url .= '?' . http_build_query($queryParams);
+}
 
 // Initialize cURL
 $ch = curl_init();
@@ -86,6 +141,11 @@ curl_setopt($ch, CURLOPT_URL, $url);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($ch, CURLOPT_TIMEOUT, $apiConfig['timeout'] ?? 30);
 curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+if (stripos($url, 'https://') === 0) {
+    $verifySsl = filter_var($apiConfig['verify_ssl'] ?? true, FILTER_VALIDATE_BOOLEAN);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, $verifySsl);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, $verifySsl ? 2 : 0);
+}
 
 // Build headers — forward the API key to the upstream API if configured.
 // DCSServerBot's REST API requires X-API-Key (Bearer is rejected).

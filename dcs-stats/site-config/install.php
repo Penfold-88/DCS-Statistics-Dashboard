@@ -7,7 +7,8 @@
 // Check if already configured
 $dataDir = __DIR__ . '/data';
 $usersFile = $dataDir . '/users.json';
-$apiConfigFile = dirname(__DIR__) . '/api_config.json';
+$apiConfigFile = $dataDir . '/api_config.json';
+$legacyApiConfigFile = dirname(__DIR__) . '/api_config.json';
 $siteConfigFile = dirname(__DIR__) . '/site_config.json';
 require_once dirname(__DIR__) . '/language.php';
 if (!function_exists('e')) {
@@ -34,7 +35,7 @@ if (file_exists($usersFile)) {
     }
 }
 
-if (!$isDefaultInstall && file_exists($usersFile) && file_exists($apiConfigFile)) {
+if (!$isDefaultInstall && file_exists($usersFile) && (file_exists($apiConfigFile) || file_exists($legacyApiConfigFile))) {
     die("System appears to be already installed. Delete site-config/data/users.json and api_config.json to reinstall.\n");
 }
 
@@ -127,8 +128,8 @@ if (!$is_cli) {
                 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
                 curl_setopt($ch, CURLOPT_TIMEOUT, 5);
                 curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // Allow self-signed certs
-                curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+                curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
                 $response = curl_exec($ch);
                 $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
                 curl_close($ch);
@@ -346,8 +347,8 @@ if ($is_cli) {
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_TIMEOUT, 5);
             curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
             $response = curl_exec($ch);
             $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
             curl_close($ch);
@@ -439,6 +440,8 @@ $apiConfig = [
     'api_key' => null,
     'timeout' => 30,
     'cache_ttl' => 300,
+    'refresh_interval' => 300,
+    'verify_ssl' => true,
     'fallback_to_json' => false,
     'use_api' => true,
     'enabled_endpoints' => [

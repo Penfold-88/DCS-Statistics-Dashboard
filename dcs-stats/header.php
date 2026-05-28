@@ -1,6 +1,7 @@
 <?php
 // Include path configuration
 require_once __DIR__ . '/config_path.php';
+require_once __DIR__ . '/api_config_helper.php';
 require_once __DIR__ . '/site_metadata.php';
 require_once __DIR__ . '/language.php';
 
@@ -59,9 +60,9 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
 $cspConnectSrc = "'self'";
 
 // Load API configuration if available
-$configFile = __DIR__ . '/api_config.json';
-if (file_exists($configFile)) {
-    $config = json_decode(file_get_contents($configFile), true);
+$configResult = loadApiConfigWithFix();
+if (!empty($configResult['config'])) {
+    $config = $configResult['config'];
     if (!empty($config['api_base_url'])) {
         // Parse the API URL to add to CSP
         $parsedUrl = parse_url($config['api_base_url']);

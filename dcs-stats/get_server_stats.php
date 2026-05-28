@@ -6,6 +6,7 @@ error_reporting(0);
 // Include required files
 require_once __DIR__ . '/security_functions.php';
 require_once __DIR__ . '/api_client_enhanced.php';
+require_once __DIR__ . '/api_config_helper.php';
 
 // Rate limiting
 if (!checkRateLimit(60, 60)) {
@@ -13,8 +14,7 @@ if (!checkRateLimit(60, 60)) {
 }
 
 // Load API configuration
-$configFile = __DIR__ . '/api_config.json';
-$config = file_exists($configFile) ? json_decode(file_get_contents($configFile), true) : [];
+$config = loadApiConfigWithFix()['config'];
 
 // Check if API is enabled
 if (!$config || !$config['use_api']) {

@@ -48,6 +48,7 @@ switch ($method) {
     case 'PUT':
         // Update settings
         $input = json_decode(file_get_contents('php://input'), true);
+        requireCSRFToken($input);
         
         if (!isset($input['features']) || !is_array($input['features'])) {
             http_response_code(400);
@@ -112,6 +113,7 @@ switch ($method) {
     case 'PATCH':
         // Toggle single feature
         $input = json_decode(file_get_contents('php://input'), true);
+        requireCSRFToken($input);
         
         if (!isset($input['feature']) || !isset($input['enabled'])) {
             http_response_code(400);

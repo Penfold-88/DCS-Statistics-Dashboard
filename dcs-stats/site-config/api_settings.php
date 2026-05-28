@@ -47,6 +47,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 case 'save':
                     // Get form inputs
                     $apiHost = trim($_POST['api_host'] ?? '');
+                    $apiKeyInput = trim($_POST['api_key'] ?? '');
+                    $existingApiKey = $apiConfig['api_key'] ?? null;
                     $timeout = intval($_POST['timeout'] ?? 30);
                     $cacheTtl = intval($_POST['cache_ttl'] ?? 300);
                     $refreshInterval = intval($_POST['refresh_interval'] ?? 300);
@@ -62,6 +64,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $apiConfig['cache_ttl'] = $cacheTtl;
                         $apiConfig['refresh_interval'] = in_array($refreshInterval, [300, 600, 1800, 3600], true) ? $refreshInterval : 300;
                         $apiConfig['use_api'] = $useApi;
+                        if ($apiKeyInput !== '') {
+                            $apiConfig['api_key'] = $apiKeyInput;
+                        } elseif (!empty($existingApiKey)) {
+                            $apiConfig['api_key'] = $existingApiKey;
+                        }
                         
                         // Save again with all settings
                         if (file_put_contents($configFile, json_encode($apiConfig, JSON_PRETTY_PRINT))) {
@@ -159,6 +166,7 @@ $pageTitle = dcs_t('admin.api.title');
         }
         
         .form-group input[type="text"],
+        .form-group input[type="password"],
         .form-group input[type="number"],
         .form-group select {
             width: 100%;
@@ -171,6 +179,7 @@ $pageTitle = dcs_t('admin.api.title');
         }
         
         .form-group input[type="text"]:focus,
+        .form-group input[type="password"]:focus,
         .form-group input[type="number"]:focus,
         .form-group select:focus {
             border-color: var(--accent-primary);
@@ -299,6 +308,20 @@ $pageTitle = dcs_t('admin.api.title');
                                    placeholder="localhost:8080"
                                    pattern="[a-zA-Z0-9.-]+:[0-9]+">
                             <div class="help-text"><?= e(dcs_t('admin.api.host_help')) ?></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="api_key">
+                                <?= e(dcs_t('admin.api.api_key')) ?>
+                                <span class="text-muted"><?= e(dcs_t('admin.api.api_key_optional')) ?></span>
+                            </label>
+                            <input type="password"
+                                   id="api_key"
+                                   name="api_key"
+                                   value=""
+                                   autocomplete="new-password"
+                                   placeholder="<?= !empty($apiConfig['api_key']) ? e(dcs_t('admin.api.api_key_saved')) : e(dcs_t('admin.api.api_key_placeholder')) ?>">
+                            <div class="help-text"><?= e(dcs_t('admin.api.api_key_help')) ?></div>
                         </div>
                         
                         

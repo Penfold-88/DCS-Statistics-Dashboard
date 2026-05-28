@@ -7,6 +7,7 @@
  */
 
 require_once __DIR__ . '/dev_mode.php';
+require_once __DIR__ . '/api_config_helper.php';
 
 class DCSServerBotAPIClient {
     protected $apiBaseUrl;
@@ -357,9 +358,9 @@ class DCSServerBotAPIClient {
 
 // Configuration loader
 function loadAPIConfig() {
-    $configFile = __DIR__ . '/api_config.json';
-    if (file_exists($configFile)) {
-        return json_decode(file_get_contents($configFile), true);
+    $configResult = loadApiConfigWithFix();
+    if (!empty($configResult['config']) && is_array($configResult['config'])) {
+        return $configResult['config'];
     }
     
     // Default configuration

@@ -11,7 +11,9 @@ require_once __DIR__ . '/install_checkin.php';
 require_once __DIR__ . '/site-config/update_channel.php';
 require_once __DIR__ . '/site-config/version_tracker.php';
 
-$isConfigured = file_exists(__DIR__ . '/api_config.json') &&
+$apiConfigExists = file_exists(__DIR__ . '/api_config.json') ||
+                   file_exists(__DIR__ . '/site-config/data/api_config.json');
+$isConfigured = $apiConfigExists &&
                 file_exists(__DIR__ . '/site-config/data/users.json');
 
 if (!$isConfigured) {

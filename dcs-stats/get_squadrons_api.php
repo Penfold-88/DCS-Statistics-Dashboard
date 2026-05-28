@@ -9,21 +9,16 @@ error_reporting(0);
 ini_set('display_errors', 0);
 
 header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');
+header('X-Content-Type-Options: nosniff');
 
 require_once __DIR__ . '/api_client_enhanced.php';
+require_once __DIR__ . '/api_config_helper.php';
 
 // Initialize response
 $response = ['data' => [], 'error' => null];
 
 try {
-    // Check if API is configured
-    $configFile = __DIR__ . '/api_config.json';
-    if (!file_exists($configFile)) {
-        throw new Exception('API configuration not found. Please configure the API settings.');
-    }
-    
-    $apiConfig = json_decode(file_get_contents($configFile), true);
+    $apiConfig = loadApiConfigWithFix()['config'];
     if (!$apiConfig || !$apiConfig['use_api']) {
         throw new Exception('API not configured or disabled. Please check API settings.');
     }
