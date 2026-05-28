@@ -203,7 +203,9 @@ if (file_exists($maintenanceFile)) {
   <script src="<?php echo htmlspecialchars(assetUrl('mobile-enhancements.js')); ?>"></script>
 </head>
 <body>
-  <?php if (isDemoMode()): ?>
+  <?php $frontendDemoBannerShown = false; ?>
+  <?php if (function_exists('isDemoMode') && isDemoMode()): ?>
+  <?php $frontendDemoBannerShown = true; ?>
   <div class="demo-notice-bar" role="note">
     <strong>DEMO:</strong>
     Data provided by VFS-252 Sky Pirates.

@@ -7,6 +7,23 @@ if (!defined('BASE_PATH')) {
     require_once __DIR__ . '/config_path.php';
 }
 
+if (!isset($frontendDemoBannerShown)) {
+    $frontendDemoBannerShown = false;
+}
+
+if (!$frontendDemoBannerShown && function_exists('isDemoMode') && isDemoMode()): ?>
+<div class="demo-notice-bar" role="note">
+    <strong>DEMO:</strong>
+    Data provided by VFS-252 Sky Pirates.
+    BO Demo available here:
+    <a href="<?php echo htmlspecialchars(url('site-config/login.php')); ?>">Admin Login</a>
+    <span>Username: <strong>Demo</strong></span>
+    <span>Password: <strong>Demo123!</strong></span>
+</div>
+<?php
+    $frontendDemoBannerShown = true;
+endif;
+
 // Get writable path for menu configuration (same logic as in themes.php)
 function getMenuConfigPath() {
     // Try primary location with data directory
