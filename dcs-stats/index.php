@@ -23,7 +23,7 @@ if (!$isConfigured) {
 
 include 'header.php';
 ?>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="<?php echo htmlspecialchars(url('js/vendor/chart.umd.min.js')); ?>"></script>
 <?php include 'nav.php'; ?>
 
 <?php
