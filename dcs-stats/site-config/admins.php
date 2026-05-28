@@ -277,9 +277,11 @@ $pageTitle = dcs_t('admin.admins.title');
                         <h2 class="card-title"><?= e(dcs_t('admin.admins.add_new')) ?></h2>
                     </div>
                     
-                    <form method="POST" action="">
+                    <form method="POST" action="" autocomplete="off">
                         <?= csrfField() ?>
                         <input type="hidden" name="action" value="add_admin">
+                        <input type="text" name="browser_autofill_username" autocomplete="username" style="position:absolute; left:-9999px; width:1px; height:1px;" tabindex="-1" aria-hidden="true">
+                        <input type="password" name="browser_autofill_password" autocomplete="current-password" style="position:absolute; left:-9999px; width:1px; height:1px;" tabindex="-1" aria-hidden="true">
                         
                         <div class="form-group">
                             <label for="username"><?= e(dcs_t('admin.admins.username')) ?></label>
@@ -289,6 +291,8 @@ $pageTitle = dcs_t('admin.admins.title');
                                    class="form-control" 
                                    required 
                                    pattern="[a-zA-Z0-9_]{3,50}"
+                                   value=""
+                                   autocomplete="new-password"
                                    title="3-50 characters, letters, numbers and underscore only">
                         </div>
                         
@@ -298,6 +302,8 @@ $pageTitle = dcs_t('admin.admins.title');
                                    id="email" 
                                    name="email" 
                                    class="form-control" 
+                                   value=""
+                                   autocomplete="off"
                                    required>
                         </div>
                         
@@ -308,7 +314,9 @@ $pageTitle = dcs_t('admin.admins.title');
                                    name="password" 
                                    class="form-control" 
                                    required 
-                                   minlength="8">
+                                   minlength="8"
+                                   value=""
+                                   autocomplete="new-password">
                             <small class="text-muted"><?= e(dcs_t('admin.admins.minimum_8')) ?></small>
                         </div>
                         
