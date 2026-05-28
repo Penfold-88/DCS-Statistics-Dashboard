@@ -202,16 +202,33 @@ if (file_exists($maintenanceFile)) {
   </script>
   <script src="<?php echo htmlspecialchars(assetUrl('js/api-client.js')); ?>"></script>
   <script src="<?php echo htmlspecialchars(assetUrl('mobile-enhancements.js')); ?>"></script>
+  <?php
+    $frontendDemoMode = (function_exists('isDemoMode') && isDemoMode())
+        || file_exists(__DIR__ . '/.demo')
+        || file_exists(__DIR__ . '/site-config/.demo')
+        || file_exists(dirname(__DIR__) . '/.demo');
+  ?>
+  <?php if ($frontendDemoMode): ?>
+  <style>
+    body.has-demo-banner {
+      padding-top: 42px;
+    }
+
+    body.has-demo-banner .main-header {
+      top: 42px;
+    }
+  </style>
+  <?php endif; ?>
 </head>
-<body>
+<body class="<?php echo $frontendDemoMode ? 'has-demo-banner' : ''; ?>">
   <?php $frontendDemoBannerShown = false; ?>
-  <?php if (function_exists('isDemoMode') && isDemoMode()): ?>
+  <?php if ($frontendDemoMode): ?>
   <?php $frontendDemoBannerShown = true; ?>
-  <div class="demo-notice-bar" role="note">
+  <div class="demo-notice-bar" role="note" style="align-items: center; background: linear-gradient(90deg, #ffd21f 0%, #ff8a00 100%); border-bottom: 2px solid rgba(0,0,0,0.28); color: #101010; display: flex; flex-wrap: wrap; gap: 8px 14px; justify-content: center; padding: 10px 18px; text-align: center; font-size: 14px; font-weight: 700; letter-spacing: 0; position: fixed; left: 0; right: 0; top: 0; z-index: 5000;">
     <strong>DEMO:</strong>
     Data provided by VFS-252 Sky Pirates.
     BO Demo available here:
-    <a href="<?php echo htmlspecialchars(url('site-config/login.php')); ?>">Admin Login</a>
+    <a href="<?php echo htmlspecialchars(url('site-config/login.php')); ?>" style="background: rgba(0,0,0,0.16); border: 1px solid rgba(0,0,0,0.24); border-radius: 6px; color: #101010; padding: 4px 10px; text-decoration: none;">Admin Login</a>
     <span>Username: <strong>Demo</strong></span>
     <span>Password: <strong>Demo123!</strong></span>
   </div>
