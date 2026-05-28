@@ -4,6 +4,7 @@ require_once __DIR__ . '/config_path.php';
 require_once __DIR__ . '/api_config_helper.php';
 require_once __DIR__ . '/site_metadata.php';
 require_once __DIR__ . '/language.php';
+require_once __DIR__ . '/site-config/demo_helpers.php';
 
 // Load site configuration
 $siteConfig = [];

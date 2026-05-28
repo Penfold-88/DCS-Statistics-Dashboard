@@ -2,6 +2,7 @@
 // Include site features configuration
 require_once __DIR__ . '/site_features.php';
 require_once __DIR__ . '/language.php';
+require_once __DIR__ . '/site-config/demo_helpers.php';
 // Include path configuration if not already included
 if (!defined('BASE_PATH')) {
     require_once __DIR__ . '/config_path.php';
