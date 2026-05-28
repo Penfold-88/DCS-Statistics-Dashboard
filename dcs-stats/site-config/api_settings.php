@@ -29,8 +29,8 @@ if (isset($configResult['fixed']) && $configResult['fixed'] && !empty($configRes
     $autoFixMessage = dcs_t('admin.api.auto_fixed') . ': ' . implode(', ', $configResult['changes']);
 }
 
-// Show config location if not standard
-if ($configFile !== dirname(__DIR__) . '/api_config.json') {
+// Show config location if not standard. Hide server paths on the public demo.
+if (!$demoRestricted && $configFile !== dirname(__DIR__) . '/api_config.json') {
     $autoFixMessage .= ($autoFixMessage ? ' | ' : '') . dcs_t('admin.api.config_location') . ': ' . $configFile;
 }
 
@@ -44,12 +44,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!isset($_POST['csrf_token']) || !verifyCSRFToken($_POST['csrf_token'])) {
         $message = ERROR_MESSAGES['csrf_invalid'];
         $messageType = 'error';
+    } elseif ($demoRestricted) {
+        $message = demoWriteLockMessage();
+        $messageType = 'error';
     } else {
         if (isset($_POST['action'])) {
-            if ($demoRestricted && in_array($_POST['action'], ['save', 'test'], true)) {
-                $message = demoRestrictionMessage();
-                $messageType = 'error';
-            } else {
             switch ($_POST['action']) {
                 case 'save':
                     // Get form inputs
@@ -147,7 +146,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $message = dcs_t('admin.api.cache_clear_success', ['count' => number_format($removed)]);
                     $messageType = 'success';
                     break;
-            }
             }
         }
     }
