@@ -10,12 +10,26 @@ define('ADMIN_PANEL', true);
 // Include configuration
 require_once __DIR__ . '/config.php';
 
+function isAdminRequestHttps() {
+    if (!empty($_SERVER['HTTPS']) && strtolower((string)$_SERVER['HTTPS']) !== 'off') {
+        return true;
+    }
+
+    $forwardedProto = strtolower((string)($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? ''));
+    if ($forwardedProto === 'https') {
+        return true;
+    }
+
+    $forwardedSsl = strtolower((string)($_SERVER['HTTP_X_FORWARDED_SSL'] ?? ''));
+    return $forwardedSsl === 'on' || $forwardedSsl === '1';
+}
+
 // Start session with secure settings
 ini_set('session.cookie_httponly', 1);
 ini_set('session.use_strict_mode', 1);
 ini_set('session.cookie_samesite', 'Strict');
 
-if (ENFORCE_HTTPS && isset($_SERVER['HTTPS'])) {
+if (ENFORCE_HTTPS || isAdminRequestHttps()) {
     ini_set('session.cookie_secure', 1);
 }
 
@@ -154,6 +168,20 @@ function initializeAdminData() {
         }
         @chmod($file, 0600);
     }
+}
+
+function adminDataNeedsInitialization() {
+    if (!is_dir(ADMIN_DATA_DIR)) {
+        return true;
+    }
+
+    foreach (['logs', 'bans', 'sessions'] as $type) {
+        if (!file_exists(getDataFilePath($type))) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 /**
@@ -599,5 +627,7 @@ function csrfField() {
     return '<input type="hidden" name="csrf_token" value="' . htmlspecialchars(getCSRFToken()) . '">';
 }
 
-// Initialize admin data on first load
-initializeAdminData();
+// Initialize admin data only when the data directory or supporting files are missing.
+if (adminDataNeedsInitialization()) {
+    initializeAdminData();
+}

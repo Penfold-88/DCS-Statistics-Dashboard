@@ -39,7 +39,7 @@ function formatDate($date, $format = null) {
  * Log admin action
  */
 function logAdminAction($action, $details = []) {
-    $logFile = __DIR__ . '/data/logs.json';
+    $logFile = ADMIN_LOGS_FILE;
     $logs = [];
     
     if (file_exists($logFile)) {
@@ -60,7 +60,8 @@ function logAdminAction($action, $details = []) {
         $logs = array_slice($logs, -1000);
     }
     
-    file_put_contents($logFile, json_encode($logs, JSON_PRETTY_PRINT));
+    file_put_contents($logFile, json_encode($logs, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES), LOCK_EX);
+    @chmod($logFile, 0600);
 }
 
 /**
