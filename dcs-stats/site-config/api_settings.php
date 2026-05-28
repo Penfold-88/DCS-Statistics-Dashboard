@@ -6,6 +6,7 @@
 require_once __DIR__ . '/auth.php';
 require_once __DIR__ . '/admin_functions.php';
 require_once __DIR__ . '/../api_config_helper.php';
+require_once __DIR__ . '/../api_cache.php';
 require_once __DIR__ . '/../language.php';
 
 // Require admin login and permission
@@ -132,6 +133,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             'message' => dcs_t('admin.api.connect_failed') . ': ' . $errorMsg
                         ];
                     }
+                    break;
+
+                case 'clear_cache':
+                    $removed = apiCacheClear();
+                    logAdminActivity('API_CACHE_CLEAR', $_SESSION['admin_id'], 'settings', 'api_cache', ['removed' => $removed]);
+                    $message = dcs_t('admin.api.cache_clear_success', ['count' => number_format($removed)]);
+                    $messageType = 'success';
                     break;
             }
         }
@@ -372,6 +380,7 @@ $pageTitle = dcs_t('admin.api.title');
                         <div class="button-group">
                             <button type="submit" class="btn btn-primary"><?= e(dcs_t('admin.api.save_configuration')) ?></button>
                             <button type="submit" class="btn btn-secondary" name="action" value="test"><?= e(dcs_t('admin.api.test_connection')) ?></button>
+                            <button type="submit" class="btn btn-secondary" formnovalidate onclick="this.form.querySelector('input[name=action]').value='clear_cache';"><?= e(dcs_t('admin.api.clear_cache')) ?></button>
                             <a href="api_health.php" class="btn btn-secondary"><?= e(dcs_t('admin.api.health_debug')) ?></a>
                         </div>
                     </form>

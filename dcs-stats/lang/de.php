@@ -655,6 +655,8 @@ return [
     'admin.api.refresh_help' => 'Wie oft Live-Dashboard-Seiten API-Daten automatisch aktualisieren. Standard für neue Installationen ist 5 Minuten.',
     'admin.api.cache_ttl' => 'Cache-TTL (Sekunden)',
     'admin.api.cache_help' => 'Erweitert: Wie lange API-Antworten zwischengespeichert werden dürfen, sofern Caching genutzt wird. Der bestehende Standard ist 300 Sekunden.',
+    'admin.api.clear_cache' => 'API-Cache leeren',
+    'admin.api.cache_clear_success' => 'API-Cache geleert ({count} Dateien entfernt).',
     'admin.api.enable_integration' => 'API-Integration aktivieren',
     'admin.api.save_configuration' => 'Konfiguration speichern',
     'admin.api.test_connection' => 'Verbindung testen',

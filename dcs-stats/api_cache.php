@@ -131,4 +131,20 @@ function apiCacheWrite($method, $baseUrl, $endpoint, $data, $config, $body, $htt
 
     return false;
 }
+
+function apiCacheClear() {
+    $dir = apiCacheDirectory();
+    if (!is_dir($dir)) {
+        return 0;
+    }
+
+    $removed = 0;
+    foreach (glob($dir . '/*.json') ?: [] as $file) {
+        if (is_file($file) && @unlink($file)) {
+            $removed++;
+        }
+    }
+
+    return $removed;
+}
 ?>

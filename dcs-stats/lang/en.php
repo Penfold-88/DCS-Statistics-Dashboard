@@ -656,6 +656,8 @@ return [
     'admin.api.refresh_help' => 'How often live dashboard pages automatically refresh API data. Default for new installs is 5 minutes.',
     'admin.api.cache_ttl' => 'Cache TTL (seconds)',
     'admin.api.cache_help' => 'Advanced: how long API responses may be cached where caching is used. Existing default is 300 seconds.',
+    'admin.api.clear_cache' => 'Clear API Cache',
+    'admin.api.cache_clear_success' => 'API cache cleared ({count} files removed).',
     'admin.api.enable_integration' => 'Enable API Integration',
     'admin.api.save_configuration' => 'Save Configuration',
     'admin.api.test_connection' => 'Test Connection',
