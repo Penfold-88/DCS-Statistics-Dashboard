@@ -8,7 +8,7 @@ include 'header.php';
 <?php require_once __DIR__ . '/site_features.php'; ?>
 <?php require_once __DIR__ . '/table-responsive.php'; ?>
 <?php require_once __DIR__ . '/language.php'; ?>
-<script src="<?php echo htmlspecialchars(url('js/vendor/chart.umd.min.js')); ?>"></script>
+<script src="<?php echo htmlspecialchars(assetUrl('js/vendor/chart.umd.min.js')); ?>"></script>
 <?php include 'nav.php'; ?>
 
 <main>

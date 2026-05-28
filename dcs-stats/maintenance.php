@@ -36,10 +36,10 @@ http_response_code(503);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(dcs_t('maintenance.page_title'), ENT_QUOTES, 'UTF-8'); ?></title>
-    <link rel="stylesheet" href="<?php echo url('styles.php'); ?>">
-    <link rel="stylesheet" href="<?php echo url('styles-mobile.css'); ?>">
+    <link rel="stylesheet" href="<?php echo htmlspecialchars(assetUrl('styles.php'), ENT_QUOTES, 'UTF-8'); ?>">
+    <link rel="stylesheet" href="<?php echo htmlspecialchars(assetUrl('styles-mobile.css'), ENT_QUOTES, 'UTF-8'); ?>">
     <?php if (file_exists(__DIR__ . '/custom_theme.css')): ?>
-    <link rel="stylesheet" href="<?php echo url('custom_theme.css'); ?>">
+    <link rel="stylesheet" href="<?php echo htmlspecialchars(assetUrl('custom_theme.css'), ENT_QUOTES, 'UTF-8'); ?>">
     <?php endif; ?>
 </head>
 <body class="maintenance-body">

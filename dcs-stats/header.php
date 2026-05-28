@@ -148,14 +148,14 @@ if (file_exists($maintenanceFile)) {
   <meta name="robots" content="index,follow" />
   <?php endif; ?>
   <title><?php echo htmlspecialchars($siteName); ?> Dashboard</title>
-  <link rel="stylesheet" href="<?php echo url('styles.php'); ?>" />
-  <link rel="stylesheet" href="<?php echo url('styles-mobile.css'); ?>" />
-  <link rel="stylesheet" href="<?php echo url('theme_overrides.css'); ?>" />
+  <link rel="stylesheet" href="<?php echo htmlspecialchars(assetUrl('styles.php')); ?>" />
+  <link rel="stylesheet" href="<?php echo htmlspecialchars(assetUrl('styles-mobile.css')); ?>" />
+  <link rel="stylesheet" href="<?php echo htmlspecialchars(assetUrl('theme_overrides.css')); ?>" />
   <?php if (file_exists(__DIR__ . '/custom_theme.css')): ?>
-  <link rel="stylesheet" href="<?php echo url('custom_theme.css'); ?>" />
+  <link rel="stylesheet" href="<?php echo htmlspecialchars(assetUrl('custom_theme.css')); ?>" />
   <?php endif; ?>
   <?php if (file_exists(__DIR__ . '/header_custom.css')): ?>
-  <link rel="stylesheet" href="<?php echo url('header_custom.css'); ?>" />
+  <link rel="stylesheet" href="<?php echo htmlspecialchars(assetUrl('header_custom.css')); ?>" />
   <?php endif; ?>
   <?php if ($previewColors): ?>
   <style>
@@ -199,8 +199,8 @@ if (file_exists($maintenanceFile)) {
       return div.innerHTML;
     }
   </script>
-  <script src="<?php echo url('js/api-client.js'); ?>"></script>
-  <script src="<?php echo url('mobile-enhancements.js'); ?>"></script>
+  <script src="<?php echo htmlspecialchars(assetUrl('js/api-client.js')); ?>"></script>
+  <script src="<?php echo htmlspecialchars(assetUrl('mobile-enhancements.js')); ?>"></script>
 </head>
 <body>
   <header class="main-header">

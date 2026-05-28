@@ -23,7 +23,7 @@ if (!$isConfigured) {
 
 include 'header.php';
 ?>
-<script src="<?php echo htmlspecialchars(url('js/vendor/chart.umd.min.js')); ?>"></script>
+<script src="<?php echo htmlspecialchars(assetUrl('js/vendor/chart.umd.min.js')); ?>"></script>
 <?php include 'nav.php'; ?>
 
 <?php
