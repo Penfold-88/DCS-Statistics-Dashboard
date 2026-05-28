@@ -210,10 +210,6 @@ if (file_exists($maintenanceFile)) {
   ?>
   <?php if ($frontendDemoMode): ?>
   <style>
-    body.has-demo-banner {
-      padding-top: 42px;
-    }
-
     body.has-demo-banner .main-header {
       top: 42px;
     }
@@ -224,7 +220,7 @@ if (file_exists($maintenanceFile)) {
   <?php $frontendDemoBannerShown = false; ?>
   <?php if ($frontendDemoMode): ?>
   <?php $frontendDemoBannerShown = true; ?>
-  <div class="demo-notice-bar" role="note" style="align-items: center; background: linear-gradient(90deg, #ffd21f 0%, #ff8a00 100%); border-bottom: 2px solid rgba(0,0,0,0.28); color: #101010; display: flex; flex-wrap: wrap; gap: 8px 14px; justify-content: center; padding: 10px 18px; text-align: center; font-size: 14px; font-weight: 700; letter-spacing: 0; position: fixed; left: 0; right: 0; top: 0; z-index: 5000;">
+  <div class="demo-notice-bar" role="note" style="align-items: center; background: linear-gradient(90deg, #ffd21f 0%, #ff8a00 100%); border-bottom: 2px solid rgba(0,0,0,0.28); color: #101010; display: flex; flex-wrap: wrap; gap: 8px 14px; justify-content: center; padding: 10px 18px; text-align: center; font-size: 14px; font-weight: 700; letter-spacing: 0; position: sticky; left: 0; right: 0; top: 0; z-index: 5000;">
     <strong>DEMO:</strong>
     Data provided by VFS-252 Sky Pirates.
     BO Demo available here:
