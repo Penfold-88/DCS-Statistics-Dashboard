@@ -5,10 +5,16 @@
 
 require_once dirname(__DIR__) . '/auth.php';
 require_once dirname(__DIR__) . '/admin_functions.php';
+require_once dirname(__DIR__) . '/demo_helpers.php';
 
 // Require admin login and permission
 requireAdmin();
 requirePermission('export_data');
+
+if (isDemoRestricted(getCurrentAdmin())) {
+    http_response_code(403);
+    die('Demo mode is enabled. Data exports are locked on the public demo.');
+}
 
 // Verify CSRF token
 if (!isset($_GET['csrf_token']) || !verifyCSRFToken($_GET['csrf_token'])) {

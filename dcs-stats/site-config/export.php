@@ -5,6 +5,7 @@
 
 require_once __DIR__ . '/auth.php';
 require_once __DIR__ . '/admin_functions.php';
+require_once __DIR__ . '/demo_helpers.php';
 
 // Require admin login and permission
 requireAdmin();
@@ -12,12 +13,15 @@ requirePermission('export_data');
 
 // Get current admin
 $currentAdmin = getCurrentAdmin();
+$demoRestricted = isDemoRestricted($currentAdmin);
 
 // Handle export request
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['export'])) {
     // Verify CSRF token
     if (!isset($_POST['csrf_token']) || !verifyCSRFToken($_POST['csrf_token'])) {
         $error = ERROR_MESSAGES['csrf_invalid'];
+    } elseif ($demoRestricted) {
+        $error = 'Demo mode is enabled. Data exports are locked on the public demo.';
     } else {
         $exportType = $_POST['export_type'] ?? '';
         $format = $_POST['format'] ?? 'csv';
@@ -107,6 +111,12 @@ $pageTitle = 'Export Data';
                         <?= e($error) ?>
                     </div>
                 <?php endif; ?>
+
+                <?php if ($demoRestricted): ?>
+                    <div class="alert alert-warning">
+                        Demo mode is enabled. Data exports are locked on the public demo.
+                    </div>
+                <?php endif; ?>
                 
                 <div class="card">
                     <div class="card-header">
@@ -125,7 +135,7 @@ $pageTitle = 'Export Data';
                             <div class="export-fields">
                                 <div class="form-group">
                                     <label for="players_format">Format</label>
-                                    <select name="format" id="players_format" class="form-control">
+                                    <select name="format" id="players_format" class="form-control" <?= $demoRestricted ? 'disabled' : '' ?>>
                                         <option value="csv">CSV</option>
                                         <option value="json">JSON</option>
                                     </select>
@@ -133,16 +143,16 @@ $pageTitle = 'Export Data';
                                 
                                 <div class="form-group">
                                     <label for="players_date_from">From Date (Optional)</label>
-                                    <input type="date" name="date_from" id="players_date_from" class="form-control">
+                                    <input type="date" name="date_from" id="players_date_from" class="form-control" <?= $demoRestricted ? 'disabled' : '' ?>>
                                 </div>
                                 
                                 <div class="form-group">
                                     <label for="players_date_to">To Date (Optional)</label>
-                                    <input type="date" name="date_to" id="players_date_to" class="form-control">
+                                    <input type="date" name="date_to" id="players_date_to" class="form-control" <?= $demoRestricted ? 'disabled' : '' ?>>
                                 </div>
                             </div>
                             
-                            <button type="submit" name="export" class="btn btn-primary">
+                            <button type="submit" name="export" class="btn btn-primary" <?= $demoRestricted ? 'disabled' : '' ?>>
                                 Export Player Data
                             </button>
                         </form>
@@ -160,7 +170,7 @@ $pageTitle = 'Export Data';
                             <div class="export-fields">
                                 <div class="form-group">
                                     <label for="missions_format">Format</label>
-                                    <select name="format" id="missions_format" class="form-control">
+                                    <select name="format" id="missions_format" class="form-control" <?= $demoRestricted ? 'disabled' : '' ?>>
                                         <option value="csv">CSV</option>
                                         <option value="json">JSON</option>
                                     </select>
@@ -168,16 +178,16 @@ $pageTitle = 'Export Data';
                                 
                                 <div class="form-group">
                                     <label for="missions_date_from">From Date</label>
-                                    <input type="date" name="date_from" id="missions_date_from" class="form-control" required>
+                                    <input type="date" name="date_from" id="missions_date_from" class="form-control" required <?= $demoRestricted ? 'disabled' : '' ?>>
                                 </div>
                                 
                                 <div class="form-group">
                                     <label for="missions_date_to">To Date</label>
-                                    <input type="date" name="date_to" id="missions_date_to" class="form-control" required>
+                                    <input type="date" name="date_to" id="missions_date_to" class="form-control" required <?= $demoRestricted ? 'disabled' : '' ?>>
                                 </div>
                             </div>
                             
-                            <button type="submit" name="export" class="btn btn-primary">
+                            <button type="submit" name="export" class="btn btn-primary" <?= $demoRestricted ? 'disabled' : '' ?>>
                                 Export Mission Data
                             </button>
                         </form>
@@ -195,7 +205,7 @@ $pageTitle = 'Export Data';
                             <div class="export-fields">
                                 <div class="form-group">
                                     <label for="logs_format">Format</label>
-                                    <select name="format" id="logs_format" class="form-control">
+                                    <select name="format" id="logs_format" class="form-control" <?= $demoRestricted ? 'disabled' : '' ?>>
                                         <option value="csv">CSV</option>
                                         <option value="json">JSON</option>
                                     </select>
@@ -203,16 +213,16 @@ $pageTitle = 'Export Data';
                                 
                                 <div class="form-group">
                                     <label for="logs_date_from">From Date</label>
-                                    <input type="date" name="date_from" id="logs_date_from" class="form-control" required>
+                                    <input type="date" name="date_from" id="logs_date_from" class="form-control" required <?= $demoRestricted ? 'disabled' : '' ?>>
                                 </div>
                                 
                                 <div class="form-group">
                                     <label for="logs_date_to">To Date</label>
-                                    <input type="date" name="date_to" id="logs_date_to" class="form-control" required>
+                                    <input type="date" name="date_to" id="logs_date_to" class="form-control" required <?= $demoRestricted ? 'disabled' : '' ?>>
                                 </div>
                             </div>
                             
-                            <button type="submit" name="export" class="btn btn-primary">
+                            <button type="submit" name="export" class="btn btn-primary" <?= $demoRestricted ? 'disabled' : '' ?>>
                                 Export Activity Logs
                             </button>
                         </form>
@@ -234,14 +244,14 @@ $pageTitle = 'Export Data';
                             <div class="export-fields">
                                 <div class="form-group">
                                     <label for="full_format">Format</label>
-                                    <select name="format" id="full_format" class="form-control">
+                                    <select name="format" id="full_format" class="form-control" <?= $demoRestricted ? 'disabled' : '' ?>>
                                         <option value="json">JSON (Recommended)</option>
                                         <option value="csv">CSV (Multiple Files)</option>
                                     </select>
                                 </div>
                             </div>
                             
-                            <button type="submit" name="export" class="btn btn-danger">
+                            <button type="submit" name="export" class="btn btn-danger" <?= $demoRestricted ? 'disabled' : '' ?>>
                                 Export All Data
                             </button>
                         </form>
