@@ -32,7 +32,38 @@ function getCurrentAdmin() {
 function formatDate($date, $format = null) {
     if (!$date) return 'Never';
     if (!$format) $format = 'M d, Y H:i';
-    return date($format, strtotime($date));
+    $timestamp = strtotime($date);
+    if (!$timestamp) return 'Never';
+    return date($format, $timestamp);
+}
+
+/**
+ * Normalize older and newer admin log formats into one shape.
+ */
+function normalizeAdminLog($log) {
+    $log = is_array($log) ? $log : [];
+    $createdAt = $log['created_at'] ?? $log['timestamp'] ?? null;
+
+    return array_merge([
+        'id' => null,
+        'admin_id' => 0,
+        'action' => 'UNKNOWN',
+        'target_type' => null,
+        'target_id' => null,
+        'details' => null,
+        'ip_address' => $log['ip'] ?? 'unknown',
+        'user_agent' => 'unknown',
+        'created_at' => $createdAt
+    ], $log, [
+        'created_at' => $createdAt,
+        'ip_address' => $log['ip_address'] ?? $log['ip'] ?? 'unknown'
+    ]);
+}
+
+function adminLogTimestamp($log) {
+    $createdAt = $log['created_at'] ?? $log['timestamp'] ?? null;
+    $timestamp = $createdAt ? strtotime($createdAt) : 0;
+    return $timestamp ?: 0;
 }
 
 /**
@@ -51,8 +82,9 @@ function logAdminAction($action, $details = []) {
         'admin_id' => $_SESSION['admin_id'] ?? 0,
         'admin_username' => getCurrentAdmin()['username'] ?? 'System',
         'details' => $details,
-        'ip' => $_SERVER['REMOTE_ADDR'] ?? '',
-        'timestamp' => date('Y-m-d H:i:s')
+        'ip_address' => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
+        'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? 'unknown',
+        'created_at' => date(DATE_FORMAT)
     ];
     
     // Keep only last 1000 logs
@@ -183,11 +215,12 @@ function isPlayerBanned($ucid) {
  * Get recent admin activity
  */
 function getRecentActivity($limit = 10) {
-    $logs = json_decode(file_get_contents(ADMIN_LOGS_FILE), true) ?: [];
+    $logs = json_decode(@file_get_contents(ADMIN_LOGS_FILE), true) ?: [];
+    $logs = array_map('normalizeAdminLog', $logs);
     
     // Sort by date descending
     usort($logs, function($a, $b) {
-        return strtotime($b['created_at']) - strtotime($a['created_at']);
+        return adminLogTimestamp($b) - adminLogTimestamp($a);
     });
     
     // Get admin usernames

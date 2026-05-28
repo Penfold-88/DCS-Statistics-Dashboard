@@ -71,7 +71,8 @@ switch ($exportType) {
             die('Date range required for logs export');
         }
         
-        $logs = json_decode(file_get_contents(ADMIN_LOGS_FILE), true) ?: [];
+        $logs = json_decode(@file_get_contents(ADMIN_LOGS_FILE), true) ?: [];
+        $logs = array_map('normalizeAdminLog', $logs);
         $users = getAdminUsers();
         $userMap = [];
         foreach ($users as $user) {
@@ -79,16 +80,16 @@ switch ($exportType) {
         }
         
         foreach ($logs as $log) {
-            $logDate = substr($log['created_at'], 0, 10);
+            $logDate = $log['created_at'] ? substr($log['created_at'], 0, 10) : '';
             if ($logDate >= $dateFrom && $logDate <= $dateTo) {
                 $data[] = [
-                    'date' => $log['created_at'],
+                    'date' => $log['created_at'] ?? '',
                     'admin' => $userMap[$log['admin_id']] ?? 'Unknown',
                     'action' => LOG_ACTIONS[$log['action']] ?? $log['action'],
                     'target_type' => $log['target_type'] ?? '',
                     'target_id' => $log['target_id'] ?? '',
                     'ip_address' => $log['ip_address'] ?? '',
-                    'details' => is_array($log['details']) ? json_encode($log['details']) : $log['details']
+                    'details' => is_array($log['details'] ?? null) ? json_encode($log['details']) : ($log['details'] ?? '')
                 ];
             }
         }

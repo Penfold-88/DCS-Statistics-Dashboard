@@ -22,7 +22,8 @@ $page = max(1, intval($_GET['page'] ?? 1));
 $perPage = RECORDS_PER_PAGE;
 
 // Get all logs
-$allLogs = json_decode(file_get_contents(ADMIN_LOGS_FILE), true) ?: [];
+$allLogs = json_decode(@file_get_contents(ADMIN_LOGS_FILE), true) ?: [];
+$allLogs = array_map('normalizeAdminLog', $allLogs);
 
 // Get admin users for filter and display
 $users = getAdminUsers();
@@ -35,7 +36,7 @@ foreach ($users as $user) {
 $filteredLogs = [];
 foreach ($allLogs as $log) {
     // Date filter
-    $logDate = substr($log['created_at'], 0, 10);
+    $logDate = $log['created_at'] ? substr($log['created_at'], 0, 10) : '';
     if ($logDate < $filterDateFrom || $logDate > $filterDateTo) {
         continue;
     }
@@ -57,7 +58,7 @@ foreach ($allLogs as $log) {
 
 // Sort by date descending
 usort($filteredLogs, function($a, $b) {
-    return strtotime($b['created_at']) - strtotime($a['created_at']);
+    return adminLogTimestamp($b) - adminLogTimestamp($a);
 });
 
 // Pagination
@@ -280,17 +281,17 @@ $pageTitle = 'Activity Logs';
                                             </span>
                                         </div>
                                         <div class="log-time">
-                                            <?= formatDate($log['created_at']) ?>
+                                            <?= formatDate($log['created_at'] ?? '') ?>
                                         </div>
                                     </div>
                                     
                                     <div class="log-details">
                                         <strong><?= e($log['admin_username']) ?></strong>
-                                        <?php if ($log['target_type'] && $log['target_id']): ?>
+                                        <?php if (!empty($log['target_type']) && !empty($log['target_id'])): ?>
                                             - <?= e($log['target_type']) ?>: <code><?= e($log['target_id']) ?></code>
                                         <?php endif; ?>
                                         
-                                        <?php if ($log['details']): ?>
+                                        <?php if (!empty($log['details'])): ?>
                                             <div class="log-meta">
                                                 Details: <?= e(is_array($log['details']) ? json_encode($log['details']) : $log['details']) ?>
                                             </div>
@@ -298,7 +299,7 @@ $pageTitle = 'Activity Logs';
                                     </div>
                                     
                                     <div class="log-meta">
-                                        IP: <?= e($log['ip_address']) ?>
+                                        IP: <?= e($log['ip_address'] ?? 'unknown') ?>
                                     </div>
                                 </div>
                             <?php endforeach; ?>

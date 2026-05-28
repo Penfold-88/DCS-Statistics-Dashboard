@@ -257,18 +257,19 @@ $pageTitle = 'Export Data';
                     
                     <?php
                     $recentExports = [];
-                    $logs = json_decode(file_get_contents(ADMIN_LOGS_FILE), true) ?: [];
+                    $logs = json_decode(@file_get_contents(ADMIN_LOGS_FILE), true) ?: [];
+                    $logs = array_map('normalizeAdminLog', $logs);
                     
                     foreach ($logs as $log) {
-                        if ($log['action'] === 'DATA_EXPORT' && 
-                            strtotime($log['created_at']) > strtotime('-30 days')) {
+                        if (($log['action'] ?? '') === 'DATA_EXPORT' &&
+                            adminLogTimestamp($log) > strtotime('-30 days')) {
                             $recentExports[] = $log;
                         }
                     }
                     
                     // Sort by date descending
                     usort($recentExports, function($a, $b) {
-                        return strtotime($b['created_at']) - strtotime($a['created_at']);
+                        return adminLogTimestamp($b) - adminLogTimestamp($a);
                     });
                     
                     $recentExports = array_slice($recentExports, 0, 10);
@@ -300,7 +301,7 @@ $pageTitle = 'Export Data';
                                     $details = $export['details'] ?? [];
                                     ?>
                                     <tr>
-                                        <td><?= formatDate($export['created_at']) ?></td>
+                                        <td><?= formatDate($export['created_at'] ?? '') ?></td>
                                         <td><?= e($admin['username'] ?? 'Unknown') ?></td>
                                         <td><?= e($export['target_id'] ?? 'Unknown') ?></td>
                                         <td><?= e($details['format'] ?? 'Unknown') ?></td>

@@ -1,171 +1,121 @@
-# 🎖️ DCS Statistics Dashboard
+# DCS Statistics Dashboard
 
-**Transform your DCS server data into a stunning, interactive web dashboard with real-time API integration!**
+Turn your DCSServerBot statistics into a clean, configurable web dashboard for your squadron or public DCS server.
 
-[![Live Analytics](https://img.shields.io/badge/🌐_Live_Analytics-Real_Time_Data-blue?style=for-the-badge)](http://stats.skypirates.uk)
-[![DCSServerBot](https://img.shields.io/badge/🤖_Requires-DCSServerBot-green?style=for-the-badge)](https://github.com/Special-K-s-Flightsim-Bots/DCSServerBot)
-[![Security](https://img.shields.io/badge/🔒_Security-Enterprise_Grade-red?style=for-the-badge)](#-security-features)
-[![Responsive](https://img.shields.io/badge/📱_Design-Fully_Responsive-purple?style=for-the-badge)](#-responsive-design)
+[![DCSServerBot](https://img.shields.io/badge/Requires-DCSServerBot-green?style=for-the-badge)](https://github.com/Special-K-s-Flightsim-Bots/DCSServerBot)
+[![PHP](https://img.shields.io/badge/PHP-7.4%2B-blue?style=for-the-badge)](#requirements)
+[![Responsive](https://img.shields.io/badge/Responsive-Mobile%20Friendly-purple?style=for-the-badge)](#features)
+[![License](https://img.shields.io/badge/License-MIT-lightgrey?style=for-the-badge)](LICENSE)
 
-## 🎯 What's New in v1.0.0
+## Overview
 
-### 🚀 **Advanced Admin Panel**
-- 🎛️ **Role-Based Access Control** - Multi-tier permission system (Air Boss, Squadron Leader, Pilot)
-- 🔐 **Secure Authentication** - Modern login system with session management
-- 🔄 **Auto-Update System** - One-click updates from GitHub with version tracking
-- 💾 **Backup & Restore** - Automatic backups before updates with version metadata
-- 🎨 **Theme Manager** - Pre-built themes (Sky Pirates, Grim Reapers, Blue Angels, more!)
+DCS Statistics Dashboard is a PHP web dashboard for communities running [DCSServerBot](https://github.com/Special-K-s-Flightsim-Bots/DCSServerBot). It displays live server information, pilot statistics, leaderboards, squadron data, carrier trap/LSO results, credits, and configurable homepage insights.
 
-### ✨ **Modern Professional Interface**
-- 🖼️ **Cinematic Header** - Epic DCS combat scene background with professional overlay
-- 🎨 **Unified Design System** - Consistent cards, buttons, and styling across all pages
-- 📱 **Dynamic Responsive Layout** - Adapts fluidly to any screen size (98% mobile width to 1400px desktop)
-- 🔍 **Unified Search Experience** - Consistent search bars with advanced functionality
+The project is designed for normal web hosting, XAMPP/local installs, and Docker deployments. Most setup is handled through the browser-based installer and admin panel.
 
-### 🛡️ **Advanced Features**
-- 📊 **Feature Management** - Granular control over every dashboard element
-- 🌐 **Enhanced API Client** - Bulletproof error handling and retry logic
-- 🐳 **Zero-Config Docker** - Complete containerized deployment with auto-setup
-- 📈 **Performance Monitoring** - Built-in API health checks and status indicators
+## What's New in V1.2
 
-## 📸 Modern Dashboard Preview
+- Expanded DCSServerBot REST API support.
+- Fully configurable site features from the admin panel.
+- Theme presets plus detailed colour controls for squadrons.
+- Header image/logo controls.
+- Language groundwork with English, German, and Italian translation files.
+- Server selector for viewing all servers or individual detected servers.
+- Leaderboard chart controls and configurable chart colours.
+- API health/debug page.
+- File-based API response caching with a clear-cache button.
+- Self-hosted Chart.js instead of loading from a CDN.
+- Improved security headers, CSRF handling, file permissions, and API proxy validation.
+- Admin setting import/export.
+- Privacy and SEO settings.
+- Maintenance mode page improvements.
+- Update/version display improvements.
 
-Experience a professional-grade statistics platform featuring:
-- 🏆 **Top 10 Leaderboards** with trophy displays and combat rankings
-- 💰 **Credits System** with unified pilot card interface
-- 👨‍✈️ **Individual Pilot Profiles** with dynamic statistics and combat charts
-- 🛡️ **Squadron Management** with member tracking (optional)
-- 🖥️ **Live Server Status** with mission info and mod displays
-- 🎯 **Unified Search** - Find pilots instantly across all pages
+## Features
 
-## ⚡ Quick Start
+- Homepage summary cards for players, playtime, sorties, attendance, and activity.
+- Top 5 pilot charts with Kills, K/D, and PvP K/D selector.
+- Top 5 insight panels for theatres, missions, and modules.
+- Leaderboard table and bar chart.
+- Individual pilot search with layered pilot profile data.
+- Carrier landings / LSO trap data on pilot profiles.
+- Pilot credits page.
+- Squadron homepage and squadron detail views.
+- Servers page with live mission, weather, slots, extensions, and player information.
+- Optional server scope selector across the front end.
+- Custom Squadron Links dropdown in the navigation bar.
+- Footer credits modal.
+- Admin feature toggles for homepage, leaderboard, pilot, credits, squadron, and server sections.
+- Theme editor with presets, custom colours, chart colours, header image, and logo options.
+- Site metadata editor for keywords, description, and search engine blocking.
+- Admin backup/export tools for portable site settings.
+- Update tool with stable/dev channel support.
 
-### 🔧 Prerequisites
-- ✅ [**DCSServerBot by Special K**](https://github.com/Special-K-s-Flightsim-Bots/DCSServerBot/releases) with REST API enabled
-- ✅ **PHP 8.3+ web server** OR **Docker**
-- ✅ **Web hosting** (shared hosting works Requires Port Forwarding Not All Hosts allow)
+## Requirements
 
-### 🚀 Installation Options
+### Dashboard
 
-#### Option 1: Traditional Web Hosting
+- PHP 7.4 or newer.
+- PHP cURL extension.
+- PHP ZIP extension for update/backup features.
+- A web server such as Apache, Nginx, IIS, XAMPP, or compatible shared hosting.
+- Writable permissions for the dashboard's `site-config/data/` directory.
 
-1. **Download** the latest release and extract
-2. **Upload** the `dcs-stats/` folder to your web server
-3. **Access** `https://yourdomain.com/dcs-stats/`
-4. **Follow the setup wizard** to create your admin account
-5. **Configure** your DCSServerBot API endpoint
+### DCSServerBot
 
-#### Option 2: Docker Deployment (Zero Configuration!)
+- DCSServerBot with the REST API enabled.
+- Network access from the web server to the DCSServerBot REST API host and port.
+- Optional but recommended: configure a DCSServerBot API key and enter it in the dashboard API settings.
 
-```bash
-# Clone the repository
-git clone https://github.com/Penfold-88/DCS-Statistics-Dashboard.git
-cd DCS-Statistics-Dashboard
+## Installation
 
-# Start with Docker (that's it!)
-docker compose up -d
+### Standard Web Hosting
 
-# Access at http://localhost:8080
-```
+1. Download the latest release from GitHub.
+2. Upload the `dcs-stats/` folder to your web server.
+3. Open the dashboard in your browser, for example:
 
-The Docker setup automatically:
-- ✅ Creates all required directories
-- ✅ Sets proper permissions
-- ✅ Initializes the database
-- ✅ Configures the web server
-- ✅ No manual configuration needed!
+   ```text
+   https://yourdomain.com/dcs-stats/
+   ```
 
-### ⚙️ First-Time Setup
+4. The installer should open automatically if the dashboard is not configured.
+5. Create the first admin account. This user becomes the Air Boss.
+6. Enter your DCSServerBot API host and port.
+7. Test the API connection and save.
 
-1. **Access your dashboard** at `http://yourdomain.com/dcs-stats/`
-2. **Click "Start Setup"** on the welcome screen
-3. **Create your admin account** (you'll be the Air Boss!)
-4. **Configure DCSServerBot API**:
-   - Enter your API URL (e.g., `http://localhost:8080`)
-   - Test the connection
-   - Save configuration
-5. **Customize your dashboard**:
-   - Choose a theme
-   - Enable/disable features
-   - Set your Discord link
+### XAMPP / Local Testing
 
-**🎉 That's it!** Your dashboard now displays real-time data from DCSServerBot.
+1. Copy the `dcs-stats/` folder into your XAMPP `htdocs` folder.
+2. Start Apache in XAMPP.
+3. Open:
 
-#### Option 3: Xampp  (Minimal Configuration!)
+   ```text
+   http://localhost/dcs-stats/
+   ```
 
-A Full Howto on this can be found in the wiki https://github.com/Penfold-88/DCS-Statistics-Dashboard/wiki
+4. Complete the installer.
 
-## 🎛️ Admin Panel Features
+A full XAMPP guide is available in the project wiki.
 
-### 🔐 Secure Access
-Access the admin panel at `/dcs-stats/site-config/` (NOT `/admin`!)
+### Docker Deployment
 
-### 👥 Role-Based Permissions
-
-| Role | Dashboard Access | API Config | Updates | User Management | Themes |
-|------|-----------------|------------|---------|-----------------|---------|
-| **Air Boss** | ✅ Full | ✅ | ✅ | ✅ | ✅ |
-| **Squadron Leader** | ✅ View | ❌ | ❌ | ✅ Limited | ✅ |
-| **Pilot** | ✅ View Only | ❌ | ❌ | ❌ | ❌ |
-
-### 🚀 Auto-Update System
-
-1. **Version Tracking** - Know exactly what version you're running
-2. **Update Notifications** - Get alerts when updates are available
-3. **One-Click Updates** - Update directly from the admin panel
-4. **Automatic Backups** - Creates backup before every update
-5. **Version History** - Track all updates and changes
-6. **Branch Support** - Switch between stable and development branches
-
-### 💾 Backup Management
-
-- **Automatic Backups** - Before updates and on schedule
-- **Manual Backups** - Create snapshots anytime
-- **Version Metadata** - Each backup includes version and branch info
-- **Easy Restore** - One-click restore to any backup
-- **Auto-Cleanup** - Keeps only the 5 most recent backups
-- **Download Backups** - Export for external storage
-
-### 🎨 Theme System
-
-Pre-built professional themes included:
-- 🏴‍☠️ **Sky Pirates** - Dark theme with green accents
-- 💀 **Grim Reapers** - High contrast red theme
-- 🔵 **Blue Angels** - Navy blue professional theme
-- 🌊 **Navy** - Classic military styling
-- 🎖️ **Air Force** - Light blue aviation theme
-- 🔥 **Danger Zone** - Bold orange accents
-- 🌙 **Night Ops** - Ultra-dark stealth mode
-- ❄️ **Arctic** - Cool blue winter theme
-
-## 🐳 Docker Deployment
-
-### Zero-Configuration Setup
-
-Our Docker setup is completely automated - just run and go!
+The Docker files are included and will be reworked in a future release. The current setup is kept available for users already deploying this way.
 
 ```bash
 # Clone the repository
 git clone https://github.com/Penfold-88/DCS-Statistics-Dashboard.git
 cd DCS-Statistics-Dashboard
 
-# Start the container (that's it!)
+# Start with Docker
 docker compose up -d
 
 # Access at http://localhost:8080
 ```
 
-### What Docker Does Automatically
+Docker will create required folders, set permissions, and start the web container.
 
-✅ **Directory Creation** - All folders created with correct permissions  
-✅ **File Permissions** - Automatically set for web server access  
-✅ **Database Init** - User database created if not exists  
-✅ **Config Templates** - Default configs generated  
-✅ **Health Checks** - Monitors container status  
-✅ **Auto-Restart** - Recovers from crashes  
-✅ **Volume Persistence** - Data survives container updates  
-
-### Docker Commands
+Useful Docker commands:
 
 ```bash
 # View logs
@@ -182,167 +132,257 @@ docker compose up -d
 docker compose exec dcs-stats-web bash
 ```
 
-### Custom Ports
+To change the public port, edit `.env`:
 
-Edit `.env` file:
 ```bash
-# Change from default 8080
 WEB_PORT=8090
 ```
 
-## 🔒 Security Features
+## First-Time Setup
 
-### Multi-Layer Protection
-✅ **Authentication System** - Secure login with bcrypt password hashing  
-✅ **Session Management** - Secure session handling with CSRF tokens  
-✅ **Role-Based Access** - Granular permissions for every feature  
-✅ **XSS Prevention** - All inputs sanitized and escaped  
-✅ **Rate Limiting** - API abuse prevention with throttling  
-✅ **Security Headers** - CSP, XSS protection, clickjacking prevention  
-✅ **Input Validation** - Comprehensive data filtering  
-✅ **Secure File Access** - Protected directories and files  
+After installation, go to:
 
-### Admin Security
-- Password strength requirements
-- Failed login tracking
-- Session timeout
-- Activity logging
-- IP-based restrictions (optional)
-
-## 🎯 Feature Management
-
-### Granular Control System
-
-Control exactly what your community sees:
-
-```php
-// Homepage Features
-'home_server_stats' => true,      // Server statistics cards
-'home_top_pilots' => true,        // Top 5 pilots chart
-'home_mission_stats' => true,     // Combat statistics
-'home_player_activity' => true,   // Activity overview
-
-// Combat Statistics
-'pilot_combat_stats' => true,     // Kills, deaths, K/D ratio
-'pilot_flight_stats' => true,     // Takeoffs, landings, crashes
-'pilot_session_stats' => true,    // Last session data
-'pilot_aircraft_chart' => true,   // Aircraft usage charts
-
-// Credits System  
-'credits_enabled' => true,        // Enable credits system
-'credits_leaderboard' => true,    // Credits rankings
-
-// Squadron Features
-'squadrons_enabled' => true,      // Squadron system
-'squadron_management' => true,    // Squadron admin tools
-'squadron_statistics' => true,    // Squadron stats
+```text
+/dcs-stats/site-config/
 ```
 
-## 🔧 Troubleshooting Guide
+The admin panel lets you configure:
 
-### 🔍 **Admin Panel Access**
-- The admin panel is at `/dcs-stats/site-config/` (NOT `/admin`)
-- First user to register becomes the Air Boss
-- Default permissions are set during first setup
+- API host, timeout, refresh rate, cache TTL, and optional API key.
+- Site feature toggles.
+- Theme colours and presets.
+- Header background/logo settings.
+- Metadata, privacy, and SEO settings.
+- Maintenance mode.
+- Custom navigation links.
+- Language selection.
+- Update channel and version checks.
+- Settings backup and restore.
 
-### 📊 **API Connection Issues**
-```bash
-# Test API directly
-curl http://localhost:8080/ping
+## API Configuration
 
-# Check admin panel
-Dashboard → API Configuration → Test Connection
+The API host should usually be entered as:
 
-# For Docker users
-Use http://host.docker.internal:8080 on Windows/Mac
-Use http://172.17.0.1:8080 on Linux
+```text
+192.168.0.5:9876
 ```
 
-### 🎨 **Theme Not Applying**
-1. Clear browser cache (Ctrl+F5)
-2. Check theme selection saved in admin panel
-3. Verify CSS file permissions
-4. Check browser console for errors
+or:
 
-### 🔄 **Update Failures**
-1. Check file permissions on web server
-2. Ensure backup directory is writable
-3. ```extension=zip``` Enabled in your ```php.ini``` example of a disabled extention is ```;extension=zip```
-4. Verify GitHub connectivity
-5. Check PHP error logs
-6. Manual update via Docker: `docker compose pull && docker compose up -d`
-
-## 📁 Project Structure
-
+```text
+your-api-domain.com:9876
 ```
+
+The dashboard will auto-detect HTTP/HTTPS where possible.
+
+If DCSServerBot has an API key configured, add it in:
+
+```text
+Admin Panel -> Settings -> API Settings
+```
+
+If the API has no key configured, leave the field blank.
+
+## API Caching
+
+The dashboard uses file-based caching for heavier API responses.
+
+Cached endpoints include:
+
+- `/serverstats`
+- `/server_attendance`
+- `/leaderboard`
+- `/squadrons`
+- `/squadron_members`
+- `/squadron_credits`
+- `/stats`
+- `/player_info`
+- `/traps`
+- `/weaponpk`
+
+Live server status endpoints are not cached:
+
+- `/servers`
+- `/current_server`
+
+The cache can be cleared from:
+
+```text
+Admin Panel -> Settings -> API Settings -> Clear API Cache
+```
+
+Cache files are stored locally in:
+
+```text
+dcs-stats/site-config/data/api-cache/
+```
+
+These files are runtime data and should not be committed to Git.
+
+## Admin Roles
+
+| Role | Purpose |
+| --- | --- |
+| Air Boss | Full admin access. Can manage settings, updates, users, API, themes, and site configuration. |
+| LSO | Limited admin role for landing signal officer permissions and relevant tools. |
+
+The first account created by the installer becomes the main administrator.
+
+## Updates
+
+The update tool is available from:
+
+```text
+Admin Panel -> Settings -> Update
+```
+
+The updater supports:
+
+- Current installed version display.
+- Stable and dev channel handling.
+- GitHub branch checks.
+- Backup creation before updates.
+- Downgrade/version list where available.
+
+Stable is the default channel. A hidden `.dev` file enables the configured development branch.
+
+## Security Notes
+
+The dashboard includes:
+
+- Password hashing.
+- CSRF protection for admin actions.
+- Session security controls.
+- Role checks for admin pages.
+- Security headers.
+- API endpoint allow-listing in the proxy.
+- Optional DCSServerBot API key forwarding.
+- Protected runtime data folders.
+- Safer file permissions for generated admin data.
+
+Recommended production setup:
+
+- Use HTTPS for the public dashboard.
+- Keep `site-config/data/` protected from direct web access.
+- Use a DCSServerBot API key where possible.
+- Restrict access to the DCSServerBot API port.
+- Keep PHP and web server packages updated.
+- Back up settings before updates.
+
+## Privacy And SEO
+
+The Privacy & SEO admin section lets you configure:
+
+- Site description.
+- Site keywords.
+- Search engine indexing preference.
+
+The dashboard also sends minimal install/version check-in data to the project maintainer's central service so support can be aligned with versions in use. The check-in is intended to contain only branch/version style information, not personal user data.
+
+## Troubleshooting
+
+### Installer Does Not Open
+
+The dashboard should redirect to the installer when required configuration files are missing. If it does not:
+
+- Confirm `site-config/data/` is writable.
+- Confirm `site-config/data/users.json` does not already exist from another install.
+- Clear browser cache.
+- Check PHP error logs.
+
+### API Connection Fails
+
+- Check the DCSServerBot REST API is running.
+- Confirm the dashboard server can reach the API host and port.
+- Check firewall/port forwarding.
+- If using Docker, the API host may need to be `host.docker.internal` on Windows/Mac.
+- If using an API key, make sure the dashboard key matches the DCSServerBot key.
+
+### Charts Or Styles Look Old After Updating
+
+- Clear browser cache.
+- Use the API Settings clear-cache button.
+- Restart Apache/PHP if OPcache is enabled and still serving old PHP.
+
+### Update Tool Fails
+
+- Ensure the PHP ZIP extension is enabled.
+- Ensure update and backup folders are writable.
+- Check that the server can reach GitHub.
+- Check the admin update log output.
+
+## Project Structure
+
+```text
 DCS-Statistics-Dashboard/
-├── 📁 dcs-stats/                  # Main web application
-│   ├── 📁 site-config/            # Admin panel (NEW!)
-│   │   ├── 🔐 index.php          # Admin dashboard
-│   │   ├── 🎨 themes.php         # Theme manager
-│   │   ├── 🔄 update.php         # Update system
-│   │   ├── 💾 backups.php        # Backup management
-│   │   ├── 👥 users.php          # User management
-│   │   └── 📁 api/               # Admin API endpoints
-│   ├── 🏠 index.php              # Homepage 
-│   ├── 🏆 leaderboard.php        # Combat rankings
-│   ├── 💰 pilot_credits.php      # Credits leaderboard
-│   ├── 👨‍✈️ pilot_statistics.php   # Pilot profiles
-│   ├── 🛡️ squadrons.php          # Squadron system
-│   ├── 🖥️ servers.php            # Server status
-│   └── 🎨 themes/                # Theme files
-├── 🐳 Dockerfile                 # Production container
-├── 🐳 docker-compose.yml         # Docker orchestration
-└── 📚 README.md                  # This guide
+├── dcs-stats/                  Main web application
+│   ├── site-config/            Admin panel and setup tools
+│   │   ├── api/                Admin API endpoints
+│   │   ├── data/               Runtime settings and admin data
+│   │   ├── css/                Admin styling
+│   │   └── js/                 Admin JavaScript
+│   ├── js/                     Front-end JavaScript and vendor scripts
+│   ├── lang/                   Translation files
+│   ├── index.php               Homepage
+│   ├── leaderboard.php         Leaderboard page
+│   ├── pilot_statistics.php    Pilot search and profile page
+│   ├── pilot_credits.php       Pilot credits page
+│   ├── squadrons.php           Squadron pages
+│   └── servers.php             Server status page
+├── Dockerfile
+├── docker-compose.yml
+├── CHANGELOG.md
+└── README.md
 ```
 
-## 🤝 Contributing
+## Runtime Files Not To Commit
 
-We welcome contributions from the DCS community!
+The following are generated locally and should not be committed:
 
-### Development Setup
+- `.dev`
+- `.php-sessions/`
+- `dcs-stats/site-config/data/*.json`
+- `dcs-stats/site-config/data/api-cache/`
+- `dcs-stats/api_config.json`
+- `dcs-stats/site_config.json`
+- `dcs-stats/menu_config.json`
+- `dcs-stats/custom_theme.css`
+- `dcs-stats/header_custom.css`
+
+## Contributing
+
+Contributions are welcome.
+
+Recommended workflow:
+
 ```bash
-# Clone repository
-git clone https://github.com/Penfold-88/DCS-Statistics-Website-Uploader.git
-
-# Create feature branch
-git checkout -b feature/amazing-feature
-
-# Make changes and test
-# Submit pull request
+git clone https://github.com/Penfold-88/DCS-Statistics-Dashboard.git
+cd DCS-Statistics-Dashboard
+git checkout -b feature/your-feature-name
 ```
 
-### Contribution Guidelines
-- ✅ Follow existing code patterns
-- ✅ Test responsive design
-- ✅ Ensure security best practices
-- ✅ Update documentation
-- ✅ Include screenshots for UI changes
+Before opening a pull request:
 
-## 📄 License & Credits
+- Test on desktop and mobile widths.
+- Check PHP syntax for changed files.
+- Avoid committing runtime data from your own install.
+- Update translations where new visible text is added.
+- Update documentation when behaviour changes.
 
-### License
-This project is licensed under the **MIT License** - see [LICENSE](LICENSE) file.
+## Credits
 
-### 🙏 Acknowledgments
-- **DCSServerBot** by [Special K](https://github.com/Special-K-s-Flightsim-Bots/DCSServerBot) - The foundation of this system
-- **Sky Pirates Squadron** - Original development and testing
-- **DCS Community** - Continuous feedback and improvements
-- **Eagle Dynamics** - For creating DCS World
+- [Special K's Flightsim Bots](https://github.com/Special-K-s-Flightsim-Bots) for DCSServerBot.
+- VFS-252 Sky Pirates for testing, feedback, and original dashboard work.
+- The DCS community for suggestions, bug reports, and real-world testing.
+- Eagle Dynamics for DCS World.
 
----
+## License
 
-## 🚀 Get Started Today
+This project is licensed under the MIT License. See [LICENSE](LICENSE).
 
-**⭐ Star this repository** if it helps your community!  
-**🐛 Report issues** to help improve the platform  
-**💬 Share with other** DCS server administrators  
-**🎮 Join the community** and showcase your dashboard
+## Support
 
-### Support Links
-- 💬 [**Discord Support**](https://discord.gg/uTk8uQ2hxC) - Get help and chat with the community
-- 📖 [**Documentation**](https://github.com/Penfold-88/DCS-Statistics-Website-Uploader/wiki)
-- 🐛 [**Issue Tracker**](https://github.com/Penfold-88/DCS-Statistics-Website-Uploader/issues)
-- 🌐 [**Live Demo**](https://stats.skypirates.uk/)
-
-**Transform your DCS server into a professional gaming platform today!** 🎖️
+- Discord Support: [https://discord.gg/uTk8uQ2hxC](https://discord.gg/uTk8uQ2hxC)
+- Wiki: [https://github.com/Penfold-88/DCS-Statistics-Dashboard/wiki](https://github.com/Penfold-88/DCS-Statistics-Dashboard/wiki)
+- Issues: [https://github.com/Penfold-88/DCS-Statistics-Dashboard/issues](https://github.com/Penfold-88/DCS-Statistics-Dashboard/issues)
+- Live Demo: [https://stats.skypirates.uk/](https://stats.skypirates.uk/)
