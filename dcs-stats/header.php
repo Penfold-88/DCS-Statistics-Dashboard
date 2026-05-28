@@ -203,6 +203,16 @@ if (file_exists($maintenanceFile)) {
   <script src="<?php echo htmlspecialchars(assetUrl('mobile-enhancements.js')); ?>"></script>
 </head>
 <body>
+  <?php if (isDemoMode()): ?>
+  <div class="demo-notice-bar" role="note">
+    <strong>DEMO:</strong>
+    Data provided by VFS-252 Sky Pirates.
+    BO Demo available here:
+    <a href="<?php echo htmlspecialchars(url('site-config/login.php')); ?>">Admin Login</a>
+    <span>Username: <strong>Demo</strong></span>
+    <span>Password: <strong>Demo123!</strong></span>
+  </div>
+  <?php endif; ?>
   <header class="main-header">
     <div class="header-background"></div>
     <div class="header-overlay"></div>

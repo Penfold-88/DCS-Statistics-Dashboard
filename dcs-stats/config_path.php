@@ -92,6 +92,13 @@ function assetUrl($path = '') {
     return $url . $separator . 'v=' . rawurlencode($version);
 }
 
+// Demo mode is enabled by placing a hidden .demo file in the dashboard root.
+if (!function_exists('isDemoMode')) {
+    function isDemoMode() {
+        return file_exists(__DIR__ . '/.demo') || file_exists(dirname(__DIR__) . '/.demo');
+    }
+}
+
 // Helper function for absolute URLs
 function absoluteUrl($path = '') {
     if (empty($path)) {

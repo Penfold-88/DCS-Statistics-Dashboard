@@ -14,6 +14,10 @@ requirePermission('manage_admins');
 // Get current admin
 $currentAdmin = getCurrentAdmin();
 
+function isProtectedAdminAccount($admin) {
+    return is_array($admin) && (($admin['username'] ?? '') === 'Penfold88');
+}
+
 // Handle form submissions
 $message = '';
 $messageType = '';
@@ -95,17 +99,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $users = getAdminUsers();
                     $newUsers = [];
                     $removed = false;
+                    $protected = false;
                     
                     foreach ($users as $user) {
                         if ($user['id'] == $adminId) {
-                            $removed = true;
-                            logAdminActivity('ADMIN_DELETE', $_SESSION['admin_id'], 'admin', $user['username']);
+                            if (isProtectedAdminAccount($user)) {
+                                $protected = true;
+                                $newUsers[] = $user;
+                            } else {
+                                $removed = true;
+                                logAdminActivity('ADMIN_DELETE', $_SESSION['admin_id'], 'admin', $user['username']);
+                            }
                         } else {
                             $newUsers[] = $user;
                         }
                     }
                     
-                    if ($removed) {
+                    if ($protected) {
+                        $message = 'The Penfold88 admin account is protected and cannot be deleted.';
+                        $messageType = 'error';
+                    } elseif ($removed) {
                         saveAdminUsers($newUsers);
                         $message = dcs_t('admin.admins.removed_success');
                         $messageType = 'success';
@@ -128,14 +141,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     
                     foreach ($users as &$user) {
                         if ($user['id'] == $adminId) {
-                            $user['is_active'] = !$user['is_active'];
-                            saveAdminUsers($users);
-                            
-                            $action = $user['is_active'] ? 'activated' : 'deactivated';
-                            logAdminActivity('ADMIN_EDIT', $_SESSION['admin_id'], 'admin', $user['username'], ['action' => $action]);
-                            
-                            $message = dcs_t($user['is_active'] ? 'admin.admins.activated_success' : 'admin.admins.deactivated_success');
-                            $messageType = 'success';
+                            if (isProtectedAdminAccount($user)) {
+                                $message = 'The Penfold88 admin account is protected and cannot be deactivated.';
+                                $messageType = 'error';
+                            } else {
+                                $user['is_active'] = !$user['is_active'];
+                                saveAdminUsers($users);
+                                
+                                $action = $user['is_active'] ? 'activated' : 'deactivated';
+                                logAdminActivity('ADMIN_EDIT', $_SESSION['admin_id'], 'admin', $user['username'], ['action' => $action]);
+                                
+                                $message = dcs_t($user['is_active'] ? 'admin.admins.activated_success' : 'admin.admins.deactivated_success');
+                                $messageType = 'success';
+                            }
                             break;
                         }
                     }
@@ -154,13 +172,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     
                     foreach ($users as &$user) {
                         if ($user['id'] == $adminId) {
-                            $user['password_hash'] = password_hash($newPassword, PASSWORD_BCRYPT);
-                            saveAdminUsers($users);
-                            
-                            logAdminActivity('ADMIN_EDIT', $_SESSION['admin_id'], 'admin', $user['username'], ['action' => 'password_reset']);
-                            
-                            $message = dcs_t('admin.admins.password_reset_success');
-                            $messageType = 'success';
+                            if (isProtectedAdminAccount($user)) {
+                                $message = 'The Penfold88 admin account is protected and its password cannot be reset here.';
+                                $messageType = 'error';
+                            } else {
+                                $user['password_hash'] = password_hash($newPassword, PASSWORD_BCRYPT);
+                                saveAdminUsers($users);
+                                
+                                logAdminActivity('ADMIN_EDIT', $_SESSION['admin_id'], 'admin', $user['username'], ['action' => 'password_reset']);
+                                
+                                $message = dcs_t('admin.admins.password_reset_success');
+                                $messageType = 'success';
+                            }
                             break;
                         }
                     }
@@ -310,6 +333,7 @@ $pageTitle = dcs_t('admin.admins.title');
                     </div>
                     
                     <?php foreach ($admins as $admin): ?>
+                        <?php $isProtectedAdmin = isProtectedAdminAccount($admin); ?>
                         <div class="admin-card">
                             <div class="admin-info">
                                 <h3>
@@ -330,7 +354,7 @@ $pageTitle = dcs_t('admin.admins.title');
                             </div>
                             
                             <div class="btn-group">
-                                <?php if ($admin['id'] != $_SESSION['admin_id']): ?>
+                                <?php if ($admin['id'] != $_SESSION['admin_id'] && !$isProtectedAdmin): ?>
                                     <!-- Toggle Active Status -->
                                     <form method="POST" action="" style="display: inline;">
                                         <?= csrfField() ?>
@@ -347,7 +371,6 @@ $pageTitle = dcs_t('admin.admins.title');
                                             onclick='showResetPasswordModal(<?= $admin['id'] ?>, <?= json_encode($admin['username']) ?>)'>
                                         <?= e(dcs_t('admin.admins.reset_password')) ?>
                                     </button>
-                                    
                                     <!-- Remove Admin -->
                                     <form method="POST" action="" style="display: inline;">
                                         <?= csrfField() ?>
@@ -359,6 +382,8 @@ $pageTitle = dcs_t('admin.admins.title');
                                             <?= e(dcs_t('admin.admins.remove')) ?>
                                         </button>
                                     </form>
+                                <?php elseif ($isProtectedAdmin): ?>
+                                    <span class="text-muted">Protected account</span>
                                 <?php else: ?>
                                     <span class="text-muted"><?= e(dcs_t('admin.admins.current_user')) ?></span>
                                 <?php endif; ?>

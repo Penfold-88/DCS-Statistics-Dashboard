@@ -12,12 +12,16 @@ requireAdmin();
 requirePermission('manage_features');
 
 $currentAdmin = getCurrentAdmin();
+$demoRestricted = isDemoRestricted($currentAdmin);
 $message = '';
 $messageType = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!isset($_POST['csrf_token']) || !verifyCSRFToken($_POST['csrf_token'])) {
         $message = dcs_t('admin.metadata.csrf_invalid');
+        $messageType = 'error';
+    } elseif ($demoRestricted) {
+        $message = demoRestrictionMessage();
         $messageType = 'error';
     } else {
         $metadata = [
@@ -118,6 +122,12 @@ $pageTitle = dcs_t('admin.metadata.title');
                 </div>
             <?php endif; ?>
 
+            <?php if ($demoRestricted): ?>
+                <div class="alert alert-warning">
+                    <?= e(demoRestrictionMessage()) ?>
+                </div>
+            <?php endif; ?>
+
             <div class="card">
                 <div class="card-header">
                     <h2 class="card-title"><?= e(dcs_t('admin.metadata.search_metadata')) ?></h2>
@@ -132,19 +142,19 @@ $pageTitle = dcs_t('admin.metadata.title');
 
                     <div class="form-group">
                         <label for="description"><?= e(dcs_t('admin.metadata.description')) ?></label>
-                        <textarea id="description" name="description" class="form-control" maxlength="320"><?= e($metadata['description'] ?? '') ?></textarea>
+                        <textarea id="description" name="description" class="form-control" maxlength="320" <?= $demoRestricted ? 'disabled' : '' ?>><?= e($metadata['description'] ?? '') ?></textarea>
                         <span class="character-count"><?= e(dcs_t('admin.metadata.description_help')) ?></span>
                     </div>
 
                     <div class="form-group">
                         <label for="keywords"><?= e(dcs_t('admin.metadata.keywords')) ?></label>
-                        <textarea id="keywords" name="keywords" class="form-control" maxlength="500"><?= e($metadata['keywords'] ?? '') ?></textarea>
+                        <textarea id="keywords" name="keywords" class="form-control" maxlength="500" <?= $demoRestricted ? 'disabled' : '' ?>><?= e($metadata['keywords'] ?? '') ?></textarea>
                         <span class="character-count"><?= e(dcs_t('admin.metadata.keywords_help')) ?></span>
                     </div>
 
                     <div class="form-group">
                         <label>
-                            <input type="checkbox" name="block_search_engines" value="1" <?= !empty($metadata['block_search_engines']) ? 'checked' : '' ?>>
+                            <input type="checkbox" name="block_search_engines" value="1" <?= !empty($metadata['block_search_engines']) ? 'checked' : '' ?> <?= $demoRestricted ? 'disabled' : '' ?>>
                             <?= e(dcs_t('admin.metadata.block_search_engines')) ?>
                         </label>
                     </div>
@@ -156,19 +166,19 @@ $pageTitle = dcs_t('admin.metadata.title');
 
                         <div class="form-group">
                             <label>
-                                <input type="checkbox" name="show_privacy_link" value="1" <?= !empty($metadata['show_privacy_link']) ? 'checked' : '' ?>>
+                                <input type="checkbox" name="show_privacy_link" value="1" <?= !empty($metadata['show_privacy_link']) ? 'checked' : '' ?> <?= $demoRestricted ? 'disabled' : '' ?>>
                                 <?= e(dcs_t('admin.metadata.show_privacy_link')) ?>
                             </label>
                         </div>
 
                         <div class="form-group">
                             <label for="privacy_notice"><?= e(dcs_t('admin.metadata.privacy_notice_text')) ?></label>
-                            <textarea id="privacy_notice" name="privacy_notice" class="form-control" maxlength="5000"><?= e($metadata['privacy_notice'] ?? '') ?></textarea>
+                            <textarea id="privacy_notice" name="privacy_notice" class="form-control" maxlength="5000" <?= $demoRestricted ? 'disabled' : '' ?>><?= e($metadata['privacy_notice'] ?? '') ?></textarea>
                             <span class="character-count"><?= e(dcs_t('admin.metadata.privacy_notice_help')) ?></span>
                         </div>
                     </div>
 
-                    <button type="submit" class="btn btn-primary"><?= e(dcs_t('admin.metadata.save_button')) ?></button>
+                    <button type="submit" class="btn btn-primary" <?= $demoRestricted ? 'disabled' : '' ?>><?= e(dcs_t('admin.metadata.save_button')) ?></button>
                 </form>
 
                 <p class="usage-data-disclaimer"><?= e(dcs_t('admin.metadata.usage_data_disclaimer')) ?></p>

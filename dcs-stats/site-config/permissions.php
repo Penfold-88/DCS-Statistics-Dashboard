@@ -12,6 +12,8 @@ require_once dirname(__DIR__) . '/language.php';
 requireAdmin();
 requirePermission('manage_permissions');
 
+$currentAdmin = getCurrentAdmin();
+$demoRestricted = isDemoRestricted($currentAdmin);
 $message = '';
 $error = '';
 
@@ -80,6 +82,8 @@ if (file_exists($permissionsFile)) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
         $error = dcs_t('admin.permissions.invalid_token');
+    } elseif ($demoRestricted) {
+        $error = demoRestrictionMessage();
     } else {
         $enabledPerms = $_POST['permissions'] ?? [];
         
@@ -191,6 +195,16 @@ $pageTitle = dcs_t('admin.permissions.title');
         .permission-item.enabled .permission-label {
             color: var(--accent-primary);
         }
+
+        .permission-item.is-demo-locked {
+            opacity: 0.62;
+        }
+
+        .permission-item.is-demo-locked:hover {
+            border-color: var(--border-color);
+            box-shadow: none;
+            transform: none;
+        }
         
         .section-header {
             display: flex;
@@ -276,6 +290,12 @@ $pageTitle = dcs_t('admin.permissions.title');
                     <?php if ($error): ?>
                         <div class="alert alert-error"><?= htmlspecialchars($error) ?></div>
                     <?php endif; ?>
+
+                    <?php if ($demoRestricted): ?>
+                        <div class="alert alert-warning">
+                            <?= e(demoRestrictionMessage()) ?>
+                        </div>
+                    <?php endif; ?>
                     
                     <div class="permissions-info">
                         <strong><?= e(dcs_t('admin.permissions.about_title')) ?>:</strong><br>
@@ -286,9 +306,9 @@ $pageTitle = dcs_t('admin.permissions.title');
                         <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
                         
                         <div class="quick-actions">
-                            <button type="button" class="btn btn-sm" onclick="selectAll()"><?= e(dcs_t('admin.permissions.select_all')) ?></button>
-                            <button type="button" class="btn btn-sm" onclick="selectNone()"><?= e(dcs_t('admin.permissions.select_none')) ?></button>
-                            <button type="button" class="btn btn-sm" onclick="selectDefault()"><?= e(dcs_t('admin.themes.reset_to_default')) ?></button>
+                            <button type="button" class="btn btn-sm" onclick="selectAll()" <?= $demoRestricted ? 'disabled' : '' ?>><?= e(dcs_t('admin.permissions.select_all')) ?></button>
+                            <button type="button" class="btn btn-sm" onclick="selectNone()" <?= $demoRestricted ? 'disabled' : '' ?>><?= e(dcs_t('admin.permissions.select_none')) ?></button>
+                            <button type="button" class="btn btn-sm" onclick="selectDefault()" <?= $demoRestricted ? 'disabled' : '' ?>><?= e(dcs_t('admin.themes.reset_to_default')) ?></button>
                         </div>
                         
                         <div class="section-header">
@@ -303,13 +323,14 @@ $pageTitle = dcs_t('admin.permissions.title');
                                 if (isset($lsoPermissions[$key])):
                                     $perm = $lsoPermissions[$key];
                             ?>
-                            <div class="permission-item <?= $perm['enabled'] ? 'enabled' : '' ?>" data-perm="<?= $key ?>">
+                            <div class="permission-item <?= $perm['enabled'] ? 'enabled' : '' ?> <?= $demoRestricted ? 'is-demo-locked' : '' ?>" data-perm="<?= $key ?>">
                                 <div class="permission-checkbox">
                                     <input type="checkbox" 
                                            name="permissions[]" 
                                            value="<?= $key ?>" 
                                            id="perm_<?= $key ?>"
                                            <?= $perm['enabled'] ? 'checked' : '' ?>
+                                           <?= $demoRestricted ? 'disabled' : '' ?>
                                            onchange="updatePermissionUI(this)">
                                 </div>
                                 <div class="permission-details">
@@ -336,13 +357,14 @@ $pageTitle = dcs_t('admin.permissions.title');
                                 if (isset($lsoPermissions[$key])):
                                     $perm = $lsoPermissions[$key];
                             ?>
-                            <div class="permission-item <?= $perm['enabled'] ? 'enabled' : '' ?>" data-perm="<?= $key ?>">
+                            <div class="permission-item <?= $perm['enabled'] ? 'enabled' : '' ?> <?= $demoRestricted ? 'is-demo-locked' : '' ?>" data-perm="<?= $key ?>">
                                 <div class="permission-checkbox">
                                     <input type="checkbox" 
                                            name="permissions[]" 
                                            value="<?= $key ?>" 
                                            id="perm_<?= $key ?>"
                                            <?= $perm['enabled'] ? 'checked' : '' ?>
+                                           <?= $demoRestricted ? 'disabled' : '' ?>
                                            onchange="updatePermissionUI(this)">
                                 </div>
                                 <div class="permission-details">
@@ -358,7 +380,7 @@ $pageTitle = dcs_t('admin.permissions.title');
                         </div>
                         
                         
-                        <button type="submit" class="btn btn-primary" style="margin-top: 30px;"><?= e(dcs_t('admin.permissions.save_permissions')) ?></button>
+                        <button type="submit" class="btn btn-primary" style="margin-top: 30px;" <?= $demoRestricted ? 'disabled' : '' ?>><?= e(dcs_t('admin.permissions.save_permissions')) ?></button>
                     </form>
                 </div>
             </div>
@@ -387,6 +409,7 @@ $pageTitle = dcs_t('admin.permissions.title');
         }
         
         function selectAll() {
+            if (window.DCS_DEMO_RESTRICTED) return;
             document.querySelectorAll('input[name="permissions[]"]').forEach(cb => {
                 cb.checked = true;
                 updatePermissionUI(cb);
@@ -394,6 +417,7 @@ $pageTitle = dcs_t('admin.permissions.title');
         }
         
         function selectNone() {
+            if (window.DCS_DEMO_RESTRICTED) return;
             document.querySelectorAll('input[name="permissions[]"]').forEach(cb => {
                 cb.checked = false;
                 updatePermissionUI(cb);
@@ -401,6 +425,7 @@ $pageTitle = dcs_t('admin.permissions.title');
         }
         
         function selectDefault() {
+            if (window.DCS_DEMO_RESTRICTED) return;
             // Default permissions for LSO
             const defaults = ['view_dashboard', 'export_data', 'view_logs'];
             document.querySelectorAll('input[name="permissions[]"]').forEach(cb => {
@@ -410,6 +435,7 @@ $pageTitle = dcs_t('admin.permissions.title');
         }
         
         // Initialize counts on page load
+        window.DCS_DEMO_RESTRICTED = <?= $demoRestricted ? 'true' : 'false' ?>;
         document.addEventListener('DOMContentLoaded', updateCounts);
     </script>
 </body>

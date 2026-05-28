@@ -26,6 +26,37 @@ body {
     overflow-x: hidden;
 }
 
+.demo-notice-bar {
+    align-items: center;
+    background: linear-gradient(90deg, #ffd21f 0%, #ff8a00 100%);
+    border-bottom: 2px solid rgba(0, 0, 0, 0.28);
+    color: #101010;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 14px;
+    justify-content: center;
+    padding: 10px 18px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0;
+    position: relative;
+    z-index: 1200;
+}
+
+.demo-notice-bar a {
+    background: rgba(0, 0, 0, 0.16);
+    border: 1px solid rgba(0, 0, 0, 0.24);
+    border-radius: 6px;
+    color: #101010;
+    padding: 4px 10px;
+    text-decoration: none;
+}
+
+.demo-notice-bar a:hover {
+    background: rgba(255, 255, 255, 0.34);
+}
+
 /* Modern Header Styling with Combat Background */
 .main-header {
     position: relative;
