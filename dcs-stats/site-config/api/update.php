@@ -5,6 +5,7 @@ require_once __DIR__ . '/../update_channel.php';
 
 requireAdmin();
 requirePermission('manage_updates');
+requireCSRFToken();
 
 set_time_limit(0);
 header('Content-Type: text/plain; charset=utf-8');

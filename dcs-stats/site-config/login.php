@@ -14,6 +14,11 @@ if (!function_exists('e')) {
     }
 }
 
+if (!file_exists(getDataFilePath('users'))) {
+    header('Location: install.php');
+    exit;
+}
+
 // Redirect if already logged in
 if (isAdminLoggedIn()) {
     header('Location: index.php');

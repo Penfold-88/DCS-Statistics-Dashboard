@@ -31,7 +31,9 @@ function initializeAdminData() {
     
     if ($isFirstTime && php_sapi_name() !== 'cli') {
         // Send setup page to browser
-        ob_end_clean(); // Clear any previous output
+        if (ob_get_level() > 0) {
+            ob_end_clean(); // Clear any previous output
+        }
         ?>
         <!DOCTYPE html>
         <html>
@@ -101,26 +103,26 @@ function initializeAdminData() {
     
     // Create data directory if it doesn't exist
     if (!is_dir(ADMIN_DATA_DIR)) {
-        $created = @mkdir(ADMIN_DATA_DIR, 0777, true);
+        $created = @mkdir(ADMIN_DATA_DIR, 0700, true);
         if (!$created) {
             // Try alternative approach - create parent directories first
             $parent = dirname(ADMIN_DATA_DIR);
             if (!is_dir($parent)) {
-                @mkdir($parent, 0777, true);
+                @mkdir($parent, 0755, true);
             }
-            @mkdir(ADMIN_DATA_DIR, 0777, true);
+            @mkdir(ADMIN_DATA_DIR, 0700, true);
         }
-        // Try to make it writable
-        @chmod(ADMIN_DATA_DIR, 0777);
     }
+    @chmod(ADMIN_DATA_DIR, 0700);
     
     // If directory still doesn't exist or isn't writable, try alternative location
     if (!is_dir(ADMIN_DATA_DIR) || !is_writable(ADMIN_DATA_DIR)) {
         // Try to use system temp directory as fallback
         $tempDir = sys_get_temp_dir() . '/dcs_admin_data';
         if (!is_dir($tempDir)) {
-            @mkdir($tempDir, 0777, true);
+            @mkdir($tempDir, 0700, true);
         }
+        @chmod($tempDir, 0700);
         
         // If temp directory works, update the constant
         if (is_dir($tempDir) && is_writable($tempDir)) {
@@ -136,24 +138,10 @@ function initializeAdminData() {
         }
     }
     
-    // Initialize users file with default admin
+    // The installer must create the first real admin user.
     $usersFile = defined('ADMIN_USERS_FILE_OVERRIDE') ? ADMIN_USERS_FILE_OVERRIDE : ADMIN_USERS_FILE;
-    if (!file_exists($usersFile)) {
-        $defaultAdmin = [
-            'id' => 1,
-            'username' => DEFAULT_ADMIN_USERNAME,
-            'email' => DEFAULT_ADMIN_EMAIL,
-            'password_hash' => password_hash(DEFAULT_ADMIN_PASSWORD, PASSWORD_BCRYPT),
-            'role' => ROLE_AIR_BOSS,
-            'created_at' => date(DATE_FORMAT),
-            'last_login' => null,
-            'is_active' => true,
-            'failed_attempts' => 0,
-            'locked_until' => null
-        ];
-        
-        @file_put_contents($usersFile, json_encode([$defaultAdmin], JSON_PRETTY_PRINT));
-        @chmod($usersFile, 0666);
+    if (file_exists($usersFile)) {
+        @chmod($usersFile, 0600);
     }
     
     // Initialize other data files
@@ -162,9 +150,9 @@ function initializeAdminData() {
     foreach ($dataTypes as $type) {
         $file = getDataFilePath($type);
         if (!file_exists($file)) {
-            @file_put_contents($file, json_encode([], JSON_PRETTY_PRINT));
-            @chmod($file, 0666);
+            @file_put_contents($file, json_encode([], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES), LOCK_EX);
         }
+        @chmod($file, 0600);
     }
 }
 
@@ -185,7 +173,7 @@ function getDataFilePath($type) {
 function getAdminUsers() {
     $usersFile = getDataFilePath('users');
     if (!file_exists($usersFile)) {
-        initializeAdminData();
+        return [];
     }
     
     $users = json_decode(file_get_contents($usersFile), true);
@@ -197,13 +185,8 @@ function getAdminUsers() {
  */
 function saveAdminUsers($users) {
     $usersFile = getDataFilePath('users');
-    $result = @file_put_contents($usersFile, json_encode($users, JSON_PRETTY_PRINT));
-    if ($result === false) {
-        // Try to make the file writable
-        @chmod($usersFile, 0666);
-        // Try again
-        $result = @file_put_contents($usersFile, json_encode($users, JSON_PRETTY_PRINT));
-    }
+    $result = @file_put_contents($usersFile, json_encode($users, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES), LOCK_EX);
+    @chmod($usersFile, 0600);
     return $result !== false;
 }
 
@@ -292,7 +275,8 @@ function logAdminActivity($action, $adminId = null, $targetType = null, $targetI
         return $log['created_at'] > $cutoffDate;
     });
     
-    @file_put_contents($logsFile, json_encode(array_values($logs), JSON_PRETTY_PRINT));
+    @file_put_contents($logsFile, json_encode(array_values($logs), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES), LOCK_EX);
+    @chmod($logsFile, 0600);
 }
 
 /**
@@ -372,7 +356,8 @@ function attemptLogin($username, $password, $remember = false) {
             'created_at' => date(DATE_FORMAT)
         ];
         $sessionsFile = getDataFilePath('sessions');
-        @file_put_contents($sessionsFile, json_encode($sessions, JSON_PRETTY_PRINT));
+        @file_put_contents($sessionsFile, json_encode($sessions, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES), LOCK_EX);
+        @chmod($sessionsFile, 0600);
         
         // Set cookie
         setcookie(
@@ -477,7 +462,8 @@ function logout() {
             return !($session['admin_id'] == $userId && $session['token_hash'] === $tokenHash);
         });
         $sessionsFile = getDataFilePath('sessions');
-        @file_put_contents($sessionsFile, json_encode(array_values($sessions), JSON_PRETTY_PRINT));
+        @file_put_contents($sessionsFile, json_encode(array_values($sessions), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES), LOCK_EX);
+        @chmod($sessionsFile, 0600);
     }
 }
 
@@ -574,6 +560,36 @@ function getCSRFToken() {
  */
 function verifyCSRFToken($token) {
     return isset($_SESSION[CSRF_TOKEN_NAME]) && hash_equals($_SESSION[CSRF_TOKEN_NAME], $token);
+}
+
+/**
+ * Read a CSRF token from common request locations.
+ */
+function getRequestCSRFToken($jsonInput = null) {
+    if (isset($_POST['csrf_token'])) {
+        return $_POST['csrf_token'];
+    }
+
+    $headerToken = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? $_SERVER['HTTP_X_ADMIN_CSRF_TOKEN'] ?? '';
+    if ($headerToken !== '') {
+        return $headerToken;
+    }
+
+    if (is_array($jsonInput) && isset($jsonInput['csrf_token'])) {
+        return $jsonInput['csrf_token'];
+    }
+
+    return '';
+}
+
+/**
+ * Require a valid CSRF token for state-changing admin requests.
+ */
+function requireCSRFToken($jsonInput = null) {
+    if (!verifyCSRFToken(getRequestCSRFToken($jsonInput))) {
+        http_response_code(403);
+        die(ERROR_MESSAGES['csrf_invalid']);
+    }
 }
 
 /**

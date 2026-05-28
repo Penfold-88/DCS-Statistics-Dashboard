@@ -23,16 +23,43 @@ $response = [
     'untracked' => 0
 ];
 
+function runGitCommand($repoPath, $args) {
+    if (!is_dir($repoPath)) {
+        return '';
+    }
+
+    $command = array_merge(['git'], $args);
+    $descriptorSpec = [
+        0 => ['pipe', 'r'],
+        1 => ['pipe', 'w'],
+        2 => ['pipe', 'w']
+    ];
+
+    $process = @proc_open($command, $descriptorSpec, $pipes, $repoPath);
+    if (!is_resource($process)) {
+        return '';
+    }
+
+    fclose($pipes[0]);
+    $output = stream_get_contents($pipes[1]);
+    fclose($pipes[1]);
+    fclose($pipes[2]);
+    $exitCode = proc_close($process);
+
+    return $exitCode === 0 ? trim($output) : '';
+}
+
 // Check if we're in a git repository
-$gitDir = dirname(__DIR__, 2) . '/.git';
+$repoPath = realpath(dirname(__DIR__, 2));
+$gitDir = $repoPath . '/.git';
 if (!is_dir($gitDir)) {
     // Try parent directories (in case we're in a subdirectory)
-    $checkDir = dirname(__DIR__, 2);
+    $checkDir = $repoPath;
     for ($i = 0; $i < 3; $i++) {
         $checkDir = dirname($checkDir);
         if (is_dir($checkDir . '/.git')) {
+            $repoPath = realpath($checkDir);
             $gitDir = $checkDir . '/.git';
-            chdir($checkDir);
             break;
         }
     }
@@ -41,47 +68,45 @@ if (!is_dir($gitDir)) {
         echo json_encode($response);
         exit;
     }
-} else {
-    chdir(dirname(__DIR__, 2));
 }
 
 // Get current branch
-$branch = trim(shell_exec('git rev-parse --abbrev-ref HEAD 2>/dev/null'));
+$branch = runGitCommand($repoPath, ['rev-parse', '--abbrev-ref', 'HEAD']);
 if ($branch) {
     $response['branch'] = $branch;
     $response['success'] = true;
     
     // Get ahead/behind counts
-    $upstream = trim(shell_exec("git rev-parse --abbrev-ref --symbolic-full-name @{u} 2>/dev/null"));
+    $upstream = runGitCommand($repoPath, ['rev-parse', '--abbrev-ref', '--symbolic-full-name', '@{u}']);
     if ($upstream) {
-        $counts = trim(shell_exec("git rev-list --left-right --count HEAD...$upstream 2>/dev/null"));
+        $counts = runGitCommand($repoPath, ['rev-list', '--left-right', '--count', 'HEAD...@{u}']);
         if ($counts) {
-            list($ahead, $behind) = explode("\t", $counts);
+            list($ahead, $behind) = preg_split('/\s+/', $counts);
             $response['ahead'] = (int)$ahead;
             $response['behind'] = (int)$behind;
         }
     }
     
     // Get modified files count
-    $modified = trim(shell_exec('git diff --name-only 2>/dev/null'));
+    $modified = runGitCommand($repoPath, ['diff', '--name-only']);
     if ($modified) {
         $response['modified'] = count(array_filter(explode("\n", $modified)));
     }
     
     // Get staged files count
-    $staged = trim(shell_exec('git diff --cached --name-only 2>/dev/null'));
+    $staged = runGitCommand($repoPath, ['diff', '--cached', '--name-only']);
     if ($staged) {
         $response['staged'] = count(array_filter(explode("\n", $staged)));
     }
     
     // Get untracked files count
-    $untracked = trim(shell_exec('git ls-files --others --exclude-standard 2>/dev/null'));
+    $untracked = runGitCommand($repoPath, ['ls-files', '--others', '--exclude-standard']);
     if ($untracked) {
         $response['untracked'] = count(array_filter(explode("\n", $untracked)));
     }
     
     // Get last commit info
-    $lastCommit = trim(shell_exec('git log -1 --format="%h - %s (%cr)" 2>/dev/null'));
+    $lastCommit = runGitCommand($repoPath, ['log', '-1', '--format=%h - %s (%cr)']);
     if ($lastCommit) {
         $response['last_commit'] = $lastCommit;
     }

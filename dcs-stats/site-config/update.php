@@ -340,6 +340,7 @@ $pageTitle = dcs_t('admin.update.title');
 // Check for updates on page load
 let updateAvailable = false;
 let latestVersion = null;
+const adminCsrfToken = <?= json_encode(getCSRFToken()) ?>;
 const updateText = <?= json_encode([
     'supportCopied' => dcs_t('admin.update.support_copied'),
     'unavailable' => dcs_t('admin.update.unavailable'),
@@ -456,6 +457,7 @@ function checkUpdateStatus() {
 
 function performUpdate() {
     const formData = new FormData();
+    formData.append('csrf_token', adminCsrfToken);
     
     const log = document.getElementById('log');
     log.textContent = updateText.startingUpdate + '\n';
@@ -528,9 +530,10 @@ function restoreBackup(filename) {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest'
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRF-Token': adminCsrfToken
         },
-        body: JSON.stringify({ backup: filename })
+        body: JSON.stringify({ backup: filename, csrf_token: adminCsrfToken })
     })
     .then(response => response.text())
     .then(data => {
@@ -551,9 +554,10 @@ function deleteBackup(filename) {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest'
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRF-Token': adminCsrfToken
         },
-        body: JSON.stringify({ backup: filename })
+        body: JSON.stringify({ backup: filename, csrf_token: adminCsrfToken })
     })
     .then(response => response.json())
     .then(data => {
@@ -576,6 +580,7 @@ function createBackup() {
     const xhr = new XMLHttpRequest();
     xhr.open('POST', 'api/create_backup.php');
     xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+    xhr.setRequestHeader('X-CSRF-Token', adminCsrfToken);
     xhr.onprogress = function() {
         log.textContent = xhr.responseText;
         log.scrollTop = log.scrollHeight;
@@ -675,6 +680,7 @@ document.getElementById('downgrade-form').addEventListener('submit', function(e)
     
     const formData = new FormData();
     formData.append('version', version);
+    formData.append('csrf_token', adminCsrfToken);
     
     const log = document.getElementById('log');
     log.textContent = `${updateText.downgradingTo} ${version}...\n`;

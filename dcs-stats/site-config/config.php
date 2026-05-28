@@ -85,11 +85,11 @@ define('RECORDS_PER_PAGE', 25);
 // Date format
 define('DATE_FORMAT', 'Y-m-d H:i:s');
 
-// Default admin user (only used for initial setup)
-// IMPORTANT: These are example values only - must be changed on first login!
+// Default admin identity labels for legacy checks only.
+// The first real admin user must be created by the installer.
 define('DEFAULT_ADMIN_USERNAME', 'admin');
 define('DEFAULT_ADMIN_EMAIL', 'admin@example.com');
-define('DEFAULT_ADMIN_PASSWORD', ''); // Must be set during installation
+define('DEFAULT_ADMIN_PASSWORD', null);
 
 // Activity log action types
 const LOG_ACTIONS = [

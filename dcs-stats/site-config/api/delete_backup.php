@@ -8,6 +8,8 @@ requirePermission('manage_updates');
 header('Content-Type: application/json');
 
 $input = json_decode(file_get_contents('php://input'), true);
+requireCSRFToken($input);
+
 $filename = $input['backup'] ?? '';
 
 if (empty($filename)) {
