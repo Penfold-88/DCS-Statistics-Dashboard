@@ -18,7 +18,7 @@ if (!isset($currentAdmin)) {
     $currentAdmin = getCurrentAdmin();
 }
 ?>
-<?php if (isDemoMode()): ?>
+<?php if (function_exists('isDemoMode') && isDemoMode()): ?>
 <div class="demo-admin-banner" role="note">
     <strong>DEMO MODE:</strong>
     All sensitive data is restricted for security. Data resets every hour.
