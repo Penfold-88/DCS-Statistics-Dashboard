@@ -87,6 +87,8 @@ $isDev = isDevMode();
 
 // For web installation, provide a form interface
 if (!$is_cli) {
+    $readyToInstall = false;
+
     // Handle form submission
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $username = $_POST['username'] ?? 'admin';
@@ -156,12 +158,12 @@ if (!$is_cli) {
         }
         
         if (empty($errors)) {
-            // Proceed with installation
-            goto do_install;
+            $readyToInstall = true;
         }
     }
     
     // Show installation form
+    if (!$readyToInstall) {
     ?>
     <!DOCTYPE html>
     <html lang="<?= e($installerLanguage) ?>">
@@ -293,9 +295,8 @@ if (!$is_cli) {
     </html>
     <?php
     exit;
+    }
 }
-
-do_install:
 
 if ($is_cli) {
     // CLI installation
