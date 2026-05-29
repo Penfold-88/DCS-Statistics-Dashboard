@@ -57,34 +57,9 @@ if (isset($_GET['preview']) && $_GET['preview'] === '1') {
 header("X-XSS-Protection: 1; mode=block");
 header("Referrer-Policy: strict-origin-when-cross-origin");
 
-// Build dynamic CSP based on API configuration
+// Keep browser connections on the local dashboard. DCSServerBot stays behind
+// api_proxy.php so the private API host is not exposed to visitors.
 $cspConnectSrc = "'self'";
-
-// Load API configuration if available
-$configResult = loadApiConfigWithFix();
-if (!empty($configResult['config'])) {
-    $config = $configResult['config'];
-    if (!empty($config['api_base_url'])) {
-        // Parse the API URL to add to CSP
-        $parsedUrl = parse_url($config['api_base_url']);
-        if ($parsedUrl) {
-            $scheme = $parsedUrl['scheme'] ?? 'http';
-            $host = $parsedUrl['host'] ?? '';
-            $port = isset($parsedUrl['port']) ? ':' . $parsedUrl['port'] : '';
-            
-            if ($host) {
-                // Add the specific API URL
-                $cspConnectSrc .= " {$scheme}://{$host}{$port}";
-                
-                // Also add wildcard for subdomains
-                $domain = preg_replace('/^[^.]+\./', '*.', $host);
-                if ($domain !== $host) {
-                    $cspConnectSrc .= " {$scheme}://{$domain}:*";
-                }
-            }
-        }
-    }
-}
 
 // Always allow localhost for development
 $cspConnectSrc .= " http://localhost:* https://localhost:*";

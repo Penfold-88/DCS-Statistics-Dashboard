@@ -1,3 +1,4 @@
 # Deny all access to data directory
 Order deny,allow
 Deny from all
+Require all denied

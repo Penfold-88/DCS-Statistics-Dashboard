@@ -13,6 +13,7 @@ requirePermission('manage_admins');
 
 // Get current admin
 $currentAdmin = getCurrentAdmin();
+$demoRestricted = isDemoRestricted($currentAdmin);
 
 function isProtectedAdminAccount($admin) {
     return is_array($admin) && (($admin['username'] ?? '') === 'Penfold88');
@@ -26,6 +27,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Verify CSRF token
     if (!isset($_POST['csrf_token']) || !verifyCSRFToken($_POST['csrf_token'])) {
         $message = ERROR_MESSAGES['csrf_invalid'];
+        $messageType = 'error';
+    } elseif ($demoRestricted) {
+        $message = demoWriteLockMessage();
         $messageType = 'error';
     } else {
         $action = $_POST['action'] ?? '';

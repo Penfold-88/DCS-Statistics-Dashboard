@@ -16,6 +16,7 @@ requirePermission('manage_themes');
 
 // Get current admin to check specific permissions
 $currentAdmin = getCurrentAdmin();
+$demoRestricted = isDemoRestricted($currentAdmin);
 $isAirBoss = ($currentAdmin['role'] === ROLE_AIR_BOSS);
 
 $message = '';
@@ -436,7 +437,7 @@ function saveCustomThemePresets($presets) {
     $path = getThemePresetPath();
     $dir = dirname($path);
     if (!is_dir($dir)) {
-        @mkdir($dir, 0777, true);
+        @mkdir($dir, 0700, true);
     }
 
     return @file_put_contents($path, json_encode(array_values($presets), JSON_PRETTY_PRINT)) !== false;
@@ -1099,8 +1100,8 @@ function getMenuConfigPath() {
     
     // Try to create directory with proper permissions
     if (!is_dir($primaryDir)) {
-        @mkdir($primaryDir, 0777, true);
-        @chmod($primaryDir, 0777);
+        @mkdir($primaryDir, 0700, true);
+        @chmod($primaryDir, 0700);
         if (is_dir($primaryDir) && is_writable($primaryDir)) {
             return $primaryPath;
         }
@@ -1116,7 +1117,7 @@ function getMenuConfigPath() {
     // Fall back to temp directory
     $tempDir = sys_get_temp_dir() . '/dcs_stats';
     if (!is_dir($tempDir)) {
-        @mkdir($tempDir, 0777, true);
+        @mkdir($tempDir, 0700, true);
     }
     
     return $tempDir . '/menu_config.json';
@@ -1188,8 +1189,10 @@ if (file_exists($menuConfigFile)) {
 // Handle theme actions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // CSRF protection
-    if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
+    if (!verifyCSRFToken(getRequestCSRFToken())) {
         $error = 'Invalid request token';
+    } elseif ($demoRestricted) {
+        $error = demoWriteLockMessage();
     } else {
         $action = $_POST['action'] ?? '';
         
@@ -1542,8 +1545,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Generate CSRF token
-$_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+$csrfToken = getCSRFToken();
 
 // Get list of backup files
 $backupDir = __DIR__ . '/theme_backups';
@@ -2060,7 +2062,7 @@ $pageTitle = dcs_t('admin.themes.title');
                         </p>
                         
                         <form method="POST" action="">
-                            <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
+                            <input type="hidden" name="csrf_token" value="<?= e($csrfToken) ?>">
                             <input type="hidden" name="action" value="update_colors">
                             
                         <?php foreach (getThemeColorGroups() as $groupName => $fields): ?>
@@ -2121,7 +2123,7 @@ $pageTitle = dcs_t('admin.themes.title');
                                         </div>
                                     </div>
                                     <form method="POST" action="" class="preset-actions">
-                                        <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
+                                        <input type="hidden" name="csrf_token" value="<?= e($csrfToken) ?>">
                                         <input type="hidden" name="action" value="apply_theme_preset">
                                         <input type="hidden" name="preset_type" value="built_in">
                                         <input type="hidden" name="preset_id" value="<?= htmlspecialchars($presetId) ?>">
@@ -2137,7 +2139,7 @@ $pageTitle = dcs_t('admin.themes.title');
                         <p><?= e(dcs_t('admin.themes.custom_presets_help')) ?></p>
 
                         <form method="POST" action="" class="save-preset-row">
-                            <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
+                            <input type="hidden" name="csrf_token" value="<?= e($csrfToken) ?>">
                             <input type="hidden" name="action" value="save_theme_preset">
                             <div>
                                 <label for="preset_name"><?= e(dcs_t('admin.themes.preset_name')) ?></label>
@@ -2167,14 +2169,14 @@ $pageTitle = dcs_t('admin.themes.title');
                                         </div>
                                         <div class="preset-actions">
                                             <form method="POST" action="">
-                                                <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
+                                                <input type="hidden" name="csrf_token" value="<?= e($csrfToken) ?>">
                                                 <input type="hidden" name="action" value="apply_theme_preset">
                                                 <input type="hidden" name="preset_type" value="custom">
                                                 <input type="hidden" name="preset_id" value="<?= (int)$presetIndex ?>">
                                                 <button type="submit" class="btn btn-primary btn-small"><?= e(dcs_t('admin.themes.apply')) ?></button>
                                             </form>
                                             <form method="POST" action="" onsubmit='return confirm(<?= json_encode(dcs_t('admin.themes.confirm_delete_preset')) ?>);'>
-                                                <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
+                                                <input type="hidden" name="csrf_token" value="<?= e($csrfToken) ?>">
                                                 <input type="hidden" name="action" value="delete_theme_preset">
                                                 <input type="hidden" name="preset_id" value="<?= (int)$presetIndex ?>">
                                                 <button type="submit" class="btn btn-danger btn-small"><?= e(dcs_t('admin.themes.delete')) ?></button>
@@ -2203,7 +2205,7 @@ $pageTitle = dcs_t('admin.themes.title');
                         </div>
 
                         <form method="POST" action="" enctype="multipart/form-data" class="upload-section">
-                            <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
+                            <input type="hidden" name="csrf_token" value="<?= e($csrfToken) ?>">
                             <input type="hidden" name="action" value="update_header_image">
 
                             <div class="file-input-wrapper">
@@ -2282,7 +2284,7 @@ $pageTitle = dcs_t('admin.themes.title');
                         <p>Customize the colours used by the leaderboard and homepage charts.</p>
                         
                         <form method="POST" action="">
-                            <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
+                            <input type="hidden" name="csrf_token" value="<?= e($csrfToken) ?>">
                             <input type="hidden" name="action" value="update_chart_colors">
                             
                             <fieldset class="color-fieldset">
@@ -2421,7 +2423,7 @@ $pageTitle = dcs_t('admin.themes.title');
                         <p><?= e(dcs_t('admin.themes.navigation_menu_help')) ?></p>
                         
                         <form method="POST" action="" id="menu-form">
-                            <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
+                            <input type="hidden" name="csrf_token" value="<?= e($csrfToken) ?>">
                             <input type="hidden" name="action" value="update_menu">
                             
                             <div class="menu-items" id="menu-items">
@@ -2462,7 +2464,7 @@ $pageTitle = dcs_t('admin.themes.title');
                         </div>
                         
                         <form method="POST" action="" enctype="multipart/form-data" class="upload-section">
-                            <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
+                            <input type="hidden" name="csrf_token" value="<?= e($csrfToken) ?>">
                             <input type="hidden" name="action" value="upload_css">
                             
                             <div class="file-input-wrapper">
@@ -2501,7 +2503,7 @@ $pageTitle = dcs_t('admin.themes.title');
                                     <small><?= e(dcs_t('admin.themes.current_theme_settings_help')) ?></small>
                                 </div>
                                 <form method="POST" action="" style="display: inline;">
-                                    <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
+                                    <input type="hidden" name="csrf_token" value="<?= e($csrfToken) ?>">
                                     <input type="hidden" name="action" value="export_theme_settings">
                                     <button type="submit" class="btn btn-primary btn-sm"><?= e(dcs_t('admin.themes.download_backup')) ?></button>
                                 </form>
@@ -2509,7 +2511,7 @@ $pageTitle = dcs_t('admin.themes.title');
                         </div>
 
                         <form method="POST" action="" enctype="multipart/form-data" class="upload-section">
-                            <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
+                            <input type="hidden" name="csrf_token" value="<?= e($csrfToken) ?>">
                             <input type="hidden" name="action" value="import_theme_settings">
 
                             <div class="file-input-wrapper">
@@ -2545,7 +2547,7 @@ $pageTitle = dcs_t('admin.themes.title');
                                             </small>
                                         </div>
                                         <form method="POST" action="" style="display: inline;">
-                                            <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
+                                            <input type="hidden" name="csrf_token" value="<?= e($csrfToken) ?>">
                                             <input type="hidden" name="action" value="restore_backup">
                                             <input type="hidden" name="backup_file" value="<?= htmlspecialchars($backup['filename']) ?>">
                                             <button type="submit" class="btn btn-sm" 
@@ -2858,7 +2860,7 @@ $pageTitle = dcs_t('admin.themes.title');
                 const form = document.createElement('form');
                 form.method = 'POST';
                 form.innerHTML = `
-                    <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
+                    <input type="hidden" name="csrf_token" value="<?= e($csrfToken) ?>">
                     <input type="hidden" name="action" value="update_menu">
                     <?php 
                     // Rebuild default menu items for reset

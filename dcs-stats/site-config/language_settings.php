@@ -11,6 +11,7 @@ requireAdmin();
 requirePermission('manage_features');
 
 $currentAdmin = getCurrentAdmin();
+$demoRestricted = isDemoRestricted($currentAdmin);
 $siteConfigFile = dirname(__DIR__) . '/site_config.json';
 $siteConfig = file_exists($siteConfigFile) ? (json_decode(file_get_contents($siteConfigFile), true) ?: []) : [];
 $message = '';
@@ -37,6 +38,9 @@ function loadRawLanguageRegistry() {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!isset($_POST['csrf_token']) || !verifyCSRFToken($_POST['csrf_token'])) {
         $message = ERROR_MESSAGES['csrf_invalid'];
+        $messageType = 'error';
+    } elseif ($demoRestricted) {
+        $message = demoWriteLockMessage();
         $messageType = 'error';
     } else {
         $action = $_POST['action'] ?? 'save_language';

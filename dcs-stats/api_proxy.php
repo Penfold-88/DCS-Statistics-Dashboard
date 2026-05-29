@@ -114,6 +114,11 @@ if (empty($endpoint)) {
 
 $endpointParts = parse_url($endpoint);
 $endpointPath = $endpointParts['path'] ?? '';
+if ($endpointPath === '' || $endpointPath[0] !== '/') {
+    http_response_code(400);
+    echo json_encode(['error' => 'Endpoint path not allowed']);
+    exit;
+}
 if (!isset($allowedEndpoints[$endpointPath]) || !in_array($method, $allowedEndpoints[$endpointPath], true)) {
     http_response_code(400);
     echo json_encode(['error' => 'Endpoint or method not allowed']);

@@ -12,6 +12,7 @@ requireAdmin();
 requirePermission('manage_features');
 
 $currentAdmin = getCurrentAdmin();
+$demoRestricted = isDemoRestricted($currentAdmin);
 $message = '';
 $messageType = '';
 
@@ -53,6 +54,9 @@ function normalizeCustomLinksFromPost($postedLinks, &$message, &$messageType) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!isset($_POST['csrf_token']) || !verifyCSRFToken($_POST['csrf_token'])) {
         $message = dcs_t('admin.custom_links.csrf_invalid');
+        $messageType = 'error';
+    } elseif ($demoRestricted) {
+        $message = demoWriteLockMessage();
         $messageType = 'error';
     } else {
         $allFeatures = loadSiteFeatures();

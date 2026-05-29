@@ -387,7 +387,7 @@ async function loadPilotStats(player) {
             try {
                 // Get API config
                 const config = await window.dcsAPI.loadConfig();
-                if (config.use_api && config.api_base_url) {
+                if (config.use_api) {
                     // Call credits endpoint with player name and current date
                     const basePath = window.DCS_CONFIG ? window.DCS_CONFIG.basePath : '';
                     const buildUrl = (path) => basePath ? `${basePath}/${path}` : path;

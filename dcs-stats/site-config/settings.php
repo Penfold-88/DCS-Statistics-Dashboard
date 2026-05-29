@@ -15,6 +15,7 @@ requirePermission('manage_features');
 
 // Get current admin
 $currentAdmin = getCurrentAdmin();
+$demoRestricted = isDemoRestricted($currentAdmin);
 
 $lockedFeatures = [
     'leaderboard_sorties' => dcs_t('admin.settings.locked_sorties_reason')
@@ -72,6 +73,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Verify CSRF token
     if (!isset($_POST['csrf_token']) || !verifyCSRFToken($_POST['csrf_token'])) {
         $message = dcs_t('admin.settings.csrf_invalid');
+        $messageType = 'error';
+    } elseif ($demoRestricted) {
+        $message = demoWriteLockMessage();
         $messageType = 'error';
     } else {
         // Load current settings first to preserve custom settings

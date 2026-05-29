@@ -13,6 +13,7 @@ requirePermission('manage_maintenance');
 
 // Current admin
 $currentAdmin = getCurrentAdmin();
+$demoRestricted = isDemoRestricted($currentAdmin);
 
 // Load current configuration
 $maintenance = loadMaintenanceConfig();
@@ -24,6 +25,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Verify CSRF token
     if (!isset($_POST['csrf_token']) || !verifyCSRFToken($_POST['csrf_token'])) {
         $message = dcs_t('admin.maintenance.csrf_invalid');
+        $messageType = 'error';
+    } elseif ($demoRestricted) {
+        $message = demoWriteLockMessage();
         $messageType = 'error';
     } else {
         $action = $_POST['action'] ?? 'update';

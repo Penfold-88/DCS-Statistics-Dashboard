@@ -109,7 +109,7 @@ class DCSStatsAPI {
     async makeAPICall(endpoint, options = {}) {
         const config = await this.loadConfig();
         
-        if (!config.use_api || (!config.api_base_url && !config.api_host)) {
+        if (!config.use_api) {
             // API not enabled or no base URL configured
             throw new Error('API not enabled');
         }

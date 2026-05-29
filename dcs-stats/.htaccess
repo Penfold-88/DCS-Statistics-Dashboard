@@ -2,18 +2,21 @@
 <Files ~ "\.(log|sql)$">
     Order allow,deny
     Deny from all
+    Require all denied
 </Files>
 
 # Allow JSON files to be read by PHP but not directly accessed
 <Files ~ "\.json$">
     Order allow,deny
     Deny from all
+    Require all denied
 </Files>
 
 # Exception for certain JSON files that need to be accessible
 <FilesMatch "(server_data\.json|mission_data\.json)$">
     Order allow,deny
     Allow from all
+    Require all granted
 </FilesMatch>
 
 # Prevent direct access to data directories

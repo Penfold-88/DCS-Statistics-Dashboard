@@ -28,8 +28,8 @@ function getPermissionsConfigPath() {
     }
     
     if (!is_dir($primaryDir)) {
-        @mkdir($primaryDir, 0777, true);
-        @chmod($primaryDir, 0777);
+        @mkdir($primaryDir, 0700, true);
+        @chmod($primaryDir, 0700);
         if (is_dir($primaryDir) && is_writable($primaryDir)) {
             return $primaryPath;
         }
@@ -37,7 +37,7 @@ function getPermissionsConfigPath() {
     
     $tempDir = sys_get_temp_dir() . '/dcs_stats';
     if (!is_dir($tempDir)) {
-        @mkdir($tempDir, 0777, true);
+        @mkdir($tempDir, 0700, true);
     }
     
     return $tempDir . '/lso_permissions.json';
@@ -81,7 +81,7 @@ if (file_exists($permissionsFile)) {
 
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
+    if (!verifyCSRFToken(getRequestCSRFToken())) {
         $error = dcs_t('admin.permissions.invalid_token');
     } elseif ($demoRestricted) {
         $error = demoRestrictionMessage();
@@ -115,8 +115,7 @@ function updateLSOPermissionsInConfig($permissions) {
     // For now, we'll store it separately and check it when validating permissions
 }
 
-// Generate CSRF token
-$_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+$csrfToken = getCSRFToken();
 
 // Page title
 $pageTitle = dcs_t('admin.permissions.title');
@@ -304,7 +303,7 @@ $pageTitle = dcs_t('admin.permissions.title');
                     </div>
                     
                     <form method="POST" action="">
-                        <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
+                        <input type="hidden" name="csrf_token" value="<?= e($csrfToken) ?>">
                         
                         <div class="quick-actions">
                             <button type="button" class="btn btn-sm" onclick="selectAll()" <?= $demoRestricted ? 'disabled' : '' ?>><?= e(dcs_t('admin.permissions.select_all')) ?></button>

@@ -47,3 +47,26 @@ if (!function_exists('maskDemoValue')) {
         return '••••••••' . $port;
     }
 }
+
+if (!function_exists('demoWriteLockMessage')) {
+    function demoWriteLockMessage() {
+        return 'Demo mode is enabled. The admin panel is read-only on the public demo.';
+    }
+}
+
+if (!function_exists('blockDemoWriteRequest')) {
+    function blockDemoWriteRequest($admin = null, $json = false) {
+        if (!isDemoRestricted($admin)) {
+            return false;
+        }
+
+        http_response_code(403);
+        if ($json) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'error' => demoWriteLockMessage()]);
+        } else {
+            echo demoWriteLockMessage();
+        }
+        exit;
+    }
+}

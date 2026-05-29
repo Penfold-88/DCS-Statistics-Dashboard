@@ -5,12 +5,14 @@
  */
 require_once __DIR__ . '/../auth.php';
 require_once __DIR__ . '/../admin_functions.php';
+require_once __DIR__ . '/../demo_helpers.php';
 require_once __DIR__ . '/../version_tracker.php';
 
 requireAdmin();
 requirePermission('manage_updates');
 
 header('Content-Type: application/json');
+blockDemoWriteRequest(getCurrentAdmin(), true);
 
 try {
     // Initialize version tracking

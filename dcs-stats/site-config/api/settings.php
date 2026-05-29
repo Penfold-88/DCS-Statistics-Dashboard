@@ -6,6 +6,7 @@
 
 require_once dirname(__DIR__) . '/auth.php';
 require_once dirname(__DIR__) . '/admin_functions.php';
+require_once dirname(__DIR__) . '/demo_helpers.php';
 require_once dirname(dirname(__DIR__)) . '/site_features.php';
 require_once dirname(dirname(__DIR__)) . '/security_functions.php';
 
@@ -28,6 +29,11 @@ if (!hasPermission('manage_features')) {
 
 // Handle request based on method
 $method = $_SERVER['REQUEST_METHOD'];
+$currentAdmin = getCurrentAdmin();
+
+if (in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'], true)) {
+    blockDemoWriteRequest($currentAdmin, true);
+}
 
 switch ($method) {
     case 'GET':
