@@ -24,6 +24,10 @@ function logMessage($msg) {
     flush();
 }
 
+function normalizeUpdatePath($path) {
+    return str_replace('\\', '/', (string)$path);
+}
+
 function buildVersionLabel($branch, $commitDate, $commitSha) {
     $date = $commitDate ? date('Y-m-d', strtotime($commitDate)) : date('Y-m-d');
     $shortSha = $commitSha ? substr($commitSha, 0, 12) : 'unknown';
@@ -161,6 +165,7 @@ $configFiles = [
     '/custom_theme.css',
     '/header_custom.css',
     '/menu_config.json',
+    '/site-config/data/api_config.json',
     '/site-config/data/users.json',
     '/site-config/data/logs.json',
     '/site-config/data/bans.json',
@@ -242,7 +247,7 @@ if ($backup) {
         );
         foreach ($files as $file) {
             $filePath = $file->getRealPath();
-            $relPath = substr($filePath, strlen($rootPath) + 1);
+            $relPath = normalizeUpdatePath(substr($filePath, strlen($rootPath) + 1));
             if (strpos($relPath, 'backups') === 0 || strpos($relPath, 'UPGRADE') === 0) {
                 continue;
             }
@@ -306,7 +311,7 @@ $files = new RecursiveIteratorIterator(
 );
 foreach ($files as $file) {
     $filePath = $file->getRealPath();
-    $relPath = substr($filePath, strlen($newCodeDir) + 1);
+    $relPath = normalizeUpdatePath(substr($filePath, strlen($newCodeDir) + 1));
     $targetPath = $rootPath . '/' . $relPath;
     $newFiles[] = $relPath;
 
@@ -351,7 +356,7 @@ $iterator = new RecursiveIteratorIterator(
 );
 foreach ($iterator as $file) {
     $filePath = $file->getRealPath();
-    $relPath = substr($filePath, strlen($rootPath) + 1);
+    $relPath = normalizeUpdatePath(substr($filePath, strlen($rootPath) + 1));
 
     foreach ($exceptions as $ex) {
         if ($relPath === $ex || strpos($relPath, $ex . '/') === 0) {
