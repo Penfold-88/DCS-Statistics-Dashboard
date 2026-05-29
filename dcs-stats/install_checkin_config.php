@@ -5,7 +5,7 @@
  * Set this to the HTTPS URL of your receiver before release, for example:
  * https://your-domain.example/install-checkin/collect.php
  */
-const DCS_STATS_INSTALL_CHECKIN_ENDPOINT = 'https://dcs-statistics-dashboard-checkin.skypirates.uk/collect.php';
+const DCS_STATS_INSTALL_CHECKIN_ENDPOINT = 'https://dcs-statistics-dashboard-checkin.dcsstatisticsdashboard.app/collect.php';
 
 /**
  * Optional shared receiver token.
