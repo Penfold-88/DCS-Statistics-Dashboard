@@ -158,6 +158,9 @@ $configFiles = [
     '/api_config.json',
     '/site_config.json',
     '/.version_meta.json',
+    '/custom_theme.css',
+    '/header_custom.css',
+    '/menu_config.json',
     '/site-config/data/users.json',
     '/site-config/data/logs.json',
     '/site-config/data/bans.json',
@@ -271,6 +274,9 @@ $exceptions = [
     'api_config.json',
     'site_config.json',
     '.version_meta.json',
+    'custom_theme.css',
+    'header_custom.css',
+    'menu_config.json',
     '.env',
     '.dev',
     
@@ -285,6 +291,7 @@ $exceptions = [
     'uploads',
     'custom',
     'logs',
+    'site-config/theme_backups',
     
     // Git files
     '.git',
