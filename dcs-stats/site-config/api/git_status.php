@@ -7,6 +7,7 @@ requireAdmin();
 requirePermission('manage_updates');
 
 header('Content-Type: application/json');
+header('X-Content-Type-Options: nosniff');
 
 // Only allow in dev mode
 if (!isDevMode()) {
@@ -23,7 +24,8 @@ $response = [
     'untracked' => 0
 ];
 
-function runGitCommand($repoPath, $args) {
+function runGitCommand($repoPath, $args, &$errorOutput = null) {
+    $errorOutput = '';
     if (!is_dir($repoPath)) {
         return '';
     }
@@ -42,11 +44,22 @@ function runGitCommand($repoPath, $args) {
 
     fclose($pipes[0]);
     $output = stream_get_contents($pipes[1]);
+    $errorOutput = stream_get_contents($pipes[2]);
     fclose($pipes[1]);
     fclose($pipes[2]);
     $exitCode = proc_close($process);
 
     return $exitCode === 0 ? trim($output) : '';
+}
+
+function cleanGitStatusError($error, $repoPath) {
+    $error = trim((string)$error);
+    if ($error === '') {
+        return '';
+    }
+
+    $error = str_replace(['\\', $repoPath], ['/', '[repo]'], $error);
+    return substr($error, 0, 300);
 }
 
 // Check if we're in a git repository
@@ -71,15 +84,25 @@ if (!is_dir($gitDir)) {
 }
 
 // Get current branch
-$branch = runGitCommand($repoPath, ['rev-parse', '--abbrev-ref', 'HEAD']);
+$gitErrors = [];
+$branch = runGitCommand($repoPath, ['rev-parse', '--abbrev-ref', 'HEAD'], $gitError);
+if ($gitError !== '') {
+    $gitErrors[] = cleanGitStatusError($gitError, $repoPath);
+}
 if ($branch) {
     $response['branch'] = $branch;
     $response['success'] = true;
     
     // Get ahead/behind counts
-    $upstream = runGitCommand($repoPath, ['rev-parse', '--abbrev-ref', '--symbolic-full-name', '@{u}']);
+    $upstream = runGitCommand($repoPath, ['rev-parse', '--abbrev-ref', '--symbolic-full-name', '@{u}'], $gitError);
+    if ($gitError !== '') {
+        $gitErrors[] = cleanGitStatusError($gitError, $repoPath);
+    }
     if ($upstream) {
-        $counts = runGitCommand($repoPath, ['rev-list', '--left-right', '--count', 'HEAD...@{u}']);
+        $counts = runGitCommand($repoPath, ['rev-list', '--left-right', '--count', 'HEAD...@{u}'], $gitError);
+        if ($gitError !== '') {
+            $gitErrors[] = cleanGitStatusError($gitError, $repoPath);
+        }
         if ($counts) {
             list($ahead, $behind) = preg_split('/\s+/', $counts);
             $response['ahead'] = (int)$ahead;
@@ -88,28 +111,44 @@ if ($branch) {
     }
     
     // Get modified files count
-    $modified = runGitCommand($repoPath, ['diff', '--name-only']);
+    $modified = runGitCommand($repoPath, ['diff', '--name-only'], $gitError);
+    if ($gitError !== '') {
+        $gitErrors[] = cleanGitStatusError($gitError, $repoPath);
+    }
     if ($modified) {
         $response['modified'] = count(array_filter(explode("\n", $modified)));
     }
     
     // Get staged files count
-    $staged = runGitCommand($repoPath, ['diff', '--cached', '--name-only']);
+    $staged = runGitCommand($repoPath, ['diff', '--cached', '--name-only'], $gitError);
+    if ($gitError !== '') {
+        $gitErrors[] = cleanGitStatusError($gitError, $repoPath);
+    }
     if ($staged) {
         $response['staged'] = count(array_filter(explode("\n", $staged)));
     }
     
     // Get untracked files count
-    $untracked = runGitCommand($repoPath, ['ls-files', '--others', '--exclude-standard']);
+    $untracked = runGitCommand($repoPath, ['ls-files', '--others', '--exclude-standard'], $gitError);
+    if ($gitError !== '') {
+        $gitErrors[] = cleanGitStatusError($gitError, $repoPath);
+    }
     if ($untracked) {
         $response['untracked'] = count(array_filter(explode("\n", $untracked)));
     }
     
     // Get last commit info
-    $lastCommit = runGitCommand($repoPath, ['log', '-1', '--format=%h - %s (%cr)']);
+    $lastCommit = runGitCommand($repoPath, ['log', '-1', '--format=%h - %s (%cr)'], $gitError);
+    if ($gitError !== '') {
+        $gitErrors[] = cleanGitStatusError($gitError, $repoPath);
+    }
     if ($lastCommit) {
         $response['last_commit'] = $lastCommit;
     }
+}
+
+if (!empty($gitErrors)) {
+    $response['git_errors'] = array_values(array_unique(array_filter($gitErrors)));
 }
 
 echo json_encode($response);

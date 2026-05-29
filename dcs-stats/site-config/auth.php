@@ -10,6 +10,19 @@ define('ADMIN_PANEL', true);
 // Include configuration
 require_once __DIR__ . '/config.php';
 
+function sendAdminSecurityHeaders() {
+    if (headers_sent()) {
+        return;
+    }
+
+    header('X-Content-Type-Options: nosniff');
+    header('X-Frame-Options: SAMEORIGIN');
+    header('Referrer-Policy: strict-origin-when-cross-origin');
+    header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self'; frame-ancestors 'self'; base-uri 'self'; form-action 'self'");
+}
+
+sendAdminSecurityHeaders();
+
 function isAdminRequestHttps() {
     if (!empty($_SERVER['HTTPS']) && strtolower((string)$_SERVER['HTTPS']) !== 'off') {
         return true;
