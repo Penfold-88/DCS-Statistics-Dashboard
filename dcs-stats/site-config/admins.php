@@ -16,7 +16,13 @@ $currentAdmin = getCurrentAdmin();
 $demoRestricted = isDemoRestricted($currentAdmin);
 
 function isProtectedAdminAccount($admin) {
-    return is_array($admin) && (($admin['username'] ?? '') === 'Penfold88');
+    return isDemoMode() && isDemoOwner($admin);
+}
+
+function protectedAdminMessage($action) {
+    $username = getDemoProtectedUsername();
+    $label = $username !== '' ? $username : 'The configured demo owner';
+    return $label . ' admin account is protected and cannot be ' . $action . '.';
 }
 
 // Handle form submissions
@@ -120,7 +126,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
                     
                     if ($protected) {
-                        $message = 'The Penfold88 admin account is protected and cannot be deleted.';
+                        $message = protectedAdminMessage('deleted');
                         $messageType = 'error';
                     } elseif ($removed) {
                         saveAdminUsers($newUsers);
@@ -146,7 +152,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     foreach ($users as &$user) {
                         if ($user['id'] == $adminId) {
                             if (isProtectedAdminAccount($user)) {
-                                $message = 'The Penfold88 admin account is protected and cannot be deactivated.';
+                                $message = protectedAdminMessage('deactivated');
                                 $messageType = 'error';
                             } else {
                                 $user['is_active'] = !$user['is_active'];
@@ -177,7 +183,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     foreach ($users as &$user) {
                         if ($user['id'] == $adminId) {
                             if (isProtectedAdminAccount($user)) {
-                                $message = 'The Penfold88 admin account is protected and its password cannot be reset here.';
+                                $message = protectedAdminMessage('password reset');
                                 $messageType = 'error';
                             } else {
                                 $user['password_hash'] = password_hash($newPassword, PASSWORD_BCRYPT);

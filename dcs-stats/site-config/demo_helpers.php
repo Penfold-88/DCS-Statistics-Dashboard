@@ -6,7 +6,62 @@
 
 if (!function_exists('isDemoMode')) {
     function isDemoMode() {
-        return file_exists(dirname(__DIR__) . '/.demo') || file_exists(dirname(__DIR__, 2) . '/.demo');
+        return getDemoConfigPath() !== '';
+    }
+}
+
+if (!function_exists('getDemoConfigPath')) {
+    function getDemoConfigPath() {
+        $paths = [
+            dirname(__DIR__) . '/.demo',
+            dirname(__DIR__, 2) . '/.demo'
+        ];
+
+        foreach ($paths as $path) {
+            if (file_exists($path)) {
+                return $path;
+            }
+        }
+
+        return '';
+    }
+}
+
+if (!function_exists('getDemoProtectedUsername')) {
+    function getDemoProtectedUsername() {
+        $path = getDemoConfigPath();
+        if ($path === '' || !is_readable($path)) {
+            return '';
+        }
+
+        $content = trim((string)@file_get_contents($path));
+        if ($content === '') {
+            return '';
+        }
+
+        $json = json_decode($content, true);
+        if (is_array($json)) {
+            return trim((string)($json['protected_user'] ?? $json['owner'] ?? $json['username'] ?? ''));
+        }
+
+        foreach (preg_split('/\R/', $content) as $line) {
+            $line = trim($line);
+            if ($line === '' || $line[0] === '#') {
+                continue;
+            }
+
+            if (strpos($line, '=') !== false) {
+                [$key, $value] = array_map('trim', explode('=', $line, 2));
+                if (in_array(strtolower($key), ['protected_user', 'owner', 'username'], true)) {
+                    return $value;
+                }
+                continue;
+            }
+
+            return $line;
+        }
+
+        return '';
     }
 }
 
@@ -16,7 +71,10 @@ if (!function_exists('isDemoOwner')) {
             $admin = getCurrentAdmin();
         }
 
-        return is_array($admin) && (($admin['username'] ?? '') === 'Penfold88');
+        $protectedUsername = getDemoProtectedUsername();
+        return $protectedUsername !== ''
+            && is_array($admin)
+            && hash_equals($protectedUsername, (string)($admin['username'] ?? ''));
     }
 }
 
