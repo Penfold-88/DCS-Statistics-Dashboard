@@ -251,27 +251,8 @@ function getDashboardStats() {
         'total_admins' => 0,
         'recent_activity' => []
     ];
-    
-    // Count players
-    $players = getPlayers();
-    $stats['total_players'] = count($players);
-    
-    // Count active players (would need to check mission stats)
-    $now = time();
-    $day_ago = $now - 86400;
-    $week_ago = $now - 604800;
-    
-    // Count bans
-    $bans = getPlayerBans(true);
-    $stats['total_bans'] = count($bans);
-    
-    // Count admins
-    $users = getAdminUsers();
-    $stats['total_admins'] = count(array_filter($users, function($u) {
-        return $u['is_active'];
-    }));
-    
-    // Get recent activity
+
+    // Keep the admin dashboard quick: avoid large DCSServerBot calls here.
     $stats['recent_activity'] = getRecentActivity(5);
     
     return $stats;

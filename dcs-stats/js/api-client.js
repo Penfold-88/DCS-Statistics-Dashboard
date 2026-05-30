@@ -462,6 +462,33 @@ class DCSStatsAPI {
         }
     }
 
+    async getTopSquadrons(limit = 3, options = {}) {
+        const squadrons = await this.getSquadrons(options);
+        const safeLimit = Math.max(1, Number(limit) || 3);
+        const candidates = squadrons.slice(0, Math.max(safeLimit, 10));
+
+        const squadronsWithCredits = await Promise.all(
+            candidates.map(async (squadron) => {
+                try {
+                    const credits = await this.getSquadronCredits(squadron.name, options);
+                    return {
+                        name: squadron.name,
+                        credits: Number(credits.credits || 0)
+                    };
+                } catch (error) {
+                    return {
+                        name: squadron.name,
+                        credits: 0
+                    };
+                }
+            })
+        );
+
+        return squadronsWithCredits
+            .sort((a, b) => b.credits - a.credits)
+            .slice(0, safeLimit);
+    }
+
     async getServerStats(options = {}) {
         const config = await this.loadConfig();
         
@@ -469,57 +496,17 @@ class DCSStatsAPI {
             throw new Error('API is not enabled');
         }
 
-        let stats = {};
-        if (options.loadServerStats !== false) {
-            try {
-                stats = await this.makeAPICall('/serverstats', {
-                    data: {}
-                });
-            } catch (error) {
-                stats = {};
-            }
-        }
-
-        let attendance = {};
-        if (options.loadAttendance !== false) {
-            try {
-                attendance = await this.getServerAttendance();
-            } catch (error) {
-                attendance = {};
-            }
-        }
-
-        const topkills = options.loadTopPilots !== false
-            ? await this.getTopPilots('kills', 5)
-            : [];
-
-        let top3Squadrons = [];
-        if (options.loadSquadrons !== false) {
-            const squadrons = await this.getSquadrons();
-
-            // Fetch credits for each squadron
-            const squadronsWithCredits = await Promise.all(
-                squadrons.map(async (squadron) => {
-                    try {
-                        const credits = await this.getSquadronCredits(squadron.name);
-                        return {
-                            name: squadron.name,
-                            credits: credits.credits || 0
-                        };
-                    } catch (error) {
-                        return {
-                            name: squadron.name,
-                            credits: 0
-                        };
-                    }
-                })
-            );
-
-            // Sort by credits and get top 3
-            top3Squadrons = squadronsWithCredits
-                .sort((a, b) => b.credits - a.credits)
-                .slice(0, 3);
-        }
+        const [stats, attendance, topkills] = await Promise.all([
+            options.loadServerStats !== false
+                ? this.makeAPICall('/serverstats', { data: {} }).catch(() => ({}))
+                : Promise.resolve({}),
+            options.loadAttendance !== false
+                ? this.getServerAttendance(options).catch(() => ({}))
+                : Promise.resolve({}),
+            options.loadTopPilots !== false
+                ? this.getTopPilots('kills', 5).catch(() => [])
+                : Promise.resolve([])
+        ]);
 
         return {
             totalPlayers: stats.totalPlayers || 0,
@@ -532,7 +519,7 @@ class DCSStatsAPI {
             totalPvPKills: stats.totalPvPKills || 0,
             totalPvPDeaths: stats.totalPvPDeaths || 0,
             top5Pilots: topkills,
-            top3Squadrons: top3Squadrons,
+            top3Squadrons: [],
             activityLastWeek: stats.daily_players || attendance.daily_trend || [],
             attendance: attendance
         };

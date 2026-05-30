@@ -335,13 +335,7 @@ async function loadServerStats() {
         <?php endif; ?>
         
         <?php if (isFeatureEnabled('squadrons_enabled') && isFeatureEnabled('home_top_pilots')): ?>
-        if (data.top3Squadrons && data.top3Squadrons.length > 0) {
-            createTopSquadronsChart(data.top3Squadrons);
-            document.getElementById('squadronsNoData').style.display = 'none';
-        } else {
-            document.getElementById('topSquadronsChart').style.display = 'none';
-            document.getElementById('squadronsNoData').style.display = 'block';
-        }
+        loadTopSquadronsChart();
         <?php endif; ?>
         
         <?php if (isFeatureEnabled('home_player_activity')): ?>
@@ -367,6 +361,28 @@ async function loadServerStats() {
     } catch (error) {
         console.error('Error fetching server stats:', error);
         document.getElementById('loading-overlay').style.display = 'none';
+    }
+}
+
+async function loadTopSquadronsChart() {
+    const canvas = document.getElementById('topSquadronsChart');
+    const noData = document.getElementById('squadronsNoData');
+    if (!canvas || !noData || !window.dcsAPI?.getTopSquadrons) return;
+
+    try {
+        const squadrons = await window.dcsAPI.getTopSquadrons(3);
+        if (squadrons.length > 0) {
+            createTopSquadronsChart(squadrons);
+            canvas.style.display = 'block';
+            noData.style.display = 'none';
+        } else {
+            canvas.style.display = 'none';
+            noData.style.display = 'block';
+        }
+    } catch (error) {
+        console.error('Error loading top squadrons chart:', error);
+        canvas.style.display = 'none';
+        noData.style.display = 'block';
     }
 }
 
