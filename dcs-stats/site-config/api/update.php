@@ -282,6 +282,7 @@ $exceptions = [
     'custom_theme.css',
     'header_custom.css',
     'menu_config.json',
+    'site-config/theme_backups',
     '.env',
     '.dev',
     
