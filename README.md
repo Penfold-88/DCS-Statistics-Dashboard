@@ -1,170 +1,165 @@
 # DCS Statistics Dashboard
 
-Turn your DCSServerBot statistics into a clean, configurable web dashboard for your squadron or public DCS server.
+Turn your DCSServerBot statistics into a polished, configurable, squadron-ready web dashboard.
 
+[![Version](https://img.shields.io/badge/Version-V1.2-brightgreen?style=for-the-badge)](#whats-new-in-v12)
 [![DCSServerBot](https://img.shields.io/badge/Requires-DCSServerBot-green?style=for-the-badge)](https://github.com/Special-K-s-Flightsim-Bots/DCSServerBot)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-blue?style=for-the-badge)](#requirements)
-[![Responsive](https://img.shields.io/badge/Responsive-Mobile%20Friendly-purple?style=for-the-badge)](#features)
+[![Mobile](https://img.shields.io/badge/Mobile-Friendly-purple?style=for-the-badge)](#frontend-features)
+[![Languages](https://img.shields.io/badge/Languages-EN%20%7C%20DE%20%7C%20IT-orange?style=for-the-badge)](#language-support)
 [![License](https://img.shields.io/badge/License-MIT-lightgrey?style=for-the-badge)](LICENSE)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Online-brightgreen?style=for-the-badge&logo=googlechrome&logoColor=white)](https://demo.dcsstatisticsdashboard.app/)
 
-## Overview
+---
 
-DCS Statistics Dashboard is a PHP web dashboard for communities running [DCSServerBot](https://github.com/Special-K-s-Flightsim-Bots/DCSServerBot). It displays live server information, pilot statistics, leaderboards, squadron data, carrier trap/LSO results, credits, and configurable homepage insights.
+## 📡 Overview
 
-The project is designed for normal web hosting, XAMPP/local installs, and Docker deployments. Most setup is handled through the browser-based installer and admin panel.
+**DCS Statistics Dashboard** is a PHP web dashboard for communities running [DCSServerBot](https://github.com/Special-K-s-Flightsim-Bots/DCSServerBot).
 
-## What's New in V1.2
+It gives squadrons and public DCS servers a clean place to show live server information, pilot statistics, leaderboards, squadron data, carrier trap results, custom links, credits, and configurable homepage insights.
 
-- Expanded DCSServerBot REST API support.
-- Fully configurable site features from the admin panel.
-- Theme presets plus detailed colour controls for squadrons.
-- Header image/logo controls.
-- Language groundwork with English, German, and Italian translation files.
-- Server selector for viewing all servers or individual detected servers.
-- Leaderboard chart controls and configurable chart colours.
-- API health/debug page.
-- File-based API response caching with a clear-cache button.
-- Self-hosted Chart.js instead of loading from a CDN.
-- Improved security headers, CSRF handling, file permissions, and API proxy validation.
-- Admin setting import/export.
-- Privacy and SEO settings.
-- Maintenance mode page improvements.
-- Update/version display improvements.
+The dashboard is built for normal web hosting, XAMPP/local testing, and Docker deployments. Most setup is handled from the browser installer and admin panel.
 
-## Features
+---
 
-- Homepage summary cards for players, playtime, sorties, attendance, and activity.
-- Top 5 pilot charts with Kills, K/D, and PvP K/D selector.
-- Top 5 insight panels for theatres, missions, and modules.
-- Leaderboard table and bar chart.
-- Individual pilot search with layered pilot profile data.
-- Carrier landings / LSO trap data on pilot profiles.
-- Pilot credits page.
-- Squadron homepage and squadron detail views.
-- Servers page with live mission, weather, slots, extensions, and player information.
-- Optional server scope selector across the front end.
-- Custom Squadron Links dropdown in the navigation bar.
-- Footer credits modal.
-- Admin feature toggles for homepage, leaderboard, pilot, credits, squadron, and server sections.
-- Theme editor with presets, custom colours, chart colours, header image, and logo options.
-- Site metadata editor for keywords, description, and search engine blocking.
-- Admin backup/export tools for portable site settings.
-- Update tool with stable/dev channel support.
+## ✨ What's New In V1.2
 
-## Requirements
+### 🖥️ Dashboard Experience
 
-### Dashboard
+- 📊 New configurable homepage cards and insight panels.
+- 🛰️ Server selector for **All Servers** or individual detected servers.
+- 🏆 Top 5 pilot chart selector for **Kills**, **K/D**, and **PvP K/D**.
+- 📈 Leaderboard table and bar chart improvements.
+- 🛬 Carrier landing / LSO trap data added to pilot profiles.
+- 📱 Better mobile styling across navigation, cards, tables, and panels.
+- 🔗 Custom **Squadron Links** dropdown in the front-end navigation.
+- 🙌 Footer credits modal with project and contributor credits.
+
+### ⚙️ Admin Control
+
+- ✅ Site Features panel can enable or disable major dashboard sections.
+- 🎛️ Fine-grained toggles for homepage, attendance, Top 5 insights, leaderboard, pilot, credits, squadron, and server sections.
+- 🖥️ Dynamic detected server card controls.
+- 📋 Admin dashboard overview cards.
+- 🩺 API health/debug page.
+- ⏱️ Configurable API refresh rate.
+- 🔄 Update/version display improvements.
+- 💾 Full settings import/export for portable site configuration.
+
+### 🎨 Theme System
+
+- 🎨 Theme presets.
+- 🧪 Custom theme preset creation.
+- 🌈 Detailed colour controls for headings, text, panels, cards, tables, buttons, footer, charts, and gradients.
+- 📸 Header background image upload.
+- 🪪 Logo support with display options for logo only, text only, or logo plus text.
+- 📊 Homepage and leaderboard chart colour controls.
+- 💾 Theme backup and restore tools.
+
+### 🌍 Language Support
+
+- 🗣️ Language groundwork added across the dashboard.
+- 🇬🇧 English, 🇩🇪 German, and 🇮🇹 Italian translation files included.
+- 🧾 Translation template file for future community translations.
+- 🛠️ Installer language selection.
+- ⚙️ Admin language setting.
+
+### 🚀 Performance
+
+- ⚡ File-based API response caching for heavier endpoints.
+- 🧹 Clear API cache button in the admin panel.
+- 📴 Avoids unnecessary heavy API calls when related features are disabled.
+- 📦 Self-hosted Chart.js instead of relying on a CDN.
+- 🔁 Cache-busted assets for easier updates.
+
+### 🔐 Security
+
+- 🛡️ Stronger CSRF protection on destructive admin actions.
+- 🔑 Session ID regeneration after login.
+- 📁 Safer generated file permissions.
+- 🚦 Improved API proxy allow-listing and validation.
+- 🔐 Optional DCSServerBot API key support.
+- 🙈 Sensitive API settings kept server-side.
+- 🧪 Demo mode restrictions for public demo installs.
+- 🗄️ Protected runtime data folders.
+
+---
+
+## 🧭 Frontend Features
+
+| Area | Features |
+| --- | --- |
+| 🏠 Home | Player totals, playtime, sorties, attendance cards, Top 5 pilots, combat chart, Top 5 insights |
+| 🏆 Leaderboard | Sortable pilot table, configurable columns, bar chart, mobile card view |
+| 👨‍✈️ Pilot Statistics | Pilot search, profile layers, charts, LSO trap history, weapon/stat data |
+| 🎖️ Pilot Credits | Credit views with translated labels and themed styling |
+| 🛡️ Squadrons | Squadron overview, members, logos, leaderboard, live data panels |
+| 🛰️ Servers | Live server cards, mission, theatre, weather, slots, extensions, SRS, active players |
+| 🧭 Navigation | Custom links dropdown, configurable front-end sections, server scope selector |
+| 🙌 Credits | Footer credits modal with relevant project acknowledgements |
+
+---
+
+## 🛠️ Admin Features
+
+| Section | What You Can Manage |
+| --- | --- |
+| 🔌 API Settings | DCSServerBot host, port, optional API key, timeout, cache TTL, refresh interval, API health |
+| ✅ Site Features | Enable/disable dashboard sections and individual feature blocks |
+| 🎨 Theme Management | Presets, colours, gradients, charts, header image, logo, CSS upload, backup/restore |
+| 🔗 Custom Links | Add third-party squadron links to the front-end navigation |
+| 🔎 Privacy & SEO | Keywords, description, search engine crawling preference |
+| 🌍 Language | Select site language and upload translation files |
+| 🧰 Maintenance | Maintenance page and allowed IP management |
+| 🔄 Updates | Stable/dev update channel, version display, backups, update checks |
+| 💾 Settings Backup | Export and restore dashboard settings |
+| 👥 Admins | Admin users, roles, LSO permissions, demo restrictions |
+
+---
+
+## 📋 Requirements
+
+### 🖥️ Dashboard
 
 - PHP 7.4 or newer.
 - PHP cURL extension.
-- PHP ZIP extension for update/backup features.
-- A web server such as Apache, Nginx, IIS, XAMPP, or compatible shared hosting.
-- Writable permissions for the dashboard's `site-config/data/` directory.
+- PHP ZIP extension for update and backup features.
+- Apache, Nginx, IIS, XAMPP, shared hosting, or a compatible PHP web server.
+- Writable access for the dashboard runtime data folder.
 
-### DCSServerBot
+### 🤖 DCSServerBot
 
-- DCSServerBot with the REST API enabled.
-- Network access from the web server to the DCSServerBot REST API host and port.
-- Optional but recommended: configure a DCSServerBot API key and enter it in the dashboard API settings.
+- DCSServerBot with REST API enabled.
+- Network access from the dashboard web server to the DCSServerBot REST API host and port.
+- Optional but recommended: DCSServerBot API key.
 
-## Installation
+---
 
-### Standard Web Hosting
+## 🚦 First-Time Setup
 
-1. Download the latest release from GitHub.
-2. Upload the `dcs-stats/` folder to your web server.
-3. Open the dashboard in your browser, for example:
-
-   ```text
-   https://yourdomain.com/dcs-stats/
-   ```
-
-4. The installer should open automatically if the dashboard is not configured.
-5. Create the first admin account. This user becomes the Air Boss.
+1. Upload or copy the `dcs-stats/` folder to your web server.
+2. Open the dashboard in your browser.
+3. The installer should open automatically when no configuration exists.
+4. Create the first admin account. This becomes the main **Air Boss** account.
+5. Choose the site language.
 6. Enter your DCSServerBot API host and port.
-7. Test the API connection and save.
+7. Test the API connection.
+8. Save and start customising.
 
-### XAMPP / Local Testing
-
-1. Copy the `dcs-stats/` folder into your XAMPP `htdocs` folder.
-2. Start Apache in XAMPP.
-3. Open:
-
-   ```text
-   http://localhost/dcs-stats/
-   ```
-
-4. Complete the installer.
-
-A full XAMPP guide is available in the project wiki.
-
-### Docker Deployment
-
-The Docker files are included and will be reworked in a future release. The current setup is kept available for users already deploying this way.
-
-```bash
-# Clone the repository
-git clone https://github.com/Penfold-88/DCS-Statistics-Dashboard.git
-cd DCS-Statistics-Dashboard
-
-# Start with Docker
-docker compose up -d
-
-# Access at http://localhost:8080
-```
-
-Docker will create required folders, set permissions, and start the web container.
-
-Useful Docker commands:
-
-```bash
-# View logs
-docker compose logs -f
-
-# Stop the container
-docker compose down
-
-# Update to latest version
-docker compose pull
-docker compose up -d
-
-# Access container shell
-docker compose exec dcs-stats-web bash
-```
-
-To change the public port, edit `.env`:
-
-```bash
-WEB_PORT=8090
-```
-
-## First-Time Setup
-
-After installation, go to:
+After installation, the admin panel is available at:
 
 ```text
 /dcs-stats/site-config/
 ```
 
-The admin panel lets you configure:
+---
 
-- API host, timeout, refresh rate, cache TTL, and optional API key.
-- Site feature toggles.
-- Theme colours and presets.
-- Header background/logo settings.
-- Metadata, privacy, and SEO settings.
-- Maintenance mode.
-- Custom navigation links.
-- Language selection.
-- Update channel and version checks.
-- Settings backup and restore.
+## 🔌 API Configuration
 
-## API Configuration
-
-The API host should usually be entered as:
+The API host is normally entered as:
 
 ```text
-192.168.0.5:9876
+192.168.0.0:9876
 ```
 
 or:
@@ -173,7 +168,7 @@ or:
 your-api-domain.com:9876
 ```
 
-The dashboard will auto-detect HTTP/HTTPS where possible.
+The dashboard will try to handle HTTP/HTTPS safely depending on the install environment.
 
 If DCSServerBot has an API key configured, add it in:
 
@@ -181,11 +176,13 @@ If DCSServerBot has an API key configured, add it in:
 Admin Panel -> Settings -> API Settings
 ```
 
-If the API has no key configured, leave the field blank.
+If your DCSServerBot REST API has no key configured, leave the field blank.
 
-## API Caching
+---
 
-The dashboard uses file-based caching for heavier API responses.
+## ⚡ API Caching
+
+The dashboard includes file-based caching for heavier API responses.
 
 Cached endpoints include:
 
@@ -200,35 +197,52 @@ Cached endpoints include:
 - `/traps`
 - `/weaponpk`
 
-Live server status endpoints are not cached:
+Live status endpoints are not cached:
 
 - `/servers`
 - `/current_server`
 
-The cache can be cleared from:
+Clear the cache from:
 
 ```text
 Admin Panel -> Settings -> API Settings -> Clear API Cache
 ```
 
-Cache files are stored locally in:
+Cache files are stored in:
 
 ```text
 dcs-stats/site-config/data/api-cache/
 ```
 
-These files are runtime data and should not be committed to Git.
+These are runtime files and should not be committed to Git.
 
-## Admin Roles
+---
 
-| Role | Purpose |
-| --- | --- |
-| Air Boss | Full admin access. Can manage settings, updates, users, API, themes, and site configuration. |
-| LSO | Limited admin role for landing signal officer permissions and relevant tools. |
+## 🌍 Language Support
 
-The first account created by the installer becomes the main administrator.
+Included languages:
 
-## Updates
+- English
+- German
+- Italian
+
+Translation files live in:
+
+```text
+dcs-stats/lang/
+```
+
+A translation template is included for new community translations:
+
+```text
+dcs-stats/lang/translation-template.json
+```
+
+When adding new visible text, translations should be kept up to date.
+
+---
+
+## 🔄 Updates
 
 The update tool is available from:
 
@@ -238,38 +252,46 @@ Admin Panel -> Settings -> Update
 
 The updater supports:
 
-- Current installed version display.
+- Installed version display.
 - Stable and dev channel handling.
 - GitHub branch checks.
 - Backup creation before updates.
 - Downgrade/version list where available.
 
-Stable is the default channel. A hidden `.dev` file enables the configured development branch.
+Stable is the default update channel. A hidden `.dev` file enables the configured development branch.
 
-## Security Notes
+Runtime settings and local customisations should be kept out of Git and preserved during normal updates.
+
+---
+
+## 🔐 Security Notes
 
 The dashboard includes:
 
 - Password hashing.
-- CSRF protection for admin actions.
 - Session security controls.
+- Session ID regeneration after login.
+- CSRF protection for admin actions.
 - Role checks for admin pages.
 - Security headers.
-- API endpoint allow-listing in the proxy.
+- API proxy allow-listing.
 - Optional DCSServerBot API key forwarding.
+- Sensitive API values kept server-side.
 - Protected runtime data folders.
-- Safer file permissions for generated admin data.
+- Safer generated file permissions.
 
 Recommended production setup:
 
-- Use HTTPS for the public dashboard.
-- Keep `site-config/data/` protected from direct web access.
+- Use HTTPS for the public dashboard where possible.
+- Protect `site-config/data/` from direct web access.
 - Use a DCSServerBot API key where possible.
 - Restrict access to the DCSServerBot API port.
 - Keep PHP and web server packages updated.
 - Back up settings before updates.
 
-## Privacy And SEO
+---
+
+## 🔎 Privacy And SEO
 
 The Privacy & SEO admin section lets you configure:
 
@@ -277,41 +299,43 @@ The Privacy & SEO admin section lets you configure:
 - Site keywords.
 - Search engine indexing preference.
 
-The dashboard also sends minimal install/version check-in data to the project maintainer's central service so support can be aligned with versions in use. The check-in is intended to contain only branch/version style information, not personal user data.
+The dashboard sends very minimal install/version check-in data to the project maintainer's central service. This is intended to contain branch/version style information only, so support can be aligned with versions in use.
 
-## Troubleshooting
+---
 
-### Installer Does Not Open
+## 🧯 Troubleshooting
 
-The dashboard should redirect to the installer when required configuration files are missing. If it does not:
+### 🛠️ Installer Does Not Open
 
 - Confirm `site-config/data/` is writable.
-- Confirm `site-config/data/users.json` does not already exist from another install.
+- Confirm required config files do not already exist from another install.
 - Clear browser cache.
 - Check PHP error logs.
 
-### API Connection Fails
+### 🔌 API Connection Fails
 
-- Check the DCSServerBot REST API is running.
+- Check that the DCSServerBot REST API is running.
 - Confirm the dashboard server can reach the API host and port.
-- Check firewall/port forwarding.
+- Check firewall and port forwarding.
 - If using Docker, the API host may need to be `host.docker.internal` on Windows/Mac.
 - If using an API key, make sure the dashboard key matches the DCSServerBot key.
 
-### Charts Or Styles Look Old After Updating
+### 🎨 Charts Or Styles Look Old After Updating
 
 - Clear browser cache.
 - Use the API Settings clear-cache button.
 - Restart Apache/PHP if OPcache is enabled and still serving old PHP.
 
-### Update Tool Fails
+### 🔄 Update Tool Fails
 
 - Ensure the PHP ZIP extension is enabled.
 - Ensure update and backup folders are writable.
 - Check that the server can reach GitHub.
 - Check the admin update log output.
 
-## Project Structure
+---
+
+## 🗂️ Project Structure
 
 ```text
 DCS-Statistics-Dashboard/
@@ -335,21 +359,9 @@ DCS-Statistics-Dashboard/
 └── README.md
 ```
 
-## Runtime Files Not To Commit
+---
 
-The following are generated locally and should not be committed:
-
-- `.dev`
-- `.php-sessions/`
-- `dcs-stats/site-config/data/*.json`
-- `dcs-stats/site-config/data/api-cache/`
-- `dcs-stats/api_config.json`
-- `dcs-stats/site_config.json`
-- `dcs-stats/menu_config.json`
-- `dcs-stats/custom_theme.css`
-- `dcs-stats/header_custom.css`
-
-## Contributing
+## 🤝 Contributing
 
 Contributions are welcome.
 
@@ -369,20 +381,108 @@ Before opening a pull request:
 - Update translations where new visible text is added.
 - Update documentation when behaviour changes.
 
-## Credits
+---
+
+## 🙌 Credits
 
 - [Special K's Flightsim Bots](https://github.com/Special-K-s-Flightsim-Bots) for DCSServerBot.
 - VFS-252 Sky Pirates for testing, feedback, and original dashboard work.
 - The DCS community for suggestions, bug reports, and real-world testing.
 - Eagle Dynamics for DCS World.
 
-## License
+---
 
-This project is licensed under the MIT License. See [LICENSE](LICENSE).
-
-## Support
+## 💬 Support
 
 - Discord Support: [https://discord.gg/uTk8uQ2hxC](https://discord.gg/uTk8uQ2hxC)
 - Wiki: [https://github.com/Penfold-88/DCS-Statistics-Dashboard/wiki](https://github.com/Penfold-88/DCS-Statistics-Dashboard/wiki)
 - Issues: [https://github.com/Penfold-88/DCS-Statistics-Dashboard/issues](https://github.com/Penfold-88/DCS-Statistics-Dashboard/issues)
-- Live Demo: [https://stats.skypirates.uk/](https://stats.skypirates.uk/)
+- Live Demo: [https://demo.dcsstatisticsdashboard.app/](https://demo.dcsstatisticsdashboard.app/)
+---
+
+## 📄 License
+
+This project is licensed under the MIT License. See [LICENSE](LICENSE).
+
+---
+
+# 📦 Installation Guides
+
+The sections below are kept separate for users who need local testing or Docker deployment.
+
+---
+
+## 🌐 Standard Web Hosting Install
+
+1. Download the latest release from GitHub.
+2. Upload the `dcs-stats/` folder to your web server.
+3. Open the dashboard in your browser, for example:
+
+   ```text
+   https://yourdomain.com/dcs-stats/
+   ```
+
+4. The installer should open automatically if the dashboard is not configured.
+5. Create the first admin account.
+6. Enter your DCSServerBot API host and port.
+7. Test the API connection and save.
+
+---
+
+## 🧪 XAMPP / Local Testing Install
+
+1. Copy the `dcs-stats/` folder into your XAMPP `htdocs` folder.
+2. Start Apache in XAMPP.
+3. Open:
+
+   ```text
+   http://localhost/dcs-stats/
+   ```
+
+4. Complete the installer.
+
+Useful XAMPP checks:
+
+- Make sure PHP cURL is enabled.
+- Make sure PHP ZIP is enabled if you want update/backup features.
+- Make sure Apache can write to `dcs-stats/site-config/data/`.
+
+---
+
+## 🐳 Docker Deployment
+
+The Docker files are included for users already deploying this way. Docker support may be reviewed more deeply in a future release.
+
+```bash
+# Clone the repository
+git clone https://github.com/Penfold-88/DCS-Statistics-Dashboard.git
+cd DCS-Statistics-Dashboard
+
+# Start with Docker
+docker compose up -d
+
+# Access at http://localhost:8080
+```
+
+Useful Docker commands:
+
+```bash
+# View logs
+docker compose logs -f
+
+# Stop the container
+docker compose down
+
+# Update to latest version
+docker compose pull
+docker compose up -d
+
+# Access container shell
+docker compose exec dcs-stats-web bash
+```
+
+To change the public port, edit `.env`:
+
+```bash
+WEB_PORT=8090
+```
