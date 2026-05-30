@@ -22,6 +22,51 @@ function logMessage($msg) {
     flush();
 }
 
+function normalizeRestorePath($path) {
+    return str_replace('\\', '/', (string)$path);
+}
+
+function createPreRestoreBackup($rootPath) {
+    $backupDir = $rootPath . '/backups';
+    if (!is_dir($backupDir) && !mkdir($backupDir, 0755, true)) {
+        logMessage('Error: Could not create backup directory before restore');
+        return false;
+    }
+
+    $backupFile = $backupDir . '/pre-restore-' . date('Ymd-His') . '.zip';
+    $zip = new ZipArchive();
+    if ($zip->open($backupFile, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
+        logMessage('Error: Could not create pre-restore backup');
+        return false;
+    }
+
+    $files = new RecursiveIteratorIterator(
+        new RecursiveDirectoryIterator($rootPath, RecursiveDirectoryIterator::SKIP_DOTS),
+        RecursiveIteratorIterator::SELF_FIRST
+    );
+
+    foreach ($files as $file) {
+        $filePath = $file->getRealPath();
+        $relPath = normalizeRestorePath(substr($filePath, strlen($rootPath) + 1));
+
+        if (strpos($relPath, 'backups/') === 0 ||
+            strpos($relPath, 'RESTORE_TEMP/') === 0 ||
+            strpos($relPath, 'UPGRADE/') === 0) {
+            continue;
+        }
+
+        if ($file->isDir()) {
+            $zip->addEmptyDir($relPath);
+        } else {
+            $zip->addFile($filePath, $relPath);
+        }
+    }
+
+    $zip->close();
+    logMessage('Pre-restore backup created: ' . basename($backupFile));
+    return true;
+}
+
 $input = json_decode(file_get_contents('php://input'), true);
 requireCSRFToken($input);
 
@@ -47,6 +92,11 @@ if (!file_exists($backupFile)) {
 }
 
 logMessage("Starting restore from: $filename");
+
+if (!createPreRestoreBackup($rootPath)) {
+    logMessage('Restore cancelled to avoid changing live files without a recovery point.');
+    exit;
+}
 
 // Create restore directory
 $restoreDir = $rootPath . '/RESTORE_TEMP';

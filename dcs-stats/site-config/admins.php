@@ -25,6 +25,23 @@ function protectedAdminMessage($action) {
     return $label . ' admin account is protected and cannot be ' . $action . '.';
 }
 
+function generateAdminId($users) {
+    $existingIds = [];
+    foreach ($users as $user) {
+        $existingIds[(int)($user['id'] ?? 0)] = true;
+    }
+
+    for ($attempt = 0; $attempt < 20; $attempt++) {
+        $id = random_int(100000, 2147483647);
+        if (!isset($existingIds[$id])) {
+            return $id;
+        }
+    }
+
+    $maxId = empty($existingIds) ? 0 : max(array_keys($existingIds));
+    return $maxId + random_int(1, 1000);
+}
+
 // Handle form submissions
 $message = '';
 $messageType = '';
@@ -75,7 +92,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     } else {
                         // Create new admin
                         $newAdmin = [
-                            'id' => count($users) + 1,
+                            'id' => generateAdminId($users),
                             'username' => $username,
                             'email' => $email,
                             'password_hash' => password_hash($password, PASSWORD_BCRYPT),

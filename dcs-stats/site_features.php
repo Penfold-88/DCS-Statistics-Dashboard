@@ -43,6 +43,10 @@ function getSettingsPath() {
 
 // Load settings from JSON file
 function loadSiteFeatures() {
+    if (array_key_exists('dcs_site_features_cache', $GLOBALS)) {
+        return $GLOBALS['dcs_site_features_cache'];
+    }
+
     // Load site configuration if exists
     $siteConfigFile = __DIR__ . '/site_config.json';
     $siteConfig = [];
@@ -148,12 +152,14 @@ function loadSiteFeatures() {
         if ($content) {
             $saved = json_decode($content, true);
             if ($saved) {
-                return array_merge($defaults, $saved);
+                $GLOBALS['dcs_site_features_cache'] = array_merge($defaults, $saved);
+                return $GLOBALS['dcs_site_features_cache'];
             }
         }
     }
     
-    return $defaults;
+    $GLOBALS['dcs_site_features_cache'] = $defaults;
+    return $GLOBALS['dcs_site_features_cache'];
 }
 
 // Save settings
@@ -171,6 +177,7 @@ function saveSiteFeatures($features) {
 
     if ($result !== false) {
         @chmod($settingsFile, 0600);
+        $GLOBALS['dcs_site_features_cache'] = $features;
     }
     
     return $result !== false;

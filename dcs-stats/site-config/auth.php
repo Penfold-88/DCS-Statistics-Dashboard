@@ -212,13 +212,19 @@ function getDataFilePath($type) {
  * Get all admin users
  */
 function getAdminUsers() {
+    if (array_key_exists('dcs_admin_users_cache', $GLOBALS)) {
+        return $GLOBALS['dcs_admin_users_cache'];
+    }
+
     $usersFile = getDataFilePath('users');
     if (!file_exists($usersFile)) {
+        $GLOBALS['dcs_admin_users_cache'] = [];
         return [];
     }
     
     $users = json_decode(file_get_contents($usersFile), true);
-    return $users ?: [];
+    $GLOBALS['dcs_admin_users_cache'] = $users ?: [];
+    return $GLOBALS['dcs_admin_users_cache'];
 }
 
 /**
@@ -228,6 +234,9 @@ function saveAdminUsers($users) {
     $usersFile = getDataFilePath('users');
     $result = @file_put_contents($usersFile, json_encode($users, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES), LOCK_EX);
     @chmod($usersFile, 0600);
+    if ($result !== false) {
+        $GLOBALS['dcs_admin_users_cache'] = $users;
+    }
     return $result !== false;
 }
 

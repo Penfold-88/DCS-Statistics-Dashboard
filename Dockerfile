@@ -85,6 +85,11 @@ http {
         location ~ /\. {
             deny all;
         }
+
+        # Explicitly deny Git metadata even if hidden-file handling changes.
+        location ~ (^|/)\.git(/|$) {
+            deny all;
+        }
         
         # Deny access to data directories
         location ~ ^/(data|site-config/data)/ {

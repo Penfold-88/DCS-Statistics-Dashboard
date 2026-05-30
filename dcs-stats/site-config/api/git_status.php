@@ -62,25 +62,39 @@ function cleanGitStatusError($error, $repoPath) {
     return substr($error, 0, 300);
 }
 
+function isAllowedGitRepoPath($repoPath, $dashboardRoot) {
+    $repoPath = realpath($repoPath);
+    $dashboardRoot = realpath($dashboardRoot);
+
+    if (!$repoPath || !$dashboardRoot) {
+        return false;
+    }
+
+    // Allow either a git repo directly in dcs-stats, or the project root that
+    // contains dcs-stats. Do not walk higher up the filesystem.
+    return $repoPath === $dashboardRoot || $repoPath === dirname($dashboardRoot);
+}
+
 // Check if we're in a git repository
-$repoPath = realpath(dirname(__DIR__, 2));
+$dashboardRoot = realpath(dirname(__DIR__, 2));
+$repoPath = $dashboardRoot;
 $gitDir = $repoPath . '/.git';
 if (!is_dir($gitDir)) {
-    // Try parent directories (in case we're in a subdirectory)
+    // Try the parent project directory, but never walk further up the host.
     $checkDir = $repoPath;
-    for ($i = 0; $i < 3; $i++) {
-        $checkDir = dirname($checkDir);
-        if (is_dir($checkDir . '/.git')) {
-            $repoPath = realpath($checkDir);
-            $gitDir = $checkDir . '/.git';
-            break;
-        }
+    $checkDir = dirname($checkDir);
+    if (is_dir($checkDir . '/.git') && isAllowedGitRepoPath($checkDir, $dashboardRoot)) {
+        $repoPath = realpath($checkDir);
+        $gitDir = $repoPath . '/.git';
     }
     
-    if (!is_dir($gitDir)) {
+    if (!is_dir($gitDir) || !isAllowedGitRepoPath($repoPath, $dashboardRoot)) {
         echo json_encode($response);
         exit;
     }
+} elseif (!isAllowedGitRepoPath($repoPath, $dashboardRoot)) {
+    echo json_encode($response);
+    exit;
 }
 
 // Get current branch
