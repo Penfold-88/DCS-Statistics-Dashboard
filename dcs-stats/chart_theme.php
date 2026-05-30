@@ -35,7 +35,7 @@ function getChartThemePath() {
     $primaryDir = dirname($primaryPath);
 
     if (!is_dir($primaryDir)) {
-        @mkdir($primaryDir, 0777, true);
+        @mkdir($primaryDir, 0700, true);
     }
 
     if (is_dir($primaryDir) && is_writable($primaryDir)) {
@@ -44,7 +44,7 @@ function getChartThemePath() {
 
     $tempDir = sys_get_temp_dir() . '/dcs_stats';
     if (!is_dir($tempDir)) {
-        @mkdir($tempDir, 0777, true);
+        @mkdir($tempDir, 0700, true);
     }
 
     return $tempDir . '/chart_theme.json';

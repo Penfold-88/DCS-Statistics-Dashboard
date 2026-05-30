@@ -8,7 +8,7 @@ function getSiteMetadataPath() {
     $dir = dirname($path);
 
     if (!is_dir($dir)) {
-        @mkdir($dir, 0777, true);
+        @mkdir($dir, 0700, true);
     }
 
     return $path;
@@ -43,7 +43,7 @@ function saveSiteMetadata($metadata) {
     $dir = dirname($path);
 
     if (!is_dir($dir)) {
-        @mkdir($dir, 0777, true);
+        @mkdir($dir, 0700, true);
     }
 
     $clean = [
@@ -54,5 +54,10 @@ function saveSiteMetadata($metadata) {
         'privacy_notice' => trim((string)($metadata['privacy_notice'] ?? ''))
     ];
 
-    return @file_put_contents($path, json_encode($clean, JSON_PRETTY_PRINT)) !== false;
+    $result = @file_put_contents($path, json_encode($clean, JSON_PRETTY_PRINT));
+    if ($result !== false) {
+        @chmod($path, 0600);
+    }
+
+    return $result !== false;
 }

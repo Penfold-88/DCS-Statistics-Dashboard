@@ -28,6 +28,16 @@ $format = $_GET['format'] ?? 'csv';
 $dateFrom = $_GET['date_from'] ?? '';
 $dateTo = $_GET['date_to'] ?? '';
 
+if ($dateFrom !== '' && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $dateFrom)) {
+    http_response_code(400);
+    die('Invalid start date');
+}
+
+if ($dateTo !== '' && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $dateTo)) {
+    http_response_code(400);
+    die('Invalid end date');
+}
+
 // Validate format
 if (!in_array($format, EXPORT_FORMATS)) {
     http_response_code(400);
@@ -102,7 +112,7 @@ switch ($exportType) {
         break;
         
     case 'full':
-        if (getCurrentAdmin()['role'] != ROLE_AIR_BOSS) {
+        if ((int)(getCurrentAdmin()['role'] ?? 0) !== ROLE_AIR_BOSS) {
             http_response_code(403);
             die('Permission denied');
         }

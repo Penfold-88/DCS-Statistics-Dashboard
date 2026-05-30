@@ -24,7 +24,7 @@ if (empty($filename)) {
 }
 
 // Validate filename format (includes branch and version)
-if (!preg_match('/^backup-\d{8}-\d{6}(-[^-]+)?(-[^-]+)?\.zip$/', $filename)) {
+if (!preg_match('/^backup-\d{8}-\d{6}(?:-[A-Za-z0-9_.-]+-[A-Za-z0-9_.-]+)?\.zip$/', $filename)) {
     echo json_encode(['success' => false, 'error' => 'Invalid backup filename']);
     exit;
 }

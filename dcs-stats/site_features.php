@@ -17,7 +17,7 @@ function getSettingsPath() {
     
     // Try to create directory
     if (!is_dir($primaryDir)) {
-        @mkdir($primaryDir, 0777, true);
+        @mkdir($primaryDir, 0700, true);
         if (is_dir($primaryDir) && is_writable($primaryDir)) {
             return $primaryPath;
         }
@@ -26,7 +26,7 @@ function getSettingsPath() {
     // Try alternative data directory
     $altDir = __DIR__ . '/data';
     if (!is_dir($altDir)) {
-        @mkdir($altDir, 0777, true);
+        @mkdir($altDir, 0700, true);
     }
     if (is_dir($altDir) && is_writable($altDir)) {
         return $altDir . '/site_settings.json';
@@ -35,7 +35,7 @@ function getSettingsPath() {
     // Fall back to temp directory
     $tempDir = sys_get_temp_dir() . '/dcs_stats';
     if (!is_dir($tempDir)) {
-        @mkdir($tempDir, 0777, true);
+        @mkdir($tempDir, 0700, true);
     }
     
     return $tempDir . '/site_settings.json';
@@ -163,17 +163,14 @@ function saveSiteFeatures($features) {
     // Ensure directory exists
     $dir = dirname($settingsFile);
     if (!is_dir($dir)) {
-        @mkdir($dir, 0777, true);
+        @mkdir($dir, 0700, true);
     }
     
     // Try to save
     $result = @file_put_contents($settingsFile, json_encode($features, JSON_PRETTY_PRINT));
-    
-    // If failed, try to make writable and retry
-    if ($result === false) {
-        @chmod($dir, 0777);
-        @chmod($settingsFile, 0666);
-        $result = @file_put_contents($settingsFile, json_encode($features, JSON_PRETTY_PRINT));
+
+    if ($result !== false) {
+        @chmod($settingsFile, 0600);
     }
     
     return $result !== false;

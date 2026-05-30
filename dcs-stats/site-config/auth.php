@@ -251,9 +251,10 @@ function findAdminUser($username) {
  */
 function updateAdminUser($userId, $updates) {
     $users = getAdminUsers();
+    $userId = (int)$userId;
     
     foreach ($users as &$user) {
-        if ($user['id'] == $userId) {
+        if ((int)($user['id'] ?? 0) === $userId) {
             $user = array_merge($user, $updates);
             saveAdminUsers($users);
             return true;
@@ -361,6 +362,7 @@ function attemptLogin($username, $password, $remember = false) {
     }
     
     // Successful login
+    session_regenerate_id(true);
     $_SESSION['admin_id'] = $user['id'];
     $_SESSION['admin_username'] = $user['username'];
     $_SESSION['admin_role'] = $user['role'];
@@ -436,13 +438,14 @@ function isAdminLoggedIn() {
     // Check remember me cookie
     if (isset($_COOKIE[ADMIN_COOKIE_NAME])) {
         list($userId, $token) = explode(':', $_COOKIE[ADMIN_COOKIE_NAME], 2);
+        $userId = (int)$userId;
         $tokenHash = hash('sha256', $token);
         
         // Find valid session
         $sessionsFile = getDataFilePath('sessions');
         $sessions = json_decode(@file_get_contents($sessionsFile), true) ?: [];
         foreach ($sessions as $session) {
-            if ($session['admin_id'] == $userId && 
+            if ((int)($session['admin_id'] ?? 0) === $userId && 
                 $session['token_hash'] === $tokenHash &&
                 strtotime($session['expires_at']) > time()) {
                 
@@ -450,13 +453,14 @@ function isAdminLoggedIn() {
                 $user = null;
                 $users = getAdminUsers();
                 foreach ($users as $u) {
-                    if ($u['id'] == $userId) {
+                    if ((int)($u['id'] ?? 0) === $userId) {
                         $user = $u;
                         break;
                     }
                 }
                 
                 if ($user && $user['is_active']) {
+                    session_regenerate_id(true);
                     $_SESSION['admin_id'] = $user['id'];
                     $_SESSION['admin_username'] = $user['username'];
                     $_SESSION['admin_role'] = $user['role'];
@@ -500,7 +504,7 @@ function logout() {
         $sessionsFile = getDataFilePath('sessions');
         $sessions = json_decode(@file_get_contents($sessionsFile), true) ?: [];
         $sessions = array_filter($sessions, function($session) use ($userId, $tokenHash) {
-            return !($session['admin_id'] == $userId && $session['token_hash'] === $tokenHash);
+            return !((int)($session['admin_id'] ?? 0) === (int)$userId && ($session['token_hash'] ?? '') === $tokenHash);
         });
         $sessionsFile = getDataFilePath('sessions');
         @file_put_contents($sessionsFile, json_encode(array_values($sessions), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES), LOCK_EX);
@@ -600,6 +604,10 @@ function getCSRFToken() {
  * Verify CSRF token
  */
 function verifyCSRFToken($token) {
+    $token = (string)$token;
+    if ($token === '' || empty($_SESSION[CSRF_TOKEN_NAME])) {
+        return false;
+    }
     return isset($_SESSION[CSRF_TOKEN_NAME]) && hash_equals($_SESSION[CSRF_TOKEN_NAME], $token);
 }
 

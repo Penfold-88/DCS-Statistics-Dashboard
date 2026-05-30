@@ -84,10 +84,15 @@ function readJsonFileForBackup($path, $fallback = null) {
 function writeJsonFileFromBackup($path, $data) {
     $dir = dirname($path);
     if (!is_dir($dir)) {
-        @mkdir($dir, 0777, true);
+        @mkdir($dir, 0700, true);
     }
 
-    return @file_put_contents($path, json_encode($data, JSON_PRETTY_PRINT)) !== false;
+    $result = @file_put_contents($path, json_encode($data, JSON_PRETTY_PRINT));
+    if ($result !== false) {
+        @chmod($path, 0600);
+    }
+
+    return $result !== false;
 }
 
 function readTextFileForBackup($path) {

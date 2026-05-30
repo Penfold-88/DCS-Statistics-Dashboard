@@ -41,8 +41,8 @@ function getMenuConfigPath() {
     }
     
     if (!is_dir($primaryDir)) {
-        @mkdir($primaryDir, 0777, true);
-        @chmod($primaryDir, 0777);
+        @mkdir($primaryDir, 0700, true);
+        @chmod($primaryDir, 0700);
         if (is_dir($primaryDir) && is_writable($primaryDir)) {
             return $primaryPath;
         }
@@ -58,7 +58,7 @@ function getMenuConfigPath() {
     // Fall back to temp directory
     $tempDir = sys_get_temp_dir() . '/dcs_stats';
     if (!is_dir($tempDir)) {
-        @mkdir($tempDir, 0777, true);
+        @mkdir($tempDir, 0700, true);
     }
     
     return $tempDir . '/menu_config.json';

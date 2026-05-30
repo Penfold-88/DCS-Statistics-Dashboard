@@ -209,8 +209,8 @@ function getWritableConfigPath($preferredFile = null) {
     // Try creating data directory
     $dataDir = __DIR__ . '/data/';
     if (!is_dir($dataDir)) {
-        @mkdir($dataDir, 0777, true);
-        @chmod($dataDir, 0777);
+        @mkdir($dataDir, 0700, true);
+        @chmod($dataDir, 0700);
     }
     if (is_writable($dataDir)) {
         return $dataDir . 'api_config.json';
@@ -224,7 +224,7 @@ function getWritableConfigPath($preferredFile = null) {
     // Fall back to system temp directory
     $tempDir = sys_get_temp_dir() . '/dcs_stats/';
     if (!is_dir($tempDir)) {
-        @mkdir($tempDir, 0777, true);
+        @mkdir($tempDir, 0700, true);
     }
     
     return $tempDir . 'api_config.json';

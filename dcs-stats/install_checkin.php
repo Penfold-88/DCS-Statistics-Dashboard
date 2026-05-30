@@ -36,7 +36,7 @@ function allowInstallCheckinSslFallback() {
 function getInstallCheckinStatePath() {
     $dataDir = __DIR__ . '/site-config/data';
     if (!is_dir($dataDir)) {
-        @mkdir($dataDir, 0777, true);
+        @mkdir($dataDir, 0700, true);
     }
 
     return $dataDir . '/install_checkin_state.json';
