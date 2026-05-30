@@ -83,8 +83,8 @@ function sendInstallCheckinWithCurl($endpoint, $json, $headers, $verifySsl = tru
         CURLOPT_POSTFIELDS => $json,
         CURLOPT_HTTPHEADER => $headers,
         CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_CONNECTTIMEOUT => 2,
-        CURLOPT_TIMEOUT => 4,
+        CURLOPT_CONNECTTIMEOUT_MS => 500,
+        CURLOPT_TIMEOUT_MS => 750,
         CURLOPT_SSL_VERIFYPEER => $verifySsl,
         CURLOPT_SSL_VERIFYHOST => $verifySsl ? 2 : 0
     ]);
@@ -126,7 +126,7 @@ function sendInstallCheckinPayload($endpoint, $payload) {
             'method' => 'POST',
             'header' => implode("\r\n", $headers) . "\r\n",
             'content' => $json,
-            'timeout' => 4,
+            'timeout' => 0.75,
             'ignore_errors' => true
         ]
     ]);
