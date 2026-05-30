@@ -74,6 +74,7 @@ define('ADMIN_SESSIONS_FILE', ADMIN_DATA_DIR . 'sessions.json');
 // Logging settings
 define('LOG_ADMIN_ACTIONS', true);
 define('LOG_RETENTION_DAYS', 90);
+define('MAX_ADMIN_LOGS', 1000);
 
 // Export settings
 define('EXPORT_MAX_RECORDS', 10000);

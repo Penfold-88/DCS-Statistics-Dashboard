@@ -296,6 +296,34 @@ function isUserLocked($user) {
 }
 
 /**
+ * Keep activity logs bounded so admin pages do not load unbounded JSON.
+ */
+function pruneAdminLogs($logs, $maxLogs = null) {
+    if (!is_array($logs)) {
+        return [];
+    }
+
+    $maxLogs = $maxLogs ?? (defined('MAX_ADMIN_LOGS') ? MAX_ADMIN_LOGS : 1000);
+    $maxLogs = max(1, (int)$maxLogs);
+    $cutoffDate = date(DATE_FORMAT, strtotime('-' . LOG_RETENTION_DAYS . ' days'));
+
+    $logs = array_filter($logs, function($log) use ($cutoffDate) {
+        if (!is_array($log)) {
+            return false;
+        }
+
+        $createdAt = $log['created_at'] ?? $log['timestamp'] ?? '';
+        return $createdAt === '' || $createdAt > $cutoffDate;
+    });
+
+    if (count($logs) > $maxLogs) {
+        $logs = array_slice($logs, -$maxLogs);
+    }
+
+    return array_values($logs);
+}
+
+/**
  * Log admin activity
  */
 function logAdminActivity($action, $adminId = null, $targetType = null, $targetId = null, $details = null) {
@@ -305,9 +333,13 @@ function logAdminActivity($action, $adminId = null, $targetType = null, $targetI
     
     $logsFile = getDataFilePath('logs');
     $logs = json_decode(@file_get_contents($logsFile), true) ?: [];
+    $nextId = 1;
+    foreach ($logs as $existingLog) {
+        $nextId = max($nextId, (int)($existingLog['id'] ?? 0) + 1);
+    }
     
     $log = [
-        'id' => count($logs) + 1,
+        'id' => $nextId,
         'admin_id' => $adminId,
         'action' => $action,
         'target_type' => $targetType,
@@ -319,12 +351,7 @@ function logAdminActivity($action, $adminId = null, $targetType = null, $targetI
     ];
     
     $logs[] = $log;
-    
-    // Keep only recent logs based on retention policy
-    $cutoffDate = date(DATE_FORMAT, strtotime('-' . LOG_RETENTION_DAYS . ' days'));
-    $logs = array_filter($logs, function($log) use ($cutoffDate) {
-        return $log['created_at'] > $cutoffDate;
-    });
+    $logs = pruneAdminLogs($logs);
     
     @file_put_contents($logsFile, json_encode(array_values($logs), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES), LOCK_EX);
     @chmod($logsFile, 0600);

@@ -89,10 +89,9 @@ function logAdminAction($action, $details = []) {
         'created_at' => date(DATE_FORMAT)
     ];
     
-    // Keep only last 1000 logs
-    if (count($logs) > 1000) {
-        $logs = array_slice($logs, -1000);
-    }
+    $logs = function_exists('pruneAdminLogs')
+        ? pruneAdminLogs($logs)
+        : array_slice($logs, -(defined('MAX_ADMIN_LOGS') ? MAX_ADMIN_LOGS : 1000));
     
     file_put_contents($logFile, json_encode($logs, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES), LOCK_EX);
     @chmod($logFile, 0600);

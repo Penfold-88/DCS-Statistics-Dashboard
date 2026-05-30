@@ -1465,12 +1465,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         'jpg' => 'image/jpeg',
                         'jpeg' => 'image/jpeg',
                         'png' => 'image/png',
-                        'webp' => 'image/webp',
-                        'svg' => 'image/svg+xml'
+                        'webp' => 'image/webp'
                     ];
 
                     if (!isset($allowedLogoTypes[$logoExtension]) || $allowedLogoTypes[$logoExtension] !== $logoType) {
-                        $error = 'Please upload a JPG, PNG, WebP, or SVG logo';
+                        $error = 'Please upload a JPG, PNG, or WebP logo';
                         break;
                     }
 
@@ -2233,7 +2232,7 @@ $pageTitle = dcs_t('admin.themes.title');
                             <fieldset class="color-fieldset">
                                 <legend><?= e(dcs_t('admin.themes.header_branding')) ?></legend>
                                 <p style="font-size: 0.9em; color: var(--text-muted); margin-top: 0;">
-                                    Recommended logo size: transparent PNG/WebP/SVG around 360 x 96 pixels. Keep it under 2MB so the header stays the same height.
+                                    Recommended logo size: transparent PNG/WebP around 360 x 96 pixels. Keep it under 2MB so the header stays the same height.
                                 </p>
 
                                 <div class="color-inputs">
@@ -2261,7 +2260,7 @@ $pageTitle = dcs_t('admin.themes.title');
                                 </div>
 
                                 <div class="file-input-wrapper">
-                                    <input type="file" name="header_logo" id="header_logo" accept=".jpg,.jpeg,.png,.webp,.svg,image/jpeg,image/png,image/webp,image/svg+xml">
+                                    <input type="file" name="header_logo" id="header_logo" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp">
                                     <label for="header_logo" class="file-input-button"><?= e(dcs_t('admin.themes.choose_header_logo')) ?></label>
                                 </div>
                                 <span id="header-logo-file-name" style="margin-left: 10px;">No new logo selected</span>

@@ -23,6 +23,12 @@ $perPage = RECORDS_PER_PAGE;
 
 // Get all logs
 $allLogs = json_decode(@file_get_contents(ADMIN_LOGS_FILE), true) ?: [];
+$prunedLogs = function_exists('pruneAdminLogs') ? pruneAdminLogs($allLogs) : $allLogs;
+if (count($prunedLogs) !== count($allLogs)) {
+    @file_put_contents(ADMIN_LOGS_FILE, json_encode($prunedLogs, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES), LOCK_EX);
+    @chmod(ADMIN_LOGS_FILE, 0600);
+    $allLogs = $prunedLogs;
+}
 $allLogs = array_map('normalizeAdminLog', $allLogs);
 
 // Get admin users for filter and display
