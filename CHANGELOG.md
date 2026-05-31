@@ -257,6 +257,7 @@ V1.2 is a major dashboard, admin, theme, update, language, security, and perform
 - 🪟 Fixed Windows path preservation issues in updater.
 - 🧼 Fixed update flow that could incorrectly return users to install.php.
 - 📡 Update now triggers a version check-in after successful update.
+- 🐳 Fixed Docker non-root startup by making nginx and php-fpm logs writable by the `www` user.
 
 ---
 

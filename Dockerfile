@@ -24,9 +24,9 @@ RUN apk add --no-cache \
 RUN addgroup -g 1000 -S www && \
     adduser -u 1000 -S www -G www && \
     mkdir -p /var/www/html /run/nginx /var/log/supervisor /etc/supervisor/conf.d && \
-    mkdir -p /var/lib/nginx/tmp /var/lib/nginx/logs && \
-    touch /var/log/php-fpm.log && \
-    chown -R www:www /var/www /run/nginx /var/log/supervisor /var/lib/nginx /var/log/php-fpm.log
+    mkdir -p /var/lib/nginx/tmp /var/lib/nginx/logs /var/log/nginx && \
+    touch /var/log/php-fpm.log /var/log/nginx/error.log /var/log/nginx/access.log && \
+    chown -R www:www /var/www /run/nginx /var/log/supervisor /var/lib/nginx /var/log/nginx /var/log/php-fpm.log
 
 # Set the working directory
 WORKDIR /var/www/html
@@ -129,6 +129,8 @@ http {
 EOF
 
 # PHP-FPM configuration
+RUN sed -i 's|^;\?error_log.*|error_log = /var/log/php-fpm.log|' /usr/local/etc/php-fpm.conf
+
 RUN { \
         echo '[www]'; \
         echo 'user = www'; \
@@ -167,8 +169,9 @@ else
     # Create pid directory
     mkdir -p /var/run/supervisor && chown www:www /var/run/supervisor
     # Fix nginx directories
-    mkdir -p /var/lib/nginx/tmp /var/lib/nginx/logs
-    chown -R www:www /var/lib/nginx
+    mkdir -p /var/lib/nginx/tmp /var/lib/nginx/logs /var/log/nginx
+    touch /var/log/nginx/error.log /var/log/nginx/access.log /var/log/php-fpm.log
+    chown -R www:www /var/lib/nginx /var/log/nginx /var/log/php-fpm.log
     # Fix PHP-FPM log permissions
     touch /proc/self/fd/2 2>/dev/null || true
 fi
