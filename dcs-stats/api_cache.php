@@ -26,7 +26,7 @@ function apiCachePrune($config = []) {
     }
 
     $markerFile = $dir . '/.last-prune';
-    if (is_file($markerFile) && (time() - filemtime($markerFile)) < 300) {
+    if (is_file($markerFile) && (time() - filemtime($markerFile)) < 7200) {
         return 0;
     }
     @file_put_contents($markerFile, (string)time(), LOCK_EX);
