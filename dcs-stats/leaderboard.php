@@ -85,6 +85,7 @@ include "nav.php"; ?>
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
     padding: 24px;
     margin: 30px 0;
+    overflow: hidden;
   }
 
   .leaderboard-chart-header {
@@ -129,6 +130,13 @@ include "nav.php"; ?>
   .leaderboard-chart-frame {
     position: relative;
     min-height: 360px;
+    overflow: hidden;
+    width: 100%;
+  }
+
+  .leaderboard-chart-frame canvas {
+    display: block;
+    max-width: 100%;
   }
 
   .leaderboard-page {
@@ -166,6 +174,21 @@ include "nav.php"; ?>
   @media (min-width: 1300px) {
     #leaderboardTable {
       min-width: 0;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .leaderboard-chart-panel {
+      padding: 16px;
+    }
+
+    .leaderboard-chart-header {
+      align-items: stretch;
+      flex-direction: column;
+    }
+
+    .leaderboard-chart-controls select {
+      width: 100%;
     }
   }
 </style>
@@ -484,8 +507,8 @@ function renderLeaderboardChart() {
 function drawLeaderboardCanvas(canvas, labels, values, metricLabel) {
   const frame = canvas.parentElement;
   const dpr = window.devicePixelRatio || 1;
-  const width = Math.max(320, Math.floor(frame.clientWidth));
-  const height = 360;
+  const width = Math.max(1, Math.floor(frame.clientWidth));
+  const height = width < 520 ? 320 : 360;
   canvas.width = width * dpr;
   canvas.height = height * dpr;
   canvas.style.width = `${width}px`;
@@ -495,19 +518,21 @@ function drawLeaderboardCanvas(canvas, labels, values, metricLabel) {
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.clearRect(0, 0, width, height);
 
-  const padding = { top: 32, right: 28, bottom: 84, left: 58 };
+  const padding = width < 520
+    ? { top: 32, right: 12, bottom: 74, left: 42 }
+    : { top: 32, right: 28, bottom: 84, left: 58 };
   const chartWidth = width - padding.left - padding.right;
   const chartHeight = height - padding.top - padding.bottom;
   const maxValue = Math.max(...values, 1);
   const stepCount = 4;
 
-  ctx.font = '600 14px Arial, sans-serif';
+  ctx.font = width < 520 ? '600 12px Arial, sans-serif' : '600 14px Arial, sans-serif';
   ctx.fillStyle = leaderboardChartTheme.chart_text_color;
   ctx.fillText(metricLabel, padding.left, 20);
 
   ctx.strokeStyle = hexToRgba(leaderboardChartTheme.chart_grid_color, 0.45);
   ctx.lineWidth = 1;
-  ctx.font = '12px Arial, sans-serif';
+  ctx.font = width < 520 ? '10px Arial, sans-serif' : '12px Arial, sans-serif';
   for (let i = 0; i <= stepCount; i++) {
     const ratio = i / stepCount;
     const y = padding.top + chartHeight - (chartHeight * ratio);
@@ -527,7 +552,7 @@ function drawLeaderboardCanvas(canvas, labels, values, metricLabel) {
     return { x, y, value };
   });
 
-  const barWidth = Math.max(18, Math.min(56, slotWidth * 0.58));
+  const barWidth = Math.max(8, Math.min(width < 520 ? 32 : 56, slotWidth * 0.58));
   points.forEach(point => {
     const barHeight = padding.top + chartHeight - point.y;
     const x = point.x - barWidth / 2;
@@ -537,14 +562,15 @@ function drawLeaderboardCanvas(canvas, labels, values, metricLabel) {
   });
 
   ctx.fillStyle = leaderboardChartTheme.chart_text_color;
-  ctx.font = '11px Arial, sans-serif';
+  ctx.font = width < 520 ? '10px Arial, sans-serif' : '11px Arial, sans-serif';
   labels.forEach((label, index) => {
     const x = padding.left + slotWidth * index + slotWidth / 2;
     ctx.save();
-    ctx.translate(x, height - 58);
-    ctx.rotate(-0.45);
+    ctx.translate(x, height - (width < 520 ? 46 : 58));
+    ctx.rotate(width < 520 ? -0.7 : -0.45);
     ctx.textAlign = 'right';
-    ctx.fillText(label.length > 20 ? `${label.slice(0, 18)}...` : label, 0, 0);
+    const maxLabelLength = width < 520 ? 12 : 20;
+    ctx.fillText(label.length > maxLabelLength ? `${label.slice(0, maxLabelLength - 2)}...` : label, 0, 0);
     ctx.restore();
   });
 }
@@ -573,6 +599,12 @@ function hexToRgba(hex, alpha) {
 
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('leaderboardChartMetric')?.addEventListener('change', renderLeaderboardChart);
+});
+
+let leaderboardChartResizeTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(leaderboardChartResizeTimer);
+  leaderboardChartResizeTimer = setTimeout(renderLeaderboardChart, 120);
 });
 
 function formatPlaytime(seconds) {

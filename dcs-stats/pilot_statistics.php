@@ -665,6 +665,39 @@ function formatTrapTime(value) {
     return date.toLocaleString();
 }
 
+function formatTrapDateTime(value) {
+    if (!value || value === '-') {
+        return { date: '-', time: '' };
+    }
+
+    const date = new Date(value);
+    if (!Number.isNaN(date.getTime())) {
+        return {
+            date: date.toLocaleDateString(),
+            time: date.toLocaleTimeString()
+        };
+    }
+
+    const raw = String(value).trim();
+    const commaParts = raw.split(',');
+    if (commaParts.length >= 2) {
+        return {
+            date: commaParts[0].trim(),
+            time: commaParts.slice(1).join(',').trim()
+        };
+    }
+
+    const isoParts = raw.split(/[T ]/);
+    if (isoParts.length >= 2) {
+        return {
+            date: isoParts[0].trim(),
+            time: isoParts.slice(1).join(' ').replace(/Z$/, '').trim()
+        };
+    }
+
+    return { date: raw, time: '' };
+}
+
 async function loadCarrierTraps(player) {
     if (!siteFeatures.pilot_carrier_traps || !window.dcsAPI?.getPilotTraps) return;
 
@@ -700,16 +733,22 @@ async function loadCarrierTraps(player) {
             createStatItem(i18n.trapLatestLocation, escapeHtml(String(latest.location)), 'trap-latest-location')
         ].join('');
 
-        tableBody.innerHTML = normalised.map(trap => `
-            <tr>
-                <td>${escapeHtml(String(trap.grade))}</td>
-                <td>${escapeHtml(String(trap.points))}</td>
-                <td>${escapeHtml(String(trap.wire))}</td>
-                <td>${escapeHtml(String(trap.aircraft))}</td>
-                <td>${escapeHtml(String(trap.location))}</td>
-                <td>${escapeHtml(formatTrapTime(trap.time))}</td>
-            </tr>
-        `).join('');
+        tableBody.innerHTML = normalised.map(trap => {
+            const trapDateTime = formatTrapDateTime(trap.time);
+            return `
+                <tr>
+                    <td>${escapeHtml(String(trap.grade))}</td>
+                    <td>${escapeHtml(String(trap.points))}</td>
+                    <td>${escapeHtml(String(trap.wire))}</td>
+                    <td>${escapeHtml(String(trap.aircraft))}</td>
+                    <td>${escapeHtml(String(trap.location))}</td>
+                    <td class="trap-date-time-cell">
+                        <span class="trap-date">${escapeHtml(trapDateTime.date)}</span>
+                        ${trapDateTime.time ? `<span class="trap-time">${escapeHtml(trapDateTime.time)}</span>` : ''}
+                    </td>
+                </tr>
+            `;
+        }).join('');
         tableWrap.style.display = 'block';
     } catch (error) {
         console.warn('Could not load carrier trap data:', error);
@@ -1308,6 +1347,25 @@ document.addEventListener('DOMContentLoaded', function() {
     color: var(--card_heading_color, #4CAF50);
     font-size: 0.85rem;
     text-transform: uppercase;
+}
+
+.trap-date-time-cell {
+    min-width: 190px;
+    white-space: nowrap;
+}
+
+.trap-date,
+.trap-time {
+    display: inline-block;
+    line-height: 1.35;
+    white-space: nowrap;
+}
+
+.trap-time {
+    border-left: 1px solid color-mix(in srgb, var(--border_color, #444) 70%, transparent);
+    color: var(--card_muted_text_color, #b0b0b0);
+    margin-left: 14px;
+    padding-left: 14px;
 }
 
 /* Enhanced tooltip styling */

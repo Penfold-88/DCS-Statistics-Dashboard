@@ -103,6 +103,7 @@ V1.2 is a major dashboard, admin, theme, update, language, security, and perform
 - 🚫 Marked unsupported sortie-related per-pilot fields as not implemented where needed.
 - 📱 Improved mobile leaderboard cards and fixed old hardcoded colours.
 - 📐 Expanded table layout to reduce awkward horizontal scrolling.
+- 📊 Fixed leaderboard chart overflow when the screen is narrowed.
 - 🌍 Added translation coverage for leaderboard text.
 
 ---
@@ -115,6 +116,7 @@ V1.2 is a major dashboard, admin, theme, update, language, security, and perform
 - 🛬 Added **Carrier Landings / LSO** data from the `/traps` API.
 - 📋 Added a dedicated carrier landing card under the existing pilot data.
 - 🧾 Carrier landing table includes grade, points, wire, aircraft, location, and time.
+- 🕒 Separated carrier landing date and time more clearly without increasing row height.
 - 📐 Widened the pilot statistics layout so charts and LSO tables have more room on desktop.
 - 🌍 Added translation coverage for pilot search, result selection, layered pilot views, and chart labels.
 
