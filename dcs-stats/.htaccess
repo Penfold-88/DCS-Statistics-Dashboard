@@ -19,10 +19,10 @@
     Require all granted
 </FilesMatch>
 
-# Prevent direct access to data directories
+# Prevent direct access to sensitive runtime directories
 <IfModule mod_rewrite.c>
     RewriteEngine On
-    RewriteRule ^(data|admin/data|admin/theme_backups)/.*$ - [F,L]
+    RewriteRule ^(data|backups|site-config/data|site-config/theme_backups|admin/data|admin/theme_backups)/.*$ - [F,L]
 </IfModule>
 
 # Custom error pages (optional)

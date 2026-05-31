@@ -265,6 +265,7 @@ V1.2 is a major dashboard, admin, theme, update, language, security, and perform
 - 🧼 Removed SVG logo upload support to avoid active-content risk.
 - 🧱 Reduced unsafe file permissions and removed world-writable fallbacks.
 - 🗃️ Improved backup and restore safety.
+- 🚫 Blocked direct web access to generated backup archives.
 - 🧾 Added validation for export date inputs.
 - 🚫 Added stronger direct access protection for sensitive data directories.
 - 🧪 Added demo mode restrictions for public showcase installs.
@@ -310,6 +311,7 @@ V1.2 is a major dashboard, admin, theme, update, language, security, and perform
 
 - 🧭 Renamed **CAG Bridge** to **Admin Panel**.
 - 🃏 Added admin dashboard overview cards.
+- 🔄 Admin dashboard update card now highlights when a GitHub update is available.
 - 📉 Made admin homepage panels cleaner and smaller.
 - 🪵 Improved bridge/admin log layout.
 - ⚡ Reduced admin homepage load overhead.

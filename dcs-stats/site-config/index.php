@@ -225,6 +225,24 @@ $pageTitle = dcs_t('admin.dashboard.title');
             background: rgba(33, 150, 243, 0.18);
             color: #78c3ff;
         }
+        .overview-card.update-ready {
+            border-color: rgba(33, 150, 243, 0.62);
+            background: rgba(33, 150, 243, 0.09);
+        }
+        .overview-card.update-ready .overview-icon {
+            background: rgba(33, 150, 243, 0.18);
+            color: #78c3ff;
+        }
+        .overview-update-action {
+            align-items: center;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .overview-update-action .btn {
+            padding: 5px 10px;
+        }
         .quick-action-grid {
             display: grid;
             gap: 10px;
@@ -332,20 +350,24 @@ $pageTitle = dcs_t('admin.dashboard.title');
                         <span class="status-pill info"><?= e(dcs_t('admin.status.customisable')) ?></span>
                     </div>
 
-                    <div class="overview-card">
+                    <div class="overview-card" id="dashboard-update-card" data-can-manage-updates="<?= hasPermission('manage_updates') ? '1' : '0' ?>">
                         <div>
                             <div class="overview-card-header">
                                 <div class="overview-icon">🔄</div>
                                 <div>
-                                    <h2 class="overview-title"><?= e(dcs_t('admin.dashboard.update_status')) ?></h2>
-                                    <div class="overview-subtitle"><?= e(dcs_t('admin.dashboard.update_status_subtitle')) ?></div>
+                                    <h2 class="overview-title" id="dashboard-update-title"><?= e(dcs_t('admin.dashboard.update_status')) ?></h2>
+                                    <div class="overview-subtitle" id="dashboard-update-subtitle"><?= e(dcs_t('admin.dashboard.update_status_subtitle')) ?></div>
                                 </div>
                             </div>
-                            <div class="overview-value"><?= e($installedBuild) ?></div>
-                            <div class="overview-meta"><?= e($updateChannel['channel']) ?> <?= e(dcs_t('admin.dashboard.channel')) ?>: <?= e($updateChannel['branch']) ?></div>
-                            <div class="overview-meta"><?= e(dcs_t('admin.dashboard.commit')) ?>: <?= e($installedCommit) ?></div>
+                            <div class="overview-value" id="dashboard-update-build"><?= e($installedBuild) ?></div>
+                            <div class="overview-meta" id="dashboard-update-channel"><?= e($updateChannel['channel']) ?> <?= e(dcs_t('admin.dashboard.channel')) ?>: <?= e($updateChannel['branch']) ?></div>
+                            <div class="overview-meta" id="dashboard-update-commit"><?= e(dcs_t('admin.dashboard.commit')) ?>: <?= e($installedCommit) ?></div>
+                            <div class="overview-meta" id="dashboard-update-date" style="display: none;"></div>
+                            <div class="overview-update-action" id="dashboard-update-action" style="display: none;">
+                                <a href="update.php" class="btn btn-primary btn-small"><?= e(dcs_t('admin.update.update_now')) ?></a>
+                            </div>
                         </div>
-                        <span class="status-pill <?= $updateChannel['is_dev'] ? 'warn' : 'good' ?>"><?= $updateChannel['is_dev'] ? 'Dev' : 'Stable' ?></span>
+                        <span class="status-pill <?= $updateChannel['is_dev'] ? 'warn' : 'good' ?>" id="dashboard-update-pill"><?= $updateChannel['is_dev'] ? 'Dev' : 'Stable' ?></span>
                     </div>
 
                     <div class="overview-card">
@@ -487,6 +509,87 @@ $pageTitle = dcs_t('admin.dashboard.title');
     </div>
     
     <script>
+        const dashboardUpdateText = <?= json_encode([
+            'checking' => dcs_t('admin.update.checking_updates'),
+            'updateReady' => dcs_t('admin.update.update_ready'),
+            'upToDate' => dcs_t('admin.update.up_to_date'),
+            'upToDateDetail' => dcs_t('admin.update.up_to_date_detail'),
+            'githubFailed' => dcs_t('admin.update.github_check_failed'),
+            'latestCodeAvailable' => dcs_t('admin.update.latest_code_available'),
+            'latestCommit' => dcs_t('admin.update.latest_commit'),
+            'latestDate' => dcs_t('admin.update.latest_date'),
+            'commit' => dcs_t('admin.dashboard.commit'),
+            'unavailable' => dcs_t('admin.update.unavailable')
+        ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
+
+        function parseDashboardUpdateValue(text, label) {
+            const escapedLabel = label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const pattern = new RegExp(escapedLabel + ':\\s*([^\\n\\r]+)', 'i');
+            const match = text.match(pattern);
+            return match ? match[1].trim() : '';
+        }
+
+        function checkDashboardUpdateStatus() {
+            const card = document.getElementById('dashboard-update-card');
+            if (!card) return;
+
+            const title = document.getElementById('dashboard-update-title');
+            const subtitle = document.getElementById('dashboard-update-subtitle');
+            const build = document.getElementById('dashboard-update-build');
+            const commit = document.getElementById('dashboard-update-commit');
+            const date = document.getElementById('dashboard-update-date');
+            const pill = document.getElementById('dashboard-update-pill');
+            const action = document.getElementById('dashboard-update-action');
+            const canManageUpdates = card.dataset.canManageUpdates === '1';
+
+            fetch('api/check_updates.php', { cache: 'no-store' })
+                .then(response => response.text())
+                .then(data => {
+                    const latestCommit = parseDashboardUpdateValue(data, dashboardUpdateText.latestCommit);
+                    const latestDate = parseDashboardUpdateValue(data, dashboardUpdateText.latestDate);
+
+                    if (data.includes('✅ Update Available!')) {
+                        card.classList.add('update-ready');
+                        title.textContent = dashboardUpdateText.updateReady;
+                        subtitle.textContent = dashboardUpdateText.latestCodeAvailable;
+                        if (latestCommit) {
+                            commit.textContent = `${dashboardUpdateText.latestCommit}: ${latestCommit}`;
+                        }
+                        if (latestDate) {
+                            date.style.display = '';
+                            date.textContent = `${dashboardUpdateText.latestDate}: ${latestDate}`;
+                        }
+                        pill.className = 'status-pill info';
+                        pill.textContent = dashboardUpdateText.updateReady;
+                        if (canManageUpdates) {
+                            action.style.display = '';
+                        }
+                    } else if (data.includes('✅ Already up to date')) {
+                        title.textContent = dashboardUpdateText.upToDate;
+                        subtitle.textContent = dashboardUpdateText.upToDateDetail;
+                        if (latestCommit) {
+                            commit.textContent = `${dashboardUpdateText.latestCommit}: ${latestCommit}`;
+                        }
+                        if (latestDate) {
+                            date.style.display = '';
+                            date.textContent = `${dashboardUpdateText.latestDate}: ${latestDate}`;
+                        }
+                    } else if (data.includes('Could not fetch branch information') || data.includes('Could not check')) {
+                        title.textContent = dashboardUpdateText.githubFailed;
+                        pill.className = 'status-pill warn';
+                        pill.textContent = dashboardUpdateText.unavailable;
+                    }
+                })
+                .catch(() => {
+                    if (pill) {
+                        pill.className = 'status-pill warn';
+                        pill.textContent = dashboardUpdateText.unavailable;
+                    }
+                });
+        }
+
+        checkDashboardUpdateStatus();
+
         // Auto-refresh activity every 30 seconds
         setInterval(() => {
             // In a real implementation, this would fetch new activity via AJAX

@@ -40,7 +40,7 @@ RUN mkdir -p /var/www/html/site-config/data \
     /var/www/html/backups \
     && chmod 700 /var/www/html/site-config/data \
     && chmod 755 /var/www/html/data \
-    && chmod 755 /var/www/html/backups \
+    && chmod 700 /var/www/html/backups \
     && chown -R www:www /var/www/html/site-config/data \
     && chown -R www:www /var/www/html/data \
     && chown -R www:www /var/www/html/backups
@@ -91,8 +91,8 @@ http {
             deny all;
         }
         
-        # Deny access to data directories
-        location ~ ^/(data|site-config/data)/ {
+        # Deny access to sensitive runtime directories
+        location ~ ^/(data|backups|site-config/data|site-config/theme_backups)/ {
             deny all;
         }
 
@@ -204,7 +204,8 @@ EOL
 # Ensure directories exist (in case of bind mount)
 mkdir -p /var/www/html/site-config/data /var/www/html/data /var/www/html/backups
 chmod 700 /var/www/html/site-config/data
-chmod 755 /var/www/html/data /var/www/html/backups
+chmod 755 /var/www/html/data
+chmod 700 /var/www/html/backups
 
 # Set ownership based on runtime user
 if [ "$RUNTIME_USER" = "www" ]; then
