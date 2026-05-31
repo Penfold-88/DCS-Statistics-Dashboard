@@ -135,7 +135,16 @@ function sendInstallCheckinPayload($endpoint, $payload) {
     return $result !== false;
 }
 
-function runInstallCheckinIfDue($versionInfo = [], $updateChannel = []) {
+function getInstallCheckinPayloadKey($payload) {
+    return implode('|', [
+        (string)($payload['version'] ?? 'unknown'),
+        (string)($payload['branch'] ?? 'unknown'),
+        (string)($payload['channel'] ?? 'unknown'),
+        (string)($payload['commit_sha'] ?? '')
+    ]);
+}
+
+function runInstallCheckinIfDue($versionInfo = [], $updateChannel = [], $options = []) {
     $endpoint = getInstallCheckinEndpoint();
     if ($endpoint === '') {
         return ['status' => 'not_configured'];
@@ -148,15 +157,6 @@ function runInstallCheckinIfDue($versionInfo = [], $updateChannel = []) {
     $today = gmdate('Y-m-d');
     $state = loadInstallCheckinState();
 
-    if (($state['last_success_day'] ?? '') === $today) {
-        return ['status' => 'already_sent_today'];
-    }
-
-    $lastAttemptTime = strtotime((string)($state['last_attempt_at'] ?? ''));
-    if ($lastAttemptTime && time() - $lastAttemptTime < 1800) {
-        return ['status' => 'recent_attempt_wait'];
-    }
-
     $payload = [
         'project' => 'dcs-statistics-dashboard',
         'version' => (string)($versionInfo['version'] ?? (defined('ADMIN_PANEL_VERSION') ? ADMIN_PANEL_VERSION : 'unknown')),
@@ -164,13 +164,33 @@ function runInstallCheckinIfDue($versionInfo = [], $updateChannel = []) {
         'channel' => (string)($updateChannel['channel'] ?? 'unknown'),
         'day' => $today
     ];
+    if (!empty($versionInfo['commit_sha'])) {
+        $payload['commit_sha'] = (string)$versionInfo['commit_sha'];
+    }
+    if (!empty($options['event'])) {
+        $payload['event'] = preg_replace('/[^a-zA-Z0-9_-]/', '', (string)$options['event']) ?: 'checkin';
+    }
+
+    $payloadKey = getInstallCheckinPayloadKey($payload);
+    $force = !empty($options['force']);
+
+    if (!$force && ($state['last_success_day'] ?? '') === $today && ($state['last_success_key'] ?? '') === $payloadKey) {
+        return ['status' => 'already_sent_today'];
+    }
+
+    $lastAttemptTime = strtotime((string)($state['last_attempt_at'] ?? ''));
+    if (!$force && $lastAttemptTime && time() - $lastAttemptTime < 1800) {
+        return ['status' => 'recent_attempt_wait'];
+    }
 
     $state['last_attempt_day'] = $today;
     $state['last_attempt_at'] = gmdate('c');
+    $state['last_attempt_key'] = $payloadKey;
 
     if (sendInstallCheckinPayload($endpoint, $payload)) {
         $state['last_success_day'] = $today;
         $state['last_success_at'] = gmdate('c');
+        $state['last_success_key'] = $payloadKey;
         $state['last_payload'] = $payload;
         unset($state['install_id']);
         saveInstallCheckinState($state);

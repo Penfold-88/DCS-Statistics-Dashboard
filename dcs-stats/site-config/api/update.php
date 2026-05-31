@@ -403,6 +403,17 @@ updateVersionMetadata(
     $remoteCommitDate
 );
 
+$checkinFile = dirname(__DIR__, 2) . '/install_checkin.php';
+if (file_exists($checkinFile)) {
+    require_once $checkinFile;
+    $checkinResult = runInstallCheckinIfDue(
+        getCurrentVersionInfo(),
+        getUpdateChannelConfig(),
+        ['event' => 'update', 'force' => true]
+    );
+    logMessage('Install check-in after update: ' . ($checkinResult['status'] ?? 'unknown'));
+}
+
 // Update version in config file if we have a new version number
 $newVersion = $specificVersion ?? null;
 if ($newVersion && $newVersion !== $currentVersion) {
