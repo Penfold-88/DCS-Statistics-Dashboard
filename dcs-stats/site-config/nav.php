@@ -65,6 +65,12 @@ document.addEventListener('DOMContentLoaded', function() {
     <nav class="admin-nav">
         <ul>
             <li>
+                <a href="../index.php">
+                    <span class="nav-icon">🏠</span>
+                    <?= e(dcs_t('admin.nav.go_to_website')) ?>
+                </a>
+            </li>
+            <li>
                 <a href="index.php" <?= basename($_SERVER['PHP_SELF']) === 'index.php' ? 'class="active"' : '' ?>>
                     <span class="nav-icon">📊</span>
                     <?= e(dcs_t('admin.nav.dashboard')) ?>

@@ -315,6 +315,7 @@ V1.2 is a major dashboard, admin, theme, update, language, security, and perform
 - 🧭 Renamed **CAG Bridge** to **Admin Panel**.
 - 🃏 Added admin dashboard overview cards.
 - 🔄 Admin dashboard update card now highlights when a GitHub update is available.
+- 🏠 Added a quick **Go To Website** shortcut at the top of the admin navigation.
 - 📉 Made admin homepage panels cleaner and smaller.
 - 🪵 Improved bridge/admin log layout.
 - ⚡ Reduced admin homepage load overhead.

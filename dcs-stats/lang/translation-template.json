@@ -325,6 +325,7 @@
     "admin.nav.admins": "Admins",
     "admin.nav.api_settings": "API Settings",
     "admin.nav.custom_links": "Custom Links",
+    "admin.nav.go_to_website": "Go To Website",
     "admin.nav.dashboard": "Dashboard",
     "admin.nav.discord_link": "Discord Link",
     "admin.nav.export_data": "Export Data",

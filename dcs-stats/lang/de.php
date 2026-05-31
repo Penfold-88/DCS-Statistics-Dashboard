@@ -230,6 +230,7 @@ return [
     'admin.common.logout' => 'Abmelden',
     'admin.common.note' => 'Hinweis',
     'admin.common.view_all' => 'Alle anzeigen',
+    'admin.nav.go_to_website' => 'Zur Website',
     'admin.nav.dashboard' => 'Dashboard',
     'admin.nav.activity_logs' => 'Aktivitätsprotokolle',
     'admin.nav.export_data' => 'Daten exportieren',

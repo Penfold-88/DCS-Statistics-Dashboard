@@ -158,6 +158,7 @@ $manual = [
     'servers.extensions' => 'Estensioni',
 
 
+    'admin.nav.go_to_website' => 'Vai al sito',
     'admin.nav.dashboard' => 'Dashboard',
     'admin.nav.settings' => 'Impostazioni',
     'admin.nav.admins' => 'Amministratori',
