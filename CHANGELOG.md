@@ -290,6 +290,7 @@ V1.2 is a major dashboard, admin, theme, update, language, security, and perform
 - 🧭 Server stats, attendance, and top pilots are fetched more efficiently.
 - 🧰 Simplified admin dashboard stats to avoid unnecessary data reads.
 - 🪵 Admin logs now prune to a maximum retained count.
+- 🧹 API cache now automatically prunes expired files and caps total cache file growth.
 
 ---
 

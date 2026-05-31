@@ -14,6 +14,67 @@ function apiCacheDirectory() {
     return $dir;
 }
 
+function apiCacheMaxFiles($config = []) {
+    $maxFiles = isset($config['cache_max_files']) ? (int)$config['cache_max_files'] : 500;
+    return max(50, $maxFiles);
+}
+
+function apiCachePrune($config = []) {
+    $dir = apiCacheDirectory();
+    if (!is_dir($dir)) {
+        return 0;
+    }
+
+    $markerFile = $dir . '/.last-prune';
+    if (is_file($markerFile) && (time() - filemtime($markerFile)) < 300) {
+        return 0;
+    }
+    @file_put_contents($markerFile, (string)time(), LOCK_EX);
+    @chmod($markerFile, 0600);
+
+    $files = glob($dir . '/*.json') ?: [];
+    if (empty($files)) {
+        return 0;
+    }
+
+    $maxAge = max(apiCacheTtl($config), 900) + 300;
+    $now = time();
+    $removed = 0;
+    $remaining = [];
+
+    foreach ($files as $file) {
+        if (!is_file($file)) {
+            continue;
+        }
+
+        $fileAge = $now - (int)filemtime($file);
+        if ($fileAge > $maxAge) {
+            if (@unlink($file)) {
+                $removed++;
+            }
+            continue;
+        }
+
+        $remaining[] = $file;
+    }
+
+    $maxFiles = apiCacheMaxFiles($config);
+    if (count($remaining) > $maxFiles) {
+        usort($remaining, function($a, $b) {
+            return filemtime($a) <=> filemtime($b);
+        });
+
+        $deleteCount = count($remaining) - $maxFiles;
+        for ($i = 0; $i < $deleteCount; $i++) {
+            if (@unlink($remaining[$i])) {
+                $removed++;
+            }
+        }
+    }
+
+    return $removed;
+}
+
 function apiCacheNormalisePath($endpoint) {
     $parts = parse_url((string)$endpoint);
     return $parts['path'] ?? (string)$endpoint;
@@ -97,6 +158,8 @@ function apiCacheRead($method, $baseUrl, $endpoint, $data, $config) {
         return null;
     }
 
+    apiCachePrune($config);
+
     $ttl = apiCacheTtlForEndpoint($endpoint, $config);
     $file = apiCacheFile(apiCacheKey($method, $baseUrl, $endpoint, $data));
     if (!is_file($file) || (time() - filemtime($file)) > $ttl) {
@@ -126,6 +189,7 @@ function apiCacheWrite($method, $baseUrl, $endpoint, $data, $config, $body, $htt
     $saved = @file_put_contents($file, json_encode($payload), LOCK_EX);
     if ($saved !== false) {
         @chmod($file, 0600);
+        apiCachePrune($config);
         return true;
     }
 
