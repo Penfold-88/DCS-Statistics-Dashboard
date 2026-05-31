@@ -1,6 +1,8 @@
 {
-    "version": "V0.0.04",
+    "version": "V1.2",
     "branch": "main",
-    "updated_at": "2026-05-20 15:56:40",
-    "updated_by": "installer"
+    "commit_sha": null,
+    "commit_date": null,
+    "updated_at": "2026-05-31 00:00:00",
+    "updated_by": "manual-download"
 }

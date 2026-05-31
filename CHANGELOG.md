@@ -236,6 +236,7 @@ V1.2 is a major dashboard, admin, theme, update, language, security, and perform
   - Stable uses `master`
   - Dev uses configured dev branch when `.dev` exists
 - 🧾 Improved installed build/version display.
+- 🧭 Manual downloads now show as `V1.2 (Manual Download)` until the updater records an installed commit.
 - 🛟 Added support info copy button for easier issue reporting.
 - 💾 Added automatic backup before updates.
 - 🧱 Improved update preservation rules for:

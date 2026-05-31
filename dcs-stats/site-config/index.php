@@ -48,7 +48,7 @@ $apiHost = $apiConfig['api_host'] ?? preg_replace('#^https?://#', '', $apiConfig
 $enabledEndpoints = isset($apiConfig['enabled_endpoints']) && is_array($apiConfig['enabled_endpoints'])
     ? count($apiConfig['enabled_endpoints'])
     : 0;
-$installedBuild = $versionInfo['version'] ?? (defined('ADMIN_PANEL_VERSION') ? ADMIN_PANEL_VERSION : 'Unknown');
+$installedBuild = getInstalledBuildLabel($versionInfo);
 $installedCommit = !empty($versionInfo['commit_sha']) ? substr($versionInfo['commit_sha'], 0, 12) : 'Unknown';
 $backupDataDir = __DIR__ . '/data';
 $dataFiles = is_dir($backupDataDir) ? glob($backupDataDir . '/*.json') : [];

@@ -49,6 +49,11 @@ function getCurrentVersionInfo() {
             $info['updated_by'] = $meta['updated_by'] ?? null;
         }
     }
+
+    if (empty($info['commit_sha']) && defined('ADMIN_PANEL_VERSION')) {
+        $info['version'] = ADMIN_PANEL_VERSION;
+        $info['manual_download'] = true;
+    }
     
     // Override with Dev if in development environment
     if ($isDev) {
@@ -57,6 +62,17 @@ function getCurrentVersionInfo() {
     }
     
     return $info;
+}
+
+function getInstalledBuildLabel($versionInfo = null) {
+    $versionInfo = is_array($versionInfo) ? $versionInfo : getCurrentVersionInfo();
+    $version = $versionInfo['version'] ?? (defined('ADMIN_PANEL_VERSION') ? ADMIN_PANEL_VERSION : 'Unknown');
+
+    if (!empty($versionInfo['manual_download']) || empty($versionInfo['commit_sha'])) {
+        return $version . ' (Manual Download)';
+    }
+
+    return $version;
 }
 
 function updateVersionMetadata($version = null, $branch = null, $username = null, $commitSha = null, $commitDate = null) {

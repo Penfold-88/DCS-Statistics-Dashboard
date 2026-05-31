@@ -185,10 +185,7 @@ $pageTitle = dcs_t('admin.update.title');
                             $dashboardVersion = defined('ADMIN_PANEL_VERSION') ? ADMIN_PANEL_VERSION : 'Unknown';
                             $currentBranch = $versionInfo['branch'];
                             $isDev = isDevMode();
-                            $installedBuild = $versionInfo['version'] ?? 'Unknown';
-                            if (empty($versionInfo['commit_sha']) && preg_match('/^V?\d+\.\d+\.\d+/i', $installedBuild)) {
-                                $installedBuild .= ' (legacy - refreshes after next update)';
-                            }
+                            $installedBuild = getInstalledBuildLabel($versionInfo);
                             $installedCommit = !empty($versionInfo['commit_sha']) ? substr($versionInfo['commit_sha'], 0, 12) : 'Unknown';
                             $installedDate = !empty($versionInfo['commit_date']) ? date('Y-m-d H:i:s', strtotime($versionInfo['commit_date'])) : 'Unknown';
                             $lastUpdated = $versionInfo['updated_at'] ?? 'Unknown';

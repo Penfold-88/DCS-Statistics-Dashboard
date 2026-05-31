@@ -17,10 +17,11 @@ require_once dirname(__DIR__) . '/version_tracker.php';
 $versionInfo = getCurrentVersionInfo();
 $currentBranch = $versionInfo['branch'];
 $currentVersion = $versionInfo['version'] ?? (defined('ADMIN_PANEL_VERSION') ? ADMIN_PANEL_VERSION : '1.0.0');
+$installedBuild = getInstalledBuildLabel($versionInfo);
 
 echo "Current Version: $currentVersion\n";
 if (!empty($versionInfo['version'])) {
-    echo "Installed Build: {$versionInfo['version']}\n";
+    echo "Installed Build: {$installedBuild}\n";
 }
 if (!empty($versionInfo['commit_sha'])) {
     echo "Installed Commit: " . substr($versionInfo['commit_sha'], 0, 12) . "\n";
