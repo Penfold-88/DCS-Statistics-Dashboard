@@ -26,6 +26,95 @@ function normalizeRestorePath($path) {
     return str_replace('\\', '/', (string)$path);
 }
 
+function rrmdir($dir) {
+    if (!is_dir($dir)) return;
+    $items = scandir($dir);
+    foreach ($items as $item) {
+        if ($item === '.' || $item === '..') continue;
+        $path = $dir . '/' . $item;
+        if (is_dir($path)) {
+            rrmdir($path);
+        } else {
+            unlink($path);
+        }
+    }
+    rmdir($dir);
+}
+
+function ensureRestoreDir($dir) {
+    if (is_dir($dir)) {
+        return true;
+    }
+
+    return mkdir($dir, 0755, true);
+}
+
+function isSafeZipPath($path) {
+    $path = normalizeRestorePath($path);
+    return $path !== '' &&
+        $path[0] !== '/' &&
+        strpos($path, '../') === false &&
+        strpos($path, '/..') === false &&
+        strpos($path, ':') === false;
+}
+
+function validateBackupZip($zip) {
+    for ($i = 0; $i < $zip->numFiles; $i++) {
+        $name = $zip->getNameIndex($i);
+        if (!isSafeZipPath($name)) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+function preserveRestorePath($relPath, $preserve) {
+    $relPath = normalizeRestorePath($relPath);
+    foreach ($preserve as $p) {
+        $p = normalizeRestorePath($p);
+        if ($relPath === $p || strpos($relPath, $p . '/') === 0) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+function backupTargetBeforeRestore($targetPath, $relPath, $rollbackDir, &$changedFiles) {
+    if (isset($changedFiles[$relPath])) {
+        return true;
+    }
+
+    $rollbackPath = $rollbackDir . '/' . $relPath;
+    $changedFiles[$relPath] = [
+        'target' => $targetPath,
+        'rollback' => $rollbackPath,
+        'existed' => file_exists($targetPath)
+    ];
+
+    if (!file_exists($targetPath)) {
+        return true;
+    }
+
+    if (!ensureRestoreDir(dirname($rollbackPath))) {
+        return false;
+    }
+
+    return copy($targetPath, $rollbackPath);
+}
+
+function rollbackRestoreChanges($changedFiles) {
+    foreach (array_reverse($changedFiles) as $change) {
+        if ($change['existed']) {
+            ensureRestoreDir(dirname($change['target']));
+            copy($change['rollback'], $change['target']);
+        } elseif (file_exists($change['target'])) {
+            unlink($change['target']);
+        }
+    }
+}
+
 function createPreRestoreBackup($rootPath) {
     $backupDir = $rootPath . '/backups';
     if (!is_dir($backupDir) && !mkdir($backupDir, 0755, true)) {
@@ -85,6 +174,8 @@ if (!preg_match('/^backup-\d{8}-\d{6}(?:-[A-Za-z0-9_.-]+-[A-Za-z0-9_.-]+)?\.zip$
 
 $rootPath = dirname(__DIR__, 2);
 $backupFile = $rootPath . '/backups/' . $filename;
+$restoreDir = $rootPath . '/RESTORE_TEMP';
+$rollbackDir = $rootPath . '/RESTORE_ROLLBACK';
 
 if (!file_exists($backupFile)) {
     logMessage('Error: Backup file not found');
@@ -99,9 +190,11 @@ if (!createPreRestoreBackup($rootPath)) {
 }
 
 // Create restore directory
-$restoreDir = $rootPath . '/RESTORE_TEMP';
-if (!is_dir($restoreDir)) {
-    mkdir($restoreDir, 0755, true);
+rrmdir($restoreDir);
+rrmdir($rollbackDir);
+if (!ensureRestoreDir($restoreDir) || !ensureRestoreDir($rollbackDir)) {
+    logMessage('Error: Could not create restore workspace');
+    exit;
 }
 
 // Extract backup
@@ -111,8 +204,22 @@ if ($zip->open($backupFile) !== TRUE) {
     exit;
 }
 
+if (!validateBackupZip($zip)) {
+    $zip->close();
+    rrmdir($restoreDir);
+    rrmdir($rollbackDir);
+    logMessage('Error: Backup contains unsafe file paths');
+    exit;
+}
+
 logMessage('Extracting backup...');
-$zip->extractTo($restoreDir);
+if (!$zip->extractTo($restoreDir)) {
+    $zip->close();
+    rrmdir($restoreDir);
+    rrmdir($rollbackDir);
+    logMessage('Error: Failed to extract backup');
+    exit;
+}
 $zip->close();
 
 // Files/directories to preserve during restore
@@ -126,63 +233,64 @@ $preserve = [
 
 // Restore files
 logMessage('Restoring files...');
-$files = new RecursiveIteratorIterator(
+$iterator = new RecursiveIteratorIterator(
     new RecursiveDirectoryIterator($restoreDir, RecursiveDirectoryIterator::SKIP_DOTS),
     RecursiveIteratorIterator::SELF_FIRST
 );
+$changedFiles = [];
+$restoredFiles = 0;
 
-foreach ($files as $file) {
-    $filePath = $file->getRealPath();
-    $relPath = substr($filePath, strlen($restoreDir) + 1);
-    $targetPath = $rootPath . '/' . $relPath;
-    
-    // Skip preserved directories
-    $skip = false;
-    foreach ($preserve as $p) {
-        if ($relPath === $p || strpos($relPath, $p . '/') === 0) {
-            $skip = true;
-            break;
+try {
+    foreach ($iterator as $file) {
+        $filePath = $file->getRealPath();
+        $relPath = normalizeRestorePath(substr($filePath, strlen($restoreDir) + 1));
+        $targetPath = $rootPath . '/' . $relPath;
+
+        if (preserveRestorePath($relPath, $preserve)) {
+            continue;
         }
-    }
-    
-    if ($skip) {
-        continue;
-    }
-    
-    if ($file->isDir()) {
-        if (!is_dir($targetPath)) {
-            mkdir($targetPath, 0755, true);
+
+        if ($file->isDir()) {
+            if (!ensureRestoreDir($targetPath)) {
+                throw new RuntimeException("Failed to create directory: $relPath");
+            }
+            continue;
         }
-    } else {
-        if (!is_dir(dirname($targetPath))) {
-            mkdir(dirname($targetPath), 0755, true);
+
+        if (!ensureRestoreDir(dirname($targetPath))) {
+            throw new RuntimeException("Failed to create parent directory: $relPath");
         }
-        copy($filePath, $targetPath);
+
+        if (!backupTargetBeforeRestore($targetPath, $relPath, $rollbackDir, $changedFiles)) {
+            throw new RuntimeException("Failed to stage rollback copy: $relPath");
+        }
+
+        if (!copy($filePath, $targetPath)) {
+            throw new RuntimeException("Failed to restore file: $relPath");
+        }
+
+        $restoredFiles++;
         logMessage("Restored: $relPath");
     }
+} catch (Throwable $e) {
+    logMessage('Error: ' . $e->getMessage());
+    logMessage('Rolling back changed files...');
+    rollbackRestoreChanges($changedFiles);
+    rrmdir($restoreDir);
+    rrmdir($rollbackDir);
+    logMessage('Restore failed. Live files have been rolled back where changes were made.');
+    exit;
 }
 
 // Clean up
 logMessage('Cleaning up...');
-function rrmdir($dir) {
-    if (!is_dir($dir)) return;
-    $items = scandir($dir);
-    foreach ($items as $item) {
-        if ($item === '.' || $item === '..') continue;
-        $path = $dir . '/' . $item;
-        if (is_dir($path)) {
-            rrmdir($path);
-        } else {
-            unlink($path);
-        }
-    }
-    rmdir($dir);
-}
 rrmdir($restoreDir);
+rrmdir($rollbackDir);
 
 // Log the action
 logAdminAction('BACKUP_RESTORE', [
     'backup' => $filename,
+    'restored_files' => $restoredFiles,
     'admin' => getCurrentAdmin()['username']
 ]);
 

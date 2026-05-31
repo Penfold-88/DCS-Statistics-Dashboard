@@ -266,6 +266,7 @@ V1.2 is a major dashboard, admin, theme, update, language, security, and perform
 - 🧼 Removed SVG logo upload support to avoid active-content risk.
 - 🧱 Reduced unsafe file permissions and removed world-writable fallbacks.
 - 🗃️ Improved backup and restore safety.
+- ♻️ Added rollback protection if a backup restore fails part-way through.
 - 🚫 Blocked direct web access to generated backup archives.
 - 🧾 Added validation for export date inputs.
 - 🚫 Added stronger direct access protection for sensitive data directories.
