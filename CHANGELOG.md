@@ -115,6 +115,7 @@ V1.2 is a major dashboard, admin, theme, update, language, security, and perform
 - 🛬 Added **Carrier Landings / LSO** data from the `/traps` API.
 - 📋 Added a dedicated carrier landing card under the existing pilot data.
 - 🧾 Carrier landing table includes grade, points, wire, aircraft, location, and time.
+- 📐 Widened the pilot statistics layout so charts and LSO tables have more room on desktop.
 - 🌍 Added translation coverage for pilot search, result selection, layered pilot views, and chart labels.
 
 ---

@@ -11,7 +11,7 @@ include 'header.php';
 <script src="<?php echo htmlspecialchars(assetUrl('js/vendor/chart.umd.min.js')); ?>"></script>
 <?php include 'nav.php'; ?>
 
-<main>
+<main class="pilot-statistics-page">
     <div class="dashboard-header">
         <h1><?php echo htmlspecialchars(dcs_t('pilot.title')); ?></h1>
         <p class="dashboard-subtitle"><?php echo htmlspecialchars(dcs_t('pilot.subtitle')); ?></p>
@@ -1171,15 +1171,37 @@ document.addEventListener('DOMContentLoaded', function() {
 
 /* Squadron styling moved to unified styles.css */
 
+.pilot-statistics-page {
+    width: min(96vw, 1800px);
+    max-width: none;
+}
+
+.pilot-statistics-page #search-results {
+    width: 100%;
+}
+
+.pilot-statistics-page .pilot-card {
+    width: 100%;
+    max-width: none;
+}
+
+.pilot-statistics-page .stats-grid {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
 .charts-container {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
     gap: 25px;
-    margin: 40px auto 0;
-    max-width: 1000px;
+    margin: 40px 0 0;
+    max-width: none;
 }
 
 @media (max-width: 768px) {
+    .pilot-statistics-page {
+        width: 100%;
+    }
+
     .charts-container {
         grid-template-columns: 1fr;
     }
