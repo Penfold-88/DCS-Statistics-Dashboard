@@ -10,12 +10,25 @@ require_once __DIR__ . '/api_config_helper.php';
 $configResult = loadApiConfigWithFix();
 $config = $configResult['config'];
 
-// Return only the public browser settings. The private DCSServerBot host,
-// base URL, and API key stay server-side behind api_proxy.php.
+function safePublicConfigInt($value, int $default, int $min, int $max): int {
+    $validated = filter_var($value, FILTER_VALIDATE_INT);
+    if ($validated === false) {
+        return $default;
+    }
+
+    return max($min, min($max, $validated));
+}
+
+$proxyAvailable = !empty($config['api_base_url']);
+$timeout = safePublicConfigInt($config['timeout'] ?? 30, 30, 5, 300);
+$refreshInterval = safePublicConfigInt($config['refresh_interval'] ?? 300, 300, 60, 3600);
+
+// Return only the minimal browser-safe settings needed by the public frontend.
+// The private DCSServerBot host, base URL, cache settings, and API key stay
+// server-side behind api_proxy.php and the admin-only API settings pages.
 echo json_encode([
-    'use_api' => !empty($config['use_api']) && !empty($config['api_base_url']),
-    'proxy_available' => !empty($config['api_base_url']),
-    'timeout' => $config['timeout'] ?? 30,
-    'cache_ttl' => $config['cache_ttl'] ?? 300,
-    'refresh_interval' => $config['refresh_interval'] ?? 300
+    'use_api' => !empty($config['use_api']) && $proxyAvailable,
+    'proxy_available' => $proxyAvailable,
+    'timeout' => $timeout,
+    'refresh_interval' => $refreshInterval
 ]);

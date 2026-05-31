@@ -262,6 +262,7 @@ V1.2 is a major dashboard, admin, theme, update, language, security, and perform
 - 🧷 Tightened remember-me comparison handling.
 - 🛡️ Added CSRF protection to sensitive update/backup/version actions.
 - 🔒 Added authentication protection around API configuration exposure.
+- 🙈 Public frontend API config now returns only minimal browser-safe values.
 - 🧼 Removed SVG logo upload support to avoid active-content risk.
 - 🧱 Reduced unsafe file permissions and removed world-writable fallbacks.
 - 🗃️ Improved backup and restore safety.
