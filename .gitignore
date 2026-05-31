@@ -15,3 +15,5 @@ dcs-stats/menu_config.json
 dcs-stats/custom_theme.css
 dcs-stats/header_custom.css
 *.pdf
+php-preview.err.log
+php-preview.out.log
