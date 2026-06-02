@@ -26,6 +26,7 @@ The image includes the dashboard requirements needed for GitHub updates and ZIP 
 - unzip / zip tools
 - GitHub HTTPS certificate support
 - git command-line tool for Git status checks
+- production OPcache defaults for public internet-facing installs
 
 Useful commands:
 
@@ -40,4 +41,26 @@ To change the public port, create or edit `.env` in the repository root:
 
 ```text
 WEB_PORT=8090
+```
+
+## OPcache and Updates
+
+Docker uses production OPcache defaults:
+
+```text
+OPCACHE_VALIDATE_TIMESTAMPS=0
+OPCACHE_REVALIDATE_FREQ=0
+```
+
+After running a dashboard update, restart the container so PHP loads the updated files:
+
+```bash
+docker compose -f docker/docker-compose.yml restart
+```
+
+For local Docker development only, you can allow PHP to detect file edits by adding this to `.env`:
+
+```text
+OPCACHE_VALIDATE_TIMESTAMPS=1
+OPCACHE_REVALIDATE_FREQ=2
 ```

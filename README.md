@@ -465,7 +465,7 @@ docker compose -f docker/docker-compose.yml up -d --build
 
 Then open `http://localhost:8080`.
 
-The Docker image includes PHP cURL, PHP ZIP / ZipArchive, cURL, zip/unzip, HTTPS certificate support, and git tooling so the dashboard can talk to GitHub and process dashboard updates.
+The Docker image includes PHP cURL, PHP ZIP / ZipArchive, cURL, zip/unzip, HTTPS certificate support, git tooling, and production OPcache defaults so the dashboard can talk to GitHub and process dashboard updates.
 
 Useful Docker commands:
 
@@ -480,6 +480,9 @@ docker compose -f docker/docker-compose.yml down
 docker compose -f docker/docker-compose.yml pull
 docker compose -f docker/docker-compose.yml up -d --build
 
+# Restart after using the dashboard updater
+docker compose -f docker/docker-compose.yml restart
+
 # Access container shell
 docker compose -f docker/docker-compose.yml exec dcs-stats sh
 ```
@@ -488,4 +491,11 @@ To change the public port, create or edit `.env` in the repository root:
 
 ```bash
 WEB_PORT=8090
+```
+
+For local Docker development only, you can allow PHP to detect file edits by adding this to `.env`:
+
+```bash
+OPCACHE_VALIDATE_TIMESTAMPS=1
+OPCACHE_REVALIDATE_FREQ=2
 ```

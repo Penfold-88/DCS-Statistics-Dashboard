@@ -157,6 +157,19 @@ COPY --chown=root:root <<'EOF' /usr/local/bin/start.sh
 #!/bin/sh
 set -e
 
+OPCACHE_VALIDATE_TIMESTAMPS="${OPCACHE_VALIDATE_TIMESTAMPS:-0}"
+OPCACHE_REVALIDATE_FREQ="${OPCACHE_REVALIDATE_FREQ:-0}"
+
+cat > /usr/local/etc/php/conf.d/opcache-runtime.ini <<EOL
+opcache.enable=1
+opcache.memory_consumption=128
+opcache.interned_strings_buffer=8
+opcache.max_accelerated_files=4000
+opcache.validate_timestamps=${OPCACHE_VALIDATE_TIMESTAMPS}
+opcache.revalidate_freq=${OPCACHE_REVALIDATE_FREQ}
+opcache.fast_shutdown=1
+EOL
+
 # Determine which user to run as
 if [ "$RUN_AS_ROOT" = "true" ]; then
     echo "WARNING: Running as root user (not recommended for production)"
@@ -266,13 +279,14 @@ RUN { \
         echo 'session.gc_maxlifetime = 1440'; \
     } > /usr/local/etc/php/conf.d/dcs-stats.ini
 
-# OPcache configuration for production
+# OPcache defaults are hardened at container startup by /usr/local/bin/start.sh.
 RUN { \
         echo 'opcache.enable=1'; \
         echo 'opcache.memory_consumption=128'; \
         echo 'opcache.interned_strings_buffer=8'; \
         echo 'opcache.max_accelerated_files=4000'; \
-        echo 'opcache.revalidate_freq=2'; \
+        echo 'opcache.validate_timestamps=0'; \
+        echo 'opcache.revalidate_freq=0'; \
         echo 'opcache.fast_shutdown=1'; \
     } > /usr/local/etc/php/conf.d/opcache-recommended.ini
 
