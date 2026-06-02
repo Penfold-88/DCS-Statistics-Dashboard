@@ -4,14 +4,20 @@ FROM php:${PHP_VERSION}-fpm-alpine AS base
 
 # Install required PHP extensions and tools
 RUN apk add --no-cache \
+    ca-certificates \
     nginx \
     supervisor \
     curl \
+    curl-dev \
+    git \
+    openssl \
     zip \
     unzip \
     libzip-dev \
     oniguruma-dev \
+    && update-ca-certificates \
     && docker-php-ext-install -j$(nproc) \
+        curl \
         zip \
         bcmath \
         mbstring \

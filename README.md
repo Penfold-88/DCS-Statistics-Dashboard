@@ -453,18 +453,19 @@ Useful XAMPP checks:
 
 ## 🐳 Docker Deployment
 
-The Docker files are included for users already deploying this way. Docker support may be reviewed more deeply in a future release.
+The Docker setup is designed to work on Windows, macOS, and Linux using Docker Desktop or Docker Engine.
+
+Copy and run:
 
 ```bash
-# Clone the repository
 git clone https://github.com/Penfold-88/DCS-Statistics-Dashboard.git
 cd DCS-Statistics-Dashboard
-
-# Start with Docker
-docker compose -f docker/docker-compose.yml up -d
-
-# Access at http://localhost:8080
+docker compose -f docker/docker-compose.yml up -d --build
 ```
+
+Then open `http://localhost:8080`.
+
+The Docker image includes PHP cURL, PHP ZIP / ZipArchive, cURL, zip/unzip, HTTPS certificate support, and git tooling so the dashboard can talk to GitHub and process dashboard updates.
 
 Useful Docker commands:
 
@@ -477,13 +478,13 @@ docker compose -f docker/docker-compose.yml down
 
 # Update to latest version
 docker compose -f docker/docker-compose.yml pull
-docker compose -f docker/docker-compose.yml up -d
+docker compose -f docker/docker-compose.yml up -d --build
 
 # Access container shell
 docker compose -f docker/docker-compose.yml exec dcs-stats sh
 ```
 
-To change the public port, edit `.env`:
+To change the public port, create or edit `.env` in the repository root:
 
 ```bash
 WEB_PORT=8090
