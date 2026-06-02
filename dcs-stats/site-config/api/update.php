@@ -172,8 +172,15 @@ $configFiles = [
     '/site-config/data/sessions.json',
     '/.env',
     '/docker-compose.yml',
+    '/docker-compose.override.yml',
     '/Dockerfile',
-    '/Dockerfile.simple'
+    '/Dockerfile.simple',
+    '/.dockerignore',
+    '/docker/docker-compose.yml',
+    '/docker/docker-compose.override.yml',
+    '/docker/Dockerfile',
+    '/docker/Dockerfile.dockerignore',
+    '/docker/Dockerfile.simple'
 ];
 
 foreach ($configFiles as $file) {
@@ -292,6 +299,11 @@ $exceptions = [
     'Dockerfile',
     'Dockerfile.simple',
     '.dockerignore',
+    'docker/docker-compose.yml',
+    'docker/docker-compose.override.yml',
+    'docker/Dockerfile',
+    'docker/Dockerfile.simple',
+    'docker/Dockerfile.dockerignore',
     
     // User uploads or custom files
     'uploads',

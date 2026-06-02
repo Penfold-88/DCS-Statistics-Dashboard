@@ -59,8 +59,15 @@ if ($backupZip->open($backupFile, ZipArchive::CREATE | ZipArchive::OVERWRITE)) {
         '.version_meta.json',
         '.env',
         'docker-compose.yml',
+        'docker-compose.override.yml',
         'Dockerfile',
-        'Dockerfile.simple'
+        'Dockerfile.simple',
+        '.dockerignore',
+        'docker/docker-compose.yml',
+        'docker/docker-compose.override.yml',
+        'docker/Dockerfile',
+        'docker/Dockerfile.dockerignore',
+        'docker/Dockerfile.simple'
     ];
     
     logMessage("Backing up configuration files...");

@@ -353,8 +353,10 @@ DCS-Statistics-Dashboard/
 │   ├── pilot_credits.php       Pilot credits page
 │   ├── squadrons.php           Squadron pages
 │   └── servers.php             Server status page
-├── Dockerfile
-├── docker-compose.yml
+├── docker/                      Docker image and compose files
+│   ├── Dockerfile
+│   ├── Dockerfile.dockerignore
+│   └── docker-compose.yml
 ├── CHANGELOG.md
 └── README.md
 ```
@@ -459,7 +461,7 @@ git clone https://github.com/Penfold-88/DCS-Statistics-Dashboard.git
 cd DCS-Statistics-Dashboard
 
 # Start with Docker
-docker compose up -d
+docker compose -f docker/docker-compose.yml up -d
 
 # Access at http://localhost:8080
 ```
@@ -468,17 +470,17 @@ Useful Docker commands:
 
 ```bash
 # View logs
-docker compose logs -f
+docker compose -f docker/docker-compose.yml logs -f
 
 # Stop the container
-docker compose down
+docker compose -f docker/docker-compose.yml down
 
 # Update to latest version
-docker compose pull
-docker compose up -d
+docker compose -f docker/docker-compose.yml pull
+docker compose -f docker/docker-compose.yml up -d
 
 # Access container shell
-docker compose exec dcs-stats-web bash
+docker compose -f docker/docker-compose.yml exec dcs-stats sh
 ```
 
 To change the public port, edit `.env`:

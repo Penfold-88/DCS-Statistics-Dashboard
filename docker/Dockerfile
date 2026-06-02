@@ -1,4 +1,4 @@
-# Multi-stage build for smaller image
+# Multi-stage build for the DCS Statistics Dashboard image
 ARG PHP_VERSION=8.2
 FROM php:${PHP_VERSION}-fpm-alpine AS base
 

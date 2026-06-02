@@ -4,9 +4,7 @@
 .gitattributes
 
 # Docker files
-Dockerfile
-docker-compose.yml
-.dockerignore
+docker/
 
 # Documentation
 README.md
