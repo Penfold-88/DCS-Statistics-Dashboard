@@ -126,6 +126,7 @@ function loadSiteFeatures() {
         'server_detail_restart' => true,
         'server_detail_weather' => true,
         'server_detail_extensions' => true,
+        'server_detail_mask_extension_secrets' => true,
         'server_detail_active_players' => true,
         'server_scope_filter' => true,
         
@@ -288,6 +289,7 @@ function getFeatureGroups() {
             'server_detail_restart' => 'Restart Time Details',
             'server_detail_weather' => 'Weather Details',
             'server_detail_extensions' => 'Extensions/SRS Details',
+            'server_detail_mask_extension_secrets' => 'Mask Extension Passwords',
             'server_detail_active_players' => 'Active Players Details',
             'server_scope_filter' => 'Frontend Server Filter Dropdown'
         ],
@@ -305,7 +307,7 @@ function getFeatureDependencies() {
         'squadrons_enabled' => ['squadron_management', 'squadron_statistics', 'nav_squadrons'],
         'pilot_search' => ['pilot_detailed_stats', 'pilot_mission_history'],
         'nav_servers' => ['server_live_api_details'],
-        'server_live_api_details' => ['server_detail_status', 'server_detail_description', 'server_detail_mission', 'server_detail_slots', 'server_detail_restart', 'server_detail_weather', 'server_detail_extensions', 'server_detail_active_players'],
+        'server_live_api_details' => ['server_detail_status', 'server_detail_description', 'server_detail_mission', 'server_detail_slots', 'server_detail_restart', 'server_detail_weather', 'server_detail_extensions', 'server_detail_mask_extension_secrets', 'server_detail_active_players'],
         'home_api_insights' => ['home_top_theatres', 'home_top_missions', 'home_top_modules'],
         'home_attendance_cards' => ['home_api_players_24h', 'home_api_players_7d', 'home_api_players_30d', 'home_api_current_players']
     ];

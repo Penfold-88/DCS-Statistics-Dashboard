@@ -226,6 +226,11 @@ $manual = [
     'admin.api.save_success' => 'Impostazioni API salvate',
 
     'admin.language.title' => 'Lingua',
+    'admin.language.default_language' => 'Lingua predefinita',
+    'admin.language.public_site_language' => 'Lingua del sito pubblico',
+    'admin.language.date_format' => 'Formato data',
+    'admin.language.date_format_help' => 'Scegli come visualizzare le date nel dashboard pubblico.',
+    'admin.language.save_language' => 'Salva lingua',
     'admin.language.download_template' => 'Scarica modello traduzione',
 
     'admin.themes.title' => 'Gestione temi',
@@ -489,6 +494,7 @@ $glossary = [
     'Credits System' => 'Sistema crediti',
     'Squadron System' => 'Sistema squadriglie',
     'Server Features' => 'Funzioni server',
+    'admin.settings.feature.server_detail_mask_extension_secrets' => 'Maschera password estensioni',
     'Global Settings' => 'Impostazioni globali',
     'Homepage' => 'Homepage',
     'Pilot Credits' => 'Crediti pilota',

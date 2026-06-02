@@ -52,6 +52,8 @@ if (!isFeatureEnabled('nav_servers')):
 
 <script>
 const serverCardVisibility = <?php echo json_encode($serverCardVisibility); ?>;
+const maskExtensionSecrets = <?php echo json_encode(isFeatureEnabled('server_detail_mask_extension_secrets')); ?>;
+const publicDateFormat = <?php echo json_encode(dcs_public_date_format()); ?>;
 const i18n = <?php echo json_encode([
     'unknownServer' => dcs_t('servers.unknown_server'),
     'unknown' => dcs_t('servers.unknown'),
@@ -92,6 +94,41 @@ function getServerCardFeatureKey(serverName) {
 function isServerCardEnabled(serverName) {
     const featureKey = getServerCardFeatureKey(serverName);
     return serverCardVisibility[featureKey] !== false;
+}
+
+function formatPublicDate(date) {
+    const day = date.getDate();
+    const month = date.getMonth() + 1;
+    const year = date.getFullYear();
+
+    switch (publicDateFormat) {
+        case 'm/d/Y':
+            return `${month}/${day}/${year}`;
+        case 'Y-m-d':
+            return `${year}-${month}-${day}`;
+        case 'd-m-Y':
+            return `${day}-${month}-${year}`;
+        case 'm-d-Y':
+            return `${month}-${day}-${year}`;
+        case 'Y/m/d':
+            return `${year}/${month}/${day}`;
+        case 'd/m/Y':
+        default:
+            return `${day}/${month}/${year}`;
+    }
+}
+
+function formatPublicDateTime(value) {
+    if (!value) {
+        return i18n.notAvailable;
+    }
+
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+        return String(value);
+    }
+
+    return `${formatPublicDate(date)} ${date.toLocaleTimeString()}`;
 }
 
 async function loadServers() {
@@ -200,13 +237,25 @@ function formatWeather(weather) {
     return parts.length ? parts.join(' | ') : i18n.noWeather;
 }
 
+function maskSecretText(value) {
+    const text = String(value || '');
+    if (!maskExtensionSecrets || text === '') {
+        return text;
+    }
+
+    return text
+        .split(/\r?\n/)
+        .map(line => line.replace(/(\b(?:pass|password|pwd|token|secret|api key|apikey|key)\b\s*[:=]\s*)([^\s|,;]+)/ig, '$1*****'))
+        .join('\n');
+}
+
 function formatExtensions(extensions) {
     if (!Array.isArray(extensions) || extensions.length === 0) return `<span class="muted">${escapeHtml(i18n.noExtensions)}</span>`;
     return extensions.map(ext => `
         <div class="detail-list-item">
             <strong>${escapeHtml(ext.name || i18n.extension)}</strong>
             <span>${escapeHtml(ext.version || '')}</span>
-            <small>${escapeHtml(ext.value || '')}</small>
+            <small>${escapeHtml(maskSecretText(ext.value || ''))}</small>
         </div>
     `).join('');
 }
@@ -280,7 +329,7 @@ function createServerDetailCard(server, summary) {
     const weather = formatWeather(server.weather);
     const extensions = formatExtensions(server.extensions);
     const players = formatPlayers(getLiveActivePlayersForDisplay(server, summary));
-    const restart = server.restart_time ? new Date(server.restart_time).toLocaleString() : i18n.notAvailable;
+    const restart = formatPublicDateTime(server.restart_time);
     const status = server.status || i18n.unknown;
     const statusClass = `detail-status status-${String(status).toLowerCase()}`;
 
@@ -289,7 +338,7 @@ function createServerDetailCard(server, summary) {
             <div>
                 <h3>${escapeHtml(server.name || i18n.unknownServer)}</h3>
                 <?php if (isFeatureEnabled('server_detail_description')): ?>
-                <p>${escapeHtml(server.description || '')}</p>
+                <p class="server-description">${escapeHtml(server.description || '')}</p>
                 <?php endif; ?>
             </div>
             <?php if (isFeatureEnabled('server_detail_status')): ?>
@@ -383,8 +432,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     border-radius: 8px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
     color: var(--card_text_color);
+    overflow: hidden;
     padding: 22px;
     transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.server-detail-card * {
+    min-width: 0;
 }
 
 .server-detail-card:hover {
@@ -403,6 +457,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     margin-bottom: 16px;
 }
 
+.server-detail-header > div {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
 .server-detail-header h3 {
     color: var(--card_heading_color);
     font-size: 1.15rem;
@@ -416,6 +475,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     font-size: 0.92rem;
     margin: 0;
     line-height: 1.4;
+}
+
+.server-description {
+    max-height: 8.4em;
+    overflow-y: auto;
+    overflow-wrap: anywhere;
+    padding-right: 6px;
+    scrollbar-width: thin;
+    word-break: normal;
 }
 
 .detail-status {
@@ -497,6 +565,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 .detail-split p {
     margin: 0;
     color: var(--card_text_color);
+    overflow-wrap: anywhere;
 }
 
 .detail-list-item {
@@ -522,6 +591,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 }
 
 .detail-list-item small {
+    overflow-wrap: anywhere;
     white-space: pre-line;
 }
 

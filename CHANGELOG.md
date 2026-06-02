@@ -14,6 +14,7 @@ V1.2 is a major dashboard, admin, theme, update, language, security, and perform
 
 - 🎨 **Full theme management system** with custom colours, gradients, chart colours, header images, logos, presets, backups, and restores.
 - 🌍 **Language support groundwork** with English, German, and Italian translation files plus a translation template for future languages.
+- 📅 Added a public date format setting so squadrons can choose regional date display.
 - ⚙️ **Expanded admin panel** with feature toggles, API settings, privacy/SEO tools, update controls, backups, logs, custom links, and dashboard overview cards.
 - 📡 **Expanded DCSServerBot API support** including newer endpoint data, server attendance, server details, traps/LSO data, and server-scoped views.
 - 🧭 **Server filter selector** across the frontend, allowing users to view all servers or a specific detected server.
@@ -90,6 +91,9 @@ V1.2 is a major dashboard, admin, theme, update, language, security, and perform
 - 🎨 Matched new cards to the rest of the dashboard styling.
 - 👥 Added player icons to attendance cards.
 - 📱 Improved long translated card labels so they wrap cleanly on smaller screens.
+- 📱 Disabled homepage chart hover tooltips on touch/mobile screens to prevent floating overlays.
+- 📱 Fixed the Top 5 Pilots metric selector overflowing its chart card on mobile.
+- 📅 Player Activity Overview dates now follow the configured public date format.
 - ⚡ Reduced unnecessary homepage API calls and made slower chart data load in the background where possible.
 
 ---
@@ -117,8 +121,10 @@ V1.2 is a major dashboard, admin, theme, update, language, security, and perform
 - 📋 Added a dedicated carrier landing card under the existing pilot data.
 - 🧾 Carrier landing table includes grade, points, wire, aircraft, location, and time.
 - 🕒 Separated carrier landing date and time more clearly without increasing row height.
+- 📅 Removed leading zero padding from carrier landing dates.
 - 📐 Widened the pilot statistics layout so charts and LSO tables have more room on desktop.
 - 🌍 Added translation coverage for pilot search, result selection, layered pilot views, and chart labels.
+- 📅 Carrier landing dates now follow the configured public date format.
 
 ---
 
@@ -147,6 +153,9 @@ V1.2 is a major dashboard, admin, theme, update, language, security, and perform
   - Active players
 - 🧩 Added dynamic detected server toggles so individual server cards can be shown or hidden.
 - 📐 Improved long mission name wrapping and scaling.
+- 🧾 Improved long server description wrapping so large descriptions stay inside the card.
+- 🔐 Added a server feature toggle to mask extension/SRS password-style values on the public servers page.
+- 📅 Server restart times now follow the configured public date format.
 - 👥 Improved active player display and server player count handling.
 - 🎨 Fixed server page colours so weather, extensions, active players, titles, and boxes follow theme settings.
 - 🌍 Added translation coverage for servers page.

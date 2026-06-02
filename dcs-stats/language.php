@@ -99,6 +99,42 @@ function dcs_default_language() {
     return $language;
 }
 
+function dcs_site_config() {
+    static $config = null;
+
+    if ($config !== null) {
+        return $config;
+    }
+
+    $configFile = __DIR__ . '/site_config.json';
+    if (!file_exists($configFile)) {
+        $config = [];
+        return $config;
+    }
+
+    $data = json_decode(@file_get_contents($configFile), true);
+    $config = is_array($data) ? $data : [];
+    return $config;
+}
+
+function dcs_date_format_options() {
+    return [
+        'd/m/Y' => '2/5/2025',
+        'm/d/Y' => '5/2/2025',
+        'Y-m-d' => '2025-5-2',
+        'd-m-Y' => '2-5-2025',
+        'm-d-Y' => '5-2-2025',
+        'Y/m/d' => '2025/5/2'
+    ];
+}
+
+function dcs_public_date_format() {
+    $config = dcs_site_config();
+    $format = (string)($config['date_format'] ?? 'd/m/Y');
+    $options = dcs_date_format_options();
+    return isset($options[$format]) ? $format : 'd/m/Y';
+}
+
 function dcs_set_language_override($language) {
     $GLOBALS['dcs_language_override'] = dcs_language_code($language);
 }

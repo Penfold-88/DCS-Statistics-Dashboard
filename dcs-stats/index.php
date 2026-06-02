@@ -139,7 +139,7 @@ $homepageChartTheme = loadChartTheme();
             <div class="chart-card-header">
                 <h2><?php echo htmlspecialchars(dcs_t('home.chart_top_pilots')); ?> <span class="chart-info">ⓘ</span></h2>
                 <label class="chart-metric-control" for="topPilotsMetric">
-                    <span class="chart-metric-select server-scope-control">
+                    <span class="chart-metric-select">
                         <select id="topPilotsMetric">
                             <option value="kills"><?php echo htmlspecialchars(dcs_t('home.kills')); ?></option>
                             <option value="kdr"><?php echo htmlspecialchars(dcs_t('home.kill_death_ratio')); ?></option>
@@ -246,6 +246,7 @@ let topSquadronsChart = null;
 let latestTopPilots = [];
 
 const homepageChartTheme = <?= json_encode($homepageChartTheme) ?>;
+const publicDateFormat = <?= json_encode(dcs_public_date_format()) ?>;
 const homepageDataNeeds = <?= json_encode([
     'loadServerStats' => $showCoreServerStats,
     'loadAttendance' => $showAttendanceCards || $showTopApiLists,
@@ -264,6 +265,28 @@ function hexToRgba(hex, alpha = 1) {
     const green = (value >> 8) & 255;
     const blue = value & 255;
     return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
+}
+
+function formatPublicDate(date) {
+    const day = date.getDate();
+    const month = date.getMonth() + 1;
+    const year = date.getFullYear();
+
+    switch (publicDateFormat) {
+        case 'm/d/Y':
+            return `${month}/${day}/${year}`;
+        case 'Y-m-d':
+            return `${year}-${month}-${day}`;
+        case 'd-m-Y':
+            return `${day}-${month}-${year}`;
+        case 'm-d-Y':
+            return `${month}-${day}-${year}`;
+        case 'Y/m/d':
+            return `${year}/${month}/${day}`;
+        case 'd/m/Y':
+        default:
+            return `${day}/${month}/${year}`;
+    }
 }
 
 const chartColors = {
@@ -825,7 +848,7 @@ function createPlayerActivityChart(daily_players) {
     // Process the dates and player counts
     const labels = daily_players.map(entry => {
         const date = new Date(entry.date);
-        return date.toLocaleDateString();
+        return Number.isNaN(date.getTime()) ? String(entry.date || '') : formatPublicDate(date);
     });
 
     const data = daily_players.map(entry => entry.player_count);
@@ -1214,11 +1237,13 @@ main {
     justify-content: space-between;
     gap: 16px;
     margin-bottom: 25px;
+    min-width: 0;
 }
 
 .chart-card-header h2 {
     flex: 1;
     margin-bottom: 0;
+    min-width: 0;
 }
 
 .chart-metric-control {
@@ -1228,15 +1253,45 @@ main {
     color: var(--card-muted-text);
     font-size: 0.9rem;
     font-weight: 700;
+    min-width: 0;
     white-space: nowrap;
 }
 
 .chart-metric-select {
+    align-items: center;
+    display: inline-flex;
+    flex: 0 1 190px;
     max-width: 190px;
+    min-width: 0;
+    position: relative;
+    width: 190px;
 }
 
 .chart-metric-select select {
-    width: 190px;
+    appearance: none;
+    background: color-mix(in srgb, var(--panel_top, #111) 88%, #000 12%);
+    border: 1px solid color-mix(in srgb, var(--accent_color, #4CAF50) 45%, transparent);
+    border-radius: 5px;
+    box-sizing: border-box;
+    color: var(--text_color, #fff);
+    cursor: pointer;
+    font-size: 0.82rem;
+    font-weight: 700;
+    min-height: 32px;
+    min-width: 0;
+    overflow: hidden;
+    padding: 6px 28px 6px 9px;
+    text-overflow: ellipsis;
+    width: 100%;
+}
+
+.chart-metric-select::after {
+    color: var(--accent_color, #4CAF50);
+    content: "▼";
+    font-size: 0.66rem;
+    pointer-events: none;
+    position: absolute;
+    right: 10px;
 }
 
 .chart-container canvas {
@@ -1255,11 +1310,19 @@ main {
 
     .chart-metric-control {
         justify-content: space-between;
+        width: 100%;
     }
 
-    .chart-metric-control select {
+    .chart-metric-select {
         flex: 1;
+        max-width: 100%;
         min-width: 0;
+        width: 100%;
+    }
+
+    .chart-metric-select select {
+        max-width: 100%;
+        width: 100%;
     }
 }
 
@@ -1423,6 +1486,26 @@ main {
     
     .dashboard-header h1 {
         font-size: 2rem;
+    }
+
+    .chart-container:hover::after,
+    .chart-container:hover::before {
+        display: none;
+    }
+
+    .chart-container[title] {
+        cursor: default;
+    }
+}
+
+@media (hover: none), (pointer: coarse) {
+    .chart-container:hover::after,
+    .chart-container:hover::before {
+        display: none;
+    }
+
+    .chart-info {
+        cursor: default;
     }
 }
 

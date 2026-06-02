@@ -118,11 +118,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         } else {
             $language = dcs_language_code($_POST['default_language'] ?? 'en');
+            $dateFormatOptions = dcs_date_format_options();
+            $dateFormat = (string)($_POST['date_format'] ?? 'd/m/Y');
             $siteConfig['default_language'] = $language;
+            $siteConfig['date_format'] = isset($dateFormatOptions[$dateFormat]) ? $dateFormat : 'd/m/Y';
             dcs_set_language_override($language);
 
             if (file_put_contents($siteConfigFile, json_encode($siteConfig, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)) !== false) {
-                logAdminActivity('LANGUAGE_UPDATE', $_SESSION['admin_id'], 'settings', 'language', ['default_language' => $language]);
+                logAdminActivity('LANGUAGE_UPDATE', $_SESSION['admin_id'], 'settings', 'language', [
+                    'default_language' => $language,
+                    'date_format' => $siteConfig['date_format']
+                ]);
                 $message = 'Language settings saved successfully.';
                 $messageType = 'success';
             } else {
@@ -137,6 +143,10 @@ $supportedLanguages = dcs_supported_languages();
 $builtInLanguages = dcs_builtin_languages();
 $customLanguages = dcs_custom_languages();
 $currentLanguage = dcs_language_code($siteConfig['default_language'] ?? 'en');
+$dateFormatOptions = dcs_date_format_options();
+$currentDateFormat = isset($dateFormatOptions[$siteConfig['date_format'] ?? ''])
+    ? $siteConfig['date_format']
+    : dcs_public_date_format();
 $pageTitle = dcs_t('admin.language.title');
 ?>
 <!DOCTYPE html>
@@ -271,6 +281,18 @@ $pageTitle = dcs_t('admin.language.title');
                                     </option>
                                     <?php endforeach; ?>
                                 </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="date_format"><?= e(dcs_t('admin.language.date_format')) ?></label>
+                                <select id="date_format" name="date_format" class="form-control">
+                                    <?php foreach ($dateFormatOptions as $format => $example): ?>
+                                    <option value="<?= e($format) ?>" <?= $currentDateFormat === $format ? 'selected' : '' ?>>
+                                        <?= e($example) ?>
+                                    </option>
+                                    <?php endforeach; ?>
+                                </select>
+                                <div class="help-text"><?= e(dcs_t('admin.language.date_format_help')) ?></div>
                             </div>
 
                             <button type="submit" class="btn btn-primary"><?= e(dcs_t('admin.language.save_language')) ?></button>

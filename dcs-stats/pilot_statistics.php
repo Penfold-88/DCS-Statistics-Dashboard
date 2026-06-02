@@ -175,6 +175,7 @@ const siteFeatures = {
     pilot_aircraft_chart: <?php echo json_encode(isFeatureEnabled('pilot_aircraft_chart')); ?>,
     pilot_carrier_traps: <?php echo json_encode(isFeatureEnabled('pilot_carrier_traps')); ?>
 };
+const publicDateFormat = <?php echo json_encode(dcs_public_date_format()); ?>;
 
 // Function to create stat items dynamically
 function createStatItem(label, value, id) {
@@ -665,6 +666,34 @@ function formatTrapTime(value) {
     return date.toLocaleString();
 }
 
+function stripTrapDatePadding(value) {
+    return String(value)
+        .replace(/\b0(\d)(?=[\/.-])/g, '$1')
+        .replace(/([\/.-])0(\d)\b/g, '$1$2');
+}
+
+function formatTrapDateNoPadding(date) {
+    const day = date.getDate();
+    const month = date.getMonth() + 1;
+    const year = date.getFullYear();
+
+    switch (publicDateFormat) {
+        case 'm/d/Y':
+            return `${month}/${day}/${year}`;
+        case 'Y-m-d':
+            return `${year}-${month}-${day}`;
+        case 'd-m-Y':
+            return `${day}-${month}-${year}`;
+        case 'm-d-Y':
+            return `${month}-${day}-${year}`;
+        case 'Y/m/d':
+            return `${year}/${month}/${day}`;
+        case 'd/m/Y':
+        default:
+            return `${day}/${month}/${year}`;
+    }
+}
+
 function formatTrapDateTime(value) {
     if (!value || value === '-') {
         return { date: '-', time: '' };
@@ -673,7 +702,7 @@ function formatTrapDateTime(value) {
     const date = new Date(value);
     if (!Number.isNaN(date.getTime())) {
         return {
-            date: date.toLocaleDateString(),
+            date: formatTrapDateNoPadding(date),
             time: date.toLocaleTimeString()
         };
     }
@@ -682,7 +711,7 @@ function formatTrapDateTime(value) {
     const commaParts = raw.split(',');
     if (commaParts.length >= 2) {
         return {
-            date: commaParts[0].trim(),
+            date: stripTrapDatePadding(commaParts[0].trim()),
             time: commaParts.slice(1).join(',').trim()
         };
     }
@@ -690,12 +719,12 @@ function formatTrapDateTime(value) {
     const isoParts = raw.split(/[T ]/);
     if (isoParts.length >= 2) {
         return {
-            date: isoParts[0].trim(),
+            date: stripTrapDatePadding(isoParts[0].trim()),
             time: isoParts.slice(1).join(' ').replace(/Z$/, '').trim()
         };
     }
 
-    return { date: raw, time: '' };
+    return { date: stripTrapDatePadding(raw), time: '' };
 }
 
 async function loadCarrierTraps(player) {
