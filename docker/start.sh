@@ -27,9 +27,8 @@ else
     chown -R www:www /var/www/html/site-config/data /var/www/html/data /run/nginx /var/log/supervisor 2>/dev/null || true
     mkdir -p /var/run/supervisor && chown www:www /var/run/supervisor
     mkdir -p /var/lib/nginx/tmp /var/lib/nginx/logs /var/log/nginx
-    touch /var/log/nginx/error.log /var/log/nginx/access.log /var/log/php-fpm.log
-    chown -R www:www /var/lib/nginx /var/log/nginx /var/log/php-fpm.log
-    touch /proc/self/fd/2 2>/dev/null || true
+    touch /var/log/nginx/error.log /var/log/nginx/access.log /var/log/php-fpm.log /var/log/php-fpm.access.log
+    chown -R www:www /var/lib/nginx /var/log/nginx /var/log/php-fpm.log /var/log/php-fpm.access.log
 fi
 
 cat > /etc/supervisor/conf.d/supervisord.conf <<EOL
