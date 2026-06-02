@@ -4,7 +4,8 @@
 .gitattributes
 
 # Docker files
-docker/
+docker/*
+!docker/start.sh
 
 # Documentation
 README.md

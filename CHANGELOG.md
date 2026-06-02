@@ -270,6 +270,7 @@ V1.2 is a major dashboard, admin, theme, update, language, security, and perform
 - 🐳 Moved Docker deployment files into a dedicated `docker/` folder with updated cross-platform compose commands.
 - 🐳 Added Docker image dependencies for GitHub update support, including PHP cURL, ZIP, certificates, and git tooling.
 - 🐳 Hardened Docker OPcache defaults for internet-facing installs while allowing local development overrides.
+- 🐳 Made the Docker startup script a real copied file to avoid startup failures on some Windows Docker builds.
 
 ---
 
