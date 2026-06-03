@@ -28,6 +28,27 @@ function normalizeUpdatePath($path) {
     return str_replace('\\', '/', (string)$path);
 }
 
+function isSafeUpdateZipPath($path) {
+    $path = normalizeUpdatePath($path);
+
+    return $path !== '' &&
+        $path[0] !== '/' &&
+        strpos($path, '../') === false &&
+        strpos($path, '/..') === false &&
+        strpos($path, ':') === false;
+}
+
+function validateUpdateZip($zip) {
+    for ($i = 0; $i < $zip->numFiles; $i++) {
+        $name = $zip->getNameIndex($i);
+        if (!isSafeUpdateZipPath($name)) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 function buildVersionLabel($branch, $commitDate, $commitSha) {
     $date = $commitDate ? date('Y-m-d', strtotime($commitDate)) : date('Y-m-d');
     $shortSha = $commitSha ? substr($commitSha, 0, 12) : 'unknown';
@@ -226,6 +247,12 @@ logMessage('Download complete.');
 $zip = new ZipArchive();
 if ($zip->open($zipFile) !== TRUE) {
     logMessage('Failed to open zip archive');
+    exit;
+}
+if (!validateUpdateZip($zip)) {
+    $zip->close();
+    @unlink($zipFile);
+    logMessage('Update cancelled: downloaded archive contains unsafe file paths.');
     exit;
 }
 $zip->extractTo($upgradeDir);
