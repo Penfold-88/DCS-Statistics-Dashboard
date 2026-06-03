@@ -460,6 +460,7 @@ Copy and run:
 ```bash
 git clone https://github.com/Penfold-88/DCS-Statistics-Dashboard.git
 cd DCS-Statistics-Dashboard
+cp .env.example .env
 docker compose -f docker/docker-compose.yml up -d --build
 ```
 
@@ -487,7 +488,7 @@ docker compose -f docker/docker-compose.yml restart
 docker compose -f docker/docker-compose.yml exec dcs-stats sh
 ```
 
-To change the public port, create or edit `.env` in the repository root:
+To change the public port, edit `.env` in the repository root:
 
 ```bash
 WEB_PORT=8090
