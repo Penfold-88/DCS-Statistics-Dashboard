@@ -9,7 +9,6 @@ Copy and run these commands:
 ```bash
 git clone https://github.com/Penfold-88/DCS-Statistics-Dashboard.git
 cd DCS-Statistics-Dashboard
-cp .env.example .env
 docker compose -f docker/docker-compose.yml up -d --build
 ```
 
@@ -29,6 +28,8 @@ The image includes the dashboard requirements needed for GitHub updates and ZIP 
 - git command-line tool for Git status checks
 - production OPcache defaults for public internet-facing installs
 
+An `.env` file is optional. Docker uses safe defaults if you do not create one. Copy `.env.example` to `.env` only if you want to change runtime settings such as the public port, PHP limits, OPcache behaviour, logs, health checks, or resource limits. Required PHP extensions and command-line tools are built into the Docker image.
+
 Useful commands:
 
 ```bash
@@ -38,7 +39,17 @@ docker compose -f docker/docker-compose.yml up -d --build
 docker compose -f docker/docker-compose.yml exec dcs-stats sh
 ```
 
-To change the public port, edit `.env` in the repository root:
+To change the public port, copy the example file, then edit `.env` in the repository root:
+
+```bash
+cp .env.example .env
+```
+
+On Windows PowerShell:
+
+```powershell
+Copy-Item .env.example .env
+```
 
 ```text
 WEB_PORT=8090
