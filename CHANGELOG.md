@@ -20,6 +20,7 @@ V1.2 is a major dashboard, admin, theme, update, language, security, and perform
 - 🧭 **Server filter selector** across the frontend, allowing users to view all servers or a specific detected server.
 - 📊 **New charts and visual controls** for leaderboard, homepage, pilot statistics, and theme-customisable chart colours.
 - 🛡️ **Large security hardening pass** covering CSRF, session handling, file permissions, backup safety, API config exposure, uploads, and demo mode.
+- 🔒 Hardened updater ZIP extraction validation to reject unsafe archive paths before unpacking updates.
 - ⚡ **Performance improvements** with API caching, reduced unnecessary calls, lighter admin homepage loading, and smarter chart loading.
 - 🧪 **Demo mode support** for public showcase installs with protected settings and restricted sensitive actions.
 
