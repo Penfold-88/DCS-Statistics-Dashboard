@@ -95,6 +95,7 @@ if (!$is_cli) {
         $email = $_POST['email'] ?? '';
         $password = $_POST['password'] ?? '';
         $api_url = $_POST['api_url'] ?? '';
+        $api_key = trim($_POST['api_key'] ?? '');
         $site_name = $_POST['site_name'] ?? 'DCS Statistics';
         $discord_url = $_POST['discord_url'] ?? '';
         $default_language = dcs_language_code($_POST['install_language'] ?? 'en');
@@ -132,6 +133,9 @@ if (!$is_cli) {
                 curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
                 curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
                 curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
+                if ($api_key !== '') {
+                    curl_setopt($ch, CURLOPT_HTTPHEADER, ['X-API-Key: ' . $api_key]);
+                }
                 $response = curl_exec($ch);
                 $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
                 curl_close($ch);
@@ -148,6 +152,7 @@ if (!$is_cli) {
                 • DCSServerBot is running<br>
                 • The REST API is enabled in DCSServerBot<br>
                 • The address and port are correct (default port is 9876)<br>
+                • The API key is correct if your DCSServerBot REST API requires one<br>
                 • Firewall allows connections to the API port";
             }
         } elseif ($isDev && !empty($api_url)) {
@@ -260,12 +265,21 @@ if (!$is_cli) {
                 
                 <div class="form-group">
                     <label for="api_url"><?= e(dcs_t('admin.install.api_url')) ?></label>
-                    <input type="text" id="api_url" name="api_url" class="form-control" placeholder="your-server:9876" required>
+                    <input type="text" id="api_url" name="api_url" class="form-control" placeholder="your-server:9876" value="<?= htmlspecialchars($_POST['api_url'] ?? '') ?>" required>
                     <?php if ($isDev): ?>
                     <small class="text-warning"><?= e(dcs_t('admin.install.dev_mode_skip')) ?></small>
                     <?php else: ?>
                     <small class="text-muted"><?= e(dcs_t('admin.install.api_example')) ?></small>
                     <?php endif; ?>
+                </div>
+
+                <div class="form-group">
+                    <label for="api_key">
+                        <?= e(dcs_t('admin.install.api_key')) ?>
+                        <span class="text-muted"><?= e(dcs_t('admin.install.api_key_optional')) ?></span>
+                    </label>
+                    <input type="password" id="api_key" name="api_key" class="form-control" value="<?= htmlspecialchars($_POST['api_key'] ?? '') ?>" placeholder="<?= e(dcs_t('admin.install.api_key_placeholder')) ?>">
+                    <small class="text-muted"><?= e(dcs_t('admin.install.api_key_help')) ?></small>
                 </div>
                 
                 <div class="form-group">
@@ -332,6 +346,9 @@ if ($is_cli) {
         echo "Please enter the API address (host:port): ";
         $api_url = trim(fgets(STDIN));
     }
+
+    echo "DCSServerBot API Key (optional, press Enter to skip): ";
+    $api_key = trim(fgets(STDIN));
     
     // Auto-detect protocol
     $api_url = preg_replace('#^https?://#', '', $api_url);
@@ -350,6 +367,9 @@ if ($is_cli) {
             curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
             curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
+            if (!empty($api_key)) {
+                curl_setopt($ch, CURLOPT_HTTPHEADER, ['X-API-Key: ' . $api_key]);
+            }
             $response = curl_exec($ch);
             $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
             curl_close($ch);
@@ -438,7 +458,7 @@ if ($is_cli) {
 // Create API configuration
 $apiConfig = [
     'api_base_url' => rtrim($api_url ?? '', '/'),
-    'api_key' => null,
+    'api_key' => !empty($api_key) ? $api_key : null,
     'timeout' => 30,
     'cache_ttl' => 300,
     'refresh_interval' => 300,
