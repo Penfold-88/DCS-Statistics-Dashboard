@@ -19,6 +19,7 @@ return [
     'footer.credits' => 'Danksagungen',
     'footer.privacy' => 'Datenschutz',
     'footer.close_credits' => 'Danksagungen schließen',
+    'footer.last_updated' => 'Daten aktualisiert: {date}',
     'home.title' => 'DCS Statistik-Dashboard',
     'home.subtitle' => 'Serverleistung und Spielermetriken in Echtzeit',
     'home.welcome_title' => 'Willkommen beim DCS Statistik-Dashboard!',

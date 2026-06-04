@@ -211,4 +211,25 @@ function apiCacheClear() {
 
     return $removed;
 }
+
+function apiCacheLastRefreshTimestamp() {
+    $dir = apiCacheDirectory();
+    if (!is_dir($dir)) {
+        return null;
+    }
+
+    $latest = null;
+    foreach (glob($dir . '/*.json') ?: [] as $file) {
+        if (!is_file($file)) {
+            continue;
+        }
+
+        $timestamp = filemtime($file);
+        if ($timestamp !== false && ($latest === null || $timestamp > $latest)) {
+            $latest = $timestamp;
+        }
+    }
+
+    return $latest;
+}
 ?>

@@ -19,6 +19,7 @@ return [
     'footer.credits' => 'Credits',
     'footer.privacy' => 'Privacy',
     'footer.close_credits' => 'Close credits',
+    'footer.last_updated' => 'Data updated: {date}',
     'home.title' => 'DCS Statistics Dashboard',
     'home.subtitle' => 'Real-time server performance and player metrics',
     'home.welcome_title' => 'Welcome to DCS Statistics Dashboard!',

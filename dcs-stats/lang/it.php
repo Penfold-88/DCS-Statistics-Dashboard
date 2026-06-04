@@ -21,6 +21,7 @@ $manual = [
     'footer.credits' => 'Crediti',
     'footer.privacy' => 'Privacy',
     'footer.close_credits' => 'Chiudi crediti',
+    'footer.last_updated' => 'Dati aggiornati: {date}',
 
     'home.title' => 'Dashboard statistiche DCS',
     'home.subtitle' => 'Prestazioni del server e metriche giocatori in tempo reale',

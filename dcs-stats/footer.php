@@ -1,11 +1,25 @@
 <?php
 require_once __DIR__ . '/site_metadata.php';
 require_once __DIR__ . '/language.php';
+require_once __DIR__ . '/site_features.php';
+require_once __DIR__ . '/api_cache.php';
 $footerMetadata = loadSiteMetadata();
+$footerShowLastUpdate = isFeatureEnabled('show_last_update');
+$footerLastUpdate = null;
+
+if ($footerShowLastUpdate) {
+    $apiLastRefresh = apiCacheLastRefreshTimestamp();
+    if ($apiLastRefresh !== null) {
+        $footerLastUpdate = date(dcs_public_date_format() . ' H:i', $apiLastRefresh);
+    }
+}
 ?>
 <footer>
   <p>
     &copy; 2025 DCS Statistics Dashboard |
+    <?php if ($footerShowLastUpdate && $footerLastUpdate !== null): ?>
+      <span class="footer-last-updated"><?php echo htmlspecialchars(dcs_t('footer.last_updated', ['date' => $footerLastUpdate])); ?></span> |
+    <?php endif; ?>
     <button type="button" class="credits-link" id="openCredits"><?php echo htmlspecialchars(dcs_t('footer.credits')); ?></button>
     <?php if (!empty($footerMetadata['show_privacy_link'])): ?>
       | <a class="footer-privacy-link" href="<?php echo url('privacy.php'); ?>"><?php echo htmlspecialchars(dcs_t('footer.privacy')); ?></a>
@@ -35,6 +49,10 @@ $footerMetadata = loadSiteMetadata();
     padding: 0;
     text-decoration: underline;
     text-underline-offset: 3px;
+  }
+
+  .footer-last-updated {
+    color: color-mix(in srgb, var(--footer_text_color, #e0e0e0) 82%, transparent);
   }
 
   .footer-privacy-link {

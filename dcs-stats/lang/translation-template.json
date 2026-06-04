@@ -810,6 +810,7 @@
     "credits.try_later": "Please try again later.",
     "footer.close_credits": "Close credits",
     "footer.credits": "Credits",
+    "footer.last_updated": "Data updated: {date}",
     "footer.privacy": "Privacy",
     "header.live_data": "Live Data",
     "header.toggle_navigation": "Toggle navigation menu",
