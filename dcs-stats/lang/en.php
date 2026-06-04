@@ -282,6 +282,8 @@ return [
     'admin.dashboard.local_settings' => 'Local Settings',
     'admin.dashboard.local_settings_subtitle' => 'Admin data files',
     'admin.dashboard.json_files_found' => 'JSON settings files found',
+    'admin.dashboard.install_file_warning_title' => 'Installer File Still Present',
+    'admin.dashboard.install_file_warning_text' => 'For security, delete or rename site-config/install.php after installation is complete.',
     'admin.dashboard.bridge_officers' => 'Bridge Officers',
     'admin.dashboard.active_pilots' => 'Active Pilots',
     'admin.dashboard.bridge_log' => 'Bridge Log',

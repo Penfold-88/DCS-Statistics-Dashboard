@@ -186,6 +186,8 @@
     "admin.dashboard.endpoints_enabled": "{count} endpoints enabled",
     "admin.dashboard.features_enabled": "Configured feature toggles enabled",
     "admin.dashboard.file_based": "File-based",
+    "admin.dashboard.install_file_warning_text": "For security, delete or rename site-config/install.php after installation is complete.",
+    "admin.dashboard.install_file_warning_title": "Installer File Still Present",
     "admin.dashboard.json_files_found": "JSON settings files found",
     "admin.dashboard.last_watch": "Last watch",
     "admin.dashboard.local_settings": "Local Settings",

@@ -177,6 +177,8 @@ $manual = [
     'admin.dashboard.bridge_log' => 'Log bridge',
     'admin.dashboard.commit' => 'Commit',
     'admin.dashboard.channel' => 'Canale',
+    'admin.dashboard.install_file_warning_title' => 'File installer ancora presente',
+    'admin.dashboard.install_file_warning_text' => 'Per sicurezza, elimina o rinomina site-config/install.php dopo aver completato l\'installazione.',
     'admin.common.cancel' => 'Annulla',
 
     'admin.install.page_title' => 'Installazione pannello amministrazione',

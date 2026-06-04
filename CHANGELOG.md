@@ -353,6 +353,7 @@ V1.2 is a major dashboard, admin, theme, update, language, security, and perform
 - ✅ Fresh installs now create required settings cleanly.
 - ✅ Fresh installs enable feature toggles by default.
 - 🔐 Installer now supports optional DCSServerBot API keys when testing protected `/servers` endpoints.
+- ⚠️ Admin dashboard now warns if `site-config/install.php` is still present after installation.
 - 🧭 Missing configuration now redirects to installer properly.
 - 🧹 Removed fragile `goto` flow from installer logic.
 - 🧰 Installer-generated local data stays out of Git distribution.

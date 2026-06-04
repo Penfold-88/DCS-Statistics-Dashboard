@@ -53,6 +53,7 @@ $installedCommit = !empty($versionInfo['commit_sha']) ? substr($versionInfo['com
 $backupDataDir = __DIR__ . '/data';
 $dataFiles = is_dir($backupDataDir) ? glob($backupDataDir . '/*.json') : [];
 $siteName = $siteConfig['site_name'] ?? 'DCS Statistics';
+$installFilePresent = file_exists(__DIR__ . '/install.php');
 
 // Page title
 $pageTitle = dcs_t('admin.dashboard.title');
@@ -301,6 +302,13 @@ $pageTitle = dcs_t('admin.dashboard.title');
                     <?= e(dcs_t('admin.dashboard.welcome', ['user' => $currentAdmin['username']])) ?>
                     <?= e(dcs_t('admin.dashboard.last_watch')) ?>: <?= formatDate($currentAdmin['last_login']) ?>
                 </div>
+
+                <?php if ($installFilePresent): ?>
+                <div class="alert alert-warning">
+                    <strong><?= e(dcs_t('admin.dashboard.install_file_warning_title')) ?>:</strong>
+                    <?= e(dcs_t('admin.dashboard.install_file_warning_text')) ?>
+                </div>
+                <?php endif; ?>
 
                 <!-- Admin Overview -->
                 <div class="overview-grid">

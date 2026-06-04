@@ -115,6 +115,9 @@ if (!$is_cli) {
         if (empty($api_url)) {
             $errors[] = "API URL is required";
         }
+        if ($api_key !== '' && preg_match('/[\r\n]/', $api_key)) {
+            $errors[] = "API key contains invalid characters";
+        }
         
         // Test API connection with protocol auto-detection (skip in dev mode)
         if (empty($errors) && !empty($api_url) && !$isDev) {
@@ -278,7 +281,7 @@ if (!$is_cli) {
                         <?= e(dcs_t('admin.install.api_key')) ?>
                         <span class="text-muted"><?= e(dcs_t('admin.install.api_key_optional')) ?></span>
                     </label>
-                    <input type="password" id="api_key" name="api_key" class="form-control" value="<?= htmlspecialchars($_POST['api_key'] ?? '') ?>" placeholder="<?= e(dcs_t('admin.install.api_key_placeholder')) ?>">
+                    <input type="password" id="api_key" name="api_key" class="form-control" value="" autocomplete="off" placeholder="<?= e(dcs_t('admin.install.api_key_placeholder')) ?>">
                     <small class="text-muted"><?= e(dcs_t('admin.install.api_key_help')) ?></small>
                 </div>
                 
@@ -349,6 +352,9 @@ if ($is_cli) {
 
     echo "DCSServerBot API Key (optional, press Enter to skip): ";
     $api_key = trim(fgets(STDIN));
+    if ($api_key !== '' && preg_match('/[\r\n]/', $api_key)) {
+        die("Error: API key contains invalid characters.\n");
+    }
     
     // Auto-detect protocol
     $api_url = preg_replace('#^https?://#', '', $api_url);
