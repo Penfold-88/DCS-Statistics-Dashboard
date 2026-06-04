@@ -18,6 +18,26 @@ requirePermission('view_dashboard');
 
 // Get current admin
 $currentAdmin = getCurrentAdmin();
+$installDeleteMessage = '';
+$installDeleteMessageType = '';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'delete_installer') {
+    requirePermission('change_settings');
+    requireCSRFToken();
+
+    $installPath = __DIR__ . '/install.php';
+    if (!file_exists($installPath)) {
+        $installDeleteMessage = dcs_t('admin.dashboard.install_file_delete_missing');
+        $installDeleteMessageType = 'success';
+    } elseif (@unlink($installPath)) {
+        logAdminAction('INSTALLER_FILE_DELETE', ['file' => 'site-config/install.php']);
+        $installDeleteMessage = dcs_t('admin.dashboard.install_file_delete_success');
+        $installDeleteMessageType = 'success';
+    } else {
+        $installDeleteMessage = dcs_t('admin.dashboard.install_file_delete_failed');
+        $installDeleteMessageType = 'error';
+    }
+}
 
 // Get dashboard statistics
 $stats = getDashboardStats();
@@ -150,6 +170,22 @@ $pageTitle = dcs_t('admin.dashboard.title');
             gap: 18px;
             grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
             margin-bottom: 28px;
+        }
+        .install-file-warning {
+            align-items: center;
+            display: flex;
+            gap: 14px;
+            justify-content: space-between;
+        }
+        .install-file-warning form {
+            flex: 0 0 auto;
+            margin: 0;
+        }
+        @media (max-width: 700px) {
+            .install-file-warning {
+                align-items: flex-start;
+                flex-direction: column;
+            }
         }
         .overview-card {
             background: var(--bg-secondary);
@@ -303,10 +339,25 @@ $pageTitle = dcs_t('admin.dashboard.title');
                     <?= e(dcs_t('admin.dashboard.last_watch')) ?>: <?= formatDate($currentAdmin['last_login']) ?>
                 </div>
 
+                <?php if ($installDeleteMessage !== ''): ?>
+                <div class="alert alert-<?= e($installDeleteMessageType) ?>">
+                    <?= e($installDeleteMessage) ?>
+                </div>
+                <?php endif; ?>
+
                 <?php if ($installFilePresent): ?>
-                <div class="alert alert-warning">
-                    <strong><?= e(dcs_t('admin.dashboard.install_file_warning_title')) ?>:</strong>
-                    <?= e(dcs_t('admin.dashboard.install_file_warning_text')) ?>
+                <div class="alert alert-warning install-file-warning">
+                    <div>
+                        <strong><?= e(dcs_t('admin.dashboard.install_file_warning_title')) ?>:</strong>
+                        <?= e(dcs_t('admin.dashboard.install_file_warning_text')) ?>
+                    </div>
+                    <?php if (hasPermission('change_settings')): ?>
+                    <form method="POST" action="index.php" onsubmit='return confirm(<?= json_encode(dcs_t('admin.dashboard.install_file_delete_confirm')) ?>);'>
+                        <?= csrfField() ?>
+                        <input type="hidden" name="action" value="delete_installer">
+                        <button type="submit" class="btn btn-danger btn-small"><?= e(dcs_t('admin.dashboard.install_file_delete_button')) ?></button>
+                    </form>
+                    <?php endif; ?>
                 </div>
                 <?php endif; ?>
 

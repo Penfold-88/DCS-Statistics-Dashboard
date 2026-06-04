@@ -180,6 +180,11 @@ $manual = [
     'admin.dashboard.channel' => 'Canale',
     'admin.dashboard.install_file_warning_title' => 'File installer ancora presente',
     'admin.dashboard.install_file_warning_text' => 'Per sicurezza, elimina o rinomina site-config/install.php dopo aver completato l\'installazione.',
+    'admin.dashboard.install_file_delete_button' => 'Elimina installer',
+    'admin.dashboard.install_file_delete_confirm' => 'Eliminare site-config/install.php ora?',
+    'admin.dashboard.install_file_delete_success' => 'File installer eliminato correttamente.',
+    'admin.dashboard.install_file_delete_failed' => 'Impossibile eliminare il file installer. Controlla i permessi del web server e rimuovi site-config/install.php manualmente.',
+    'admin.dashboard.install_file_delete_missing' => 'Il file installer è già stato rimosso.',
     'admin.common.cancel' => 'Annulla',
 
     'admin.install.page_title' => 'Installazione pannello amministrazione',
