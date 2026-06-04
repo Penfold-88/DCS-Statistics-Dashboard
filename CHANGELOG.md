@@ -45,6 +45,7 @@ V1.2 is a major dashboard, admin, theme, update, language, security, and perform
   - Charts
 - 🌈 Added controlled soft gradient options.
 - 🌌 Added page background gradient options.
+- 🖼️ Added optional full-page background image upload with focal-position controls.
 - 🧩 Added theme presets while still allowing fully custom themes.
 - 💾 Added theme backup and restore tools.
 - 🖼️ Added custom header image upload with default fallback.

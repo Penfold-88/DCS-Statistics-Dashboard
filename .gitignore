@@ -14,6 +14,8 @@ dcs-stats/site_config.json
 dcs-stats/menu_config.json
 dcs-stats/custom_theme.css
 dcs-stats/header_custom.css
+dcs-stats/uploads/*
+!dcs-stats/uploads/.gitkeep
 *.pdf
 php-preview.err.log
 php-preview.out.log

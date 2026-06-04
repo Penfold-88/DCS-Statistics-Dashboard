@@ -29,7 +29,11 @@ function getDefaultHeaderImageSettings() {
         'position_y' => 50,
         'branding_mode' => 'text',
         'logo' => '',
-        'logo_height' => 72
+        'logo_height' => 72,
+        'background_image' => '',
+        'background_position_x' => 50,
+        'background_position_y' => 50,
+        'background_zoom' => 125
     ];
 }
 
@@ -54,6 +58,9 @@ function loadHeaderImageSettings() {
 
     $settings['position_x'] = max(0, min(100, (int)$settings['position_x']));
     $settings['position_y'] = max(0, min(100, (int)$settings['position_y']));
+    $settings['background_position_x'] = max(0, min(100, (int)$settings['background_position_x']));
+    $settings['background_position_y'] = max(0, min(100, (int)$settings['background_position_y']));
+    $settings['background_zoom'] = max(100, min(180, (int)$settings['background_zoom']));
     if (!in_array($settings['branding_mode'], ['text', 'logo', 'both'], true)) {
         $settings['branding_mode'] = 'text';
     }
@@ -64,6 +71,9 @@ function loadHeaderImageSettings() {
             $settings['branding_mode'] = 'text';
         }
     }
+    if (!empty($settings['background_image']) && !file_exists(__DIR__ . '/../' . ltrim($settings['background_image'], '/'))) {
+        $settings['background_image'] = '';
+    }
     return $settings;
 }
 
@@ -71,6 +81,9 @@ function saveHeaderImageSettings($settings) {
     $settings = array_merge(getDefaultHeaderImageSettings(), $settings);
     $settings['position_x'] = max(0, min(100, (int)$settings['position_x']));
     $settings['position_y'] = max(0, min(100, (int)$settings['position_y']));
+    $settings['background_position_x'] = max(0, min(100, (int)$settings['background_position_x']));
+    $settings['background_position_y'] = max(0, min(100, (int)$settings['background_position_y']));
+    $settings['background_zoom'] = max(100, min(180, (int)$settings['background_zoom']));
     if (!in_array($settings['branding_mode'], ['text', 'logo', 'both'], true)) {
         $settings['branding_mode'] = 'text';
     }
@@ -88,6 +101,9 @@ function saveHeaderImageSettings($settings) {
     if (!empty($settings['logo']) && !file_exists(__DIR__ . '/../' . ltrim($settings['logo'], '/'))) {
         $settings['logo'] = '';
     }
+    if (!empty($settings['background_image']) && !file_exists(__DIR__ . '/../' . ltrim($settings['background_image'], '/'))) {
+        $settings['background_image'] = '';
+    }
 
     $imageUrl = str_replace(["\\", "'"], ['/', "\\'"], $settings['image']);
     $css = ".header-background {\n";
@@ -96,6 +112,24 @@ function saveHeaderImageSettings($settings) {
     $css .= "    background-position: {$settings['position_x']}% {$settings['position_y']}% !important;\n";
     $css .= "    background-repeat: no-repeat !important;\n";
     $css .= "}\n";
+
+    if (!empty($settings['background_image'])) {
+        $backgroundUrl = str_replace(["\\", "'"], ['/', "\\'"], $settings['background_image']);
+        $css .= "\nbody {\n";
+        $css .= "    background-color: var(--background_color, #121212) !important;\n";
+        $css .= "    background-image: linear-gradient(rgba(0, 0, 0, 0.58), rgba(0, 0, 0, 0.58)), url('{$backgroundUrl}') !important;\n";
+        $css .= "    background-attachment: fixed !important;\n";
+        $css .= "    background-position: center center, {$settings['background_position_x']}% {$settings['background_position_y']}% !important;\n";
+        $css .= "    background-repeat: no-repeat, no-repeat !important;\n";
+        $css .= "    background-size: cover, {$settings['background_zoom']}% auto !important;\n";
+        $css .= "}\n";
+        $css .= "\n@media (max-width: 768px) {\n";
+        $css .= "    body {\n";
+        $css .= "        background: var(--page_background_css, var(--background_color, #121212)) !important;\n";
+        $css .= "        background-attachment: scroll !important;\n";
+        $css .= "    }\n";
+        $css .= "}\n";
+    }
 
     return file_put_contents(getHeaderImageSettingsPath(), json_encode($settings, JSON_PRETTY_PRINT)) !== false
         && file_put_contents(__DIR__ . '/../header_custom.css', $css) !== false;
@@ -1405,8 +1439,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $headerSettings = loadHeaderImageSettings();
                 $headerSettings['position_x'] = (int)($_POST['position_x'] ?? 50);
                 $headerSettings['position_y'] = (int)($_POST['position_y'] ?? 50);
+                $headerSettings['background_position_x'] = (int)($_POST['background_position_x'] ?? 50);
+                $headerSettings['background_position_y'] = (int)($_POST['background_position_y'] ?? 50);
+                $headerSettings['background_zoom'] = (int)($_POST['background_zoom'] ?? 125);
                 if (isset($_POST['use_default_header_image'])) {
                     $headerSettings['image'] = getDefaultHeaderImageSettings()['image'];
+                }
+                if (isset($_POST['remove_background_image'])) {
+                    $headerSettings['background_image'] = '';
                 }
                 $headerSettings['branding_mode'] = $_POST['branding_mode'] ?? 'text';
                 $headerSettings['logo_height'] = (int)($_POST['logo_height'] ?? 72);
@@ -1453,6 +1493,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
 
                     $headerSettings['image'] = 'uploads/' . $targetName;
+                }
+
+                if (!isset($_POST['remove_background_image']) && isset($_FILES['background_image']) && $_FILES['background_image']['error'] === UPLOAD_ERR_OK) {
+                    $uploadedBackground = $_FILES['background_image'];
+                    $backgroundTmp = $uploadedBackground['tmp_name'];
+                    $backgroundSize = $uploadedBackground['size'];
+                    $backgroundType = mime_content_type($backgroundTmp);
+                    $backgroundExtension = strtolower(pathinfo($uploadedBackground['name'], PATHINFO_EXTENSION));
+                    $allowedBackgroundTypes = [
+                        'jpg' => 'image/jpeg',
+                        'jpeg' => 'image/jpeg',
+                        'png' => 'image/png',
+                        'webp' => 'image/webp'
+                    ];
+
+                    if (!isset($allowedBackgroundTypes[$backgroundExtension]) || $allowedBackgroundTypes[$backgroundExtension] !== $backgroundType) {
+                        $error = 'Please upload a JPG, PNG, or WebP page background image';
+                        break;
+                    }
+
+                    if ($backgroundSize > 5242880) {
+                        $error = 'Page background image must be less than 5MB';
+                        break;
+                    }
+
+                    $uploadDir = __DIR__ . '/../uploads';
+                    if (!is_dir($uploadDir)) {
+                        mkdir($uploadDir, 0755, true);
+                    }
+
+                    $backgroundTargetName = 'page-background.' . ($backgroundExtension === 'jpeg' ? 'jpg' : $backgroundExtension);
+                    $backgroundTargetPath = $uploadDir . '/' . $backgroundTargetName;
+                    if (!move_uploaded_file($backgroundTmp, $backgroundTargetPath)) {
+                        $error = 'Failed to upload page background image';
+                        break;
+                    }
+
+                    $headerSettings['background_image'] = 'uploads/' . $backgroundTargetName;
                 }
 
                 if (!isset($_POST['remove_header_logo']) && isset($_FILES['header_logo']) && $_FILES['header_logo']['error'] === UPLOAD_ERR_OK) {
@@ -1577,6 +1655,7 @@ $chartColors = loadChartTheme();
 $headerImageSettings = loadHeaderImageSettings();
 $headerPreviewImage = '../' . ltrim($headerImageSettings['image'], '/');
 $headerLogoPreview = !empty($headerImageSettings['logo']) ? '../' . ltrim($headerImageSettings['logo'], '/') : '';
+$backgroundPreviewImage = !empty($headerImageSettings['background_image']) ? '../' . ltrim($headerImageSettings['background_image'], '/') : '';
 
 // Page title
 $pageTitle = dcs_t('admin.themes.title');
@@ -1770,6 +1849,32 @@ $pageTitle = dcs_t('admin.themes.title');
         }
 
         .header-image-preview span {
+            background: rgba(0, 0, 0, 0.68);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 6px;
+            color: #fff;
+            font-weight: 700;
+            padding: 8px 12px;
+        }
+
+        .page-background-preview {
+            align-items: flex-end;
+            aspect-ratio: 16 / 6;
+            background-color: var(--bg-tertiary);
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: cover;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            display: flex;
+            margin: 20px 0;
+            max-width: 960px;
+            min-height: 180px;
+            overflow: hidden;
+            padding: 16px;
+        }
+
+        .page-background-preview span {
             background: rgba(0, 0, 0, 0.68);
             border: 1px solid rgba(255, 255, 255, 0.18);
             border-radius: 6px;
@@ -2230,6 +2335,50 @@ $pageTitle = dcs_t('admin.themes.title');
                             </div>
 
                             <fieldset class="color-fieldset">
+                                <legend><?= e(dcs_t('admin.themes.page_background_image')) ?></legend>
+                                <p style="font-size: 0.9em; color: var(--text-muted); margin-top: 0;">
+                                    <?= e(dcs_t('admin.themes.page_background_image_help')) ?>
+                                </p>
+                                <p style="font-size: 0.9em; color: var(--text-muted); margin-top: 10px;">
+                                    <?= e(dcs_t('admin.themes.page_background_image_size')) ?>
+                                </p>
+                                <p style="font-size: 0.9em; color: var(--warning, #ffc107); margin-top: 10px;">
+                                    <?= e(dcs_t('admin.themes.page_background_image_desktop_only')) ?>
+                                </p>
+
+                                <div class="page-background-preview"
+                                     style="<?= $backgroundPreviewImage ? "background-image: url('" . htmlspecialchars($backgroundPreviewImage) . "'); background-position: " . (int)$headerImageSettings['background_position_x'] . "% " . (int)$headerImageSettings['background_position_y'] . "%; background-size: " . (int)$headerImageSettings['background_zoom'] . "% auto;" : '' ?>">
+                                    <span><?= e($backgroundPreviewImage ? dcs_t('admin.themes.current_background_framing') : dcs_t('admin.themes.no_background_image')) ?></span>
+                                </div>
+
+                                <div class="file-input-wrapper">
+                                    <input type="file" name="background_image" id="background_image" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp">
+                                    <label for="background_image" class="file-input-button"><?= e(dcs_t('admin.themes.choose_background_image')) ?></label>
+                                </div>
+                                <span id="background-image-file-name" style="margin-left: 10px;"><?= e(dcs_t('admin.themes.no_new_background_selected')) ?></span>
+
+                                <div class="color-input-group" style="margin-top: 18px; max-width: 420px;">
+                                    <label for="remove_background_image"><?= e(dcs_t('admin.themes.remove_background_image')) ?>:</label>
+                                    <input type="checkbox" id="remove_background_image" name="remove_background_image">
+                                </div>
+
+                                <div class="header-position-controls">
+                                    <label for="background_position_x">
+                                        <?= e(dcs_t('admin.themes.background_horizontal_position')) ?>
+                                        <input type="range" id="background_position_x" name="background_position_x" min="0" max="100" value="<?= (int)$headerImageSettings['background_position_x'] ?>">
+                                    </label>
+                                    <label for="background_position_y">
+                                        <?= e(dcs_t('admin.themes.background_vertical_position')) ?>
+                                        <input type="range" id="background_position_y" name="background_position_y" min="0" max="100" value="<?= (int)$headerImageSettings['background_position_y'] ?>">
+                                    </label>
+                                    <label for="background_zoom">
+                                        <?= e(dcs_t('admin.themes.background_zoom')) ?>
+                                        <input type="range" id="background_zoom" name="background_zoom" min="100" max="180" value="<?= (int)$headerImageSettings['background_zoom'] ?>">
+                                    </label>
+                                </div>
+                            </fieldset>
+
+                            <fieldset class="color-fieldset">
                                 <legend><?= e(dcs_t('admin.themes.header_branding')) ?></legend>
                                 <p style="font-size: 0.9em; color: var(--text-muted); margin-top: 0;">
                                     Recommended logo size: transparent PNG/WebP around 360 x 96 pixels. Keep it under 2MB so the header stays the same height.
@@ -2571,6 +2720,8 @@ $pageTitle = dcs_t('admin.themes.title');
             'noFileSelected' => dcs_t('admin.themes.no_file_selected'),
             'noNewImageSelected' => dcs_t('admin.themes.no_new_image_selected'),
             'defaultImageSelected' => dcs_t('admin.themes.default_image_selected'),
+            'noNewBackgroundSelected' => dcs_t('admin.themes.no_new_background_selected'),
+            'backgroundWillBeRemoved' => dcs_t('admin.themes.background_will_be_removed'),
             'noNewLogoSelected' => dcs_t('admin.themes.no_new_logo_selected'),
             'logoWillBeRemoved' => dcs_t('admin.themes.logo_will_be_removed'),
             'updatingPreview' => dcs_t('admin.themes.updating_preview'),
@@ -2605,6 +2756,12 @@ $pageTitle = dcs_t('admin.themes.title');
         const positionY = document.getElementById('position_y');
         const useDefaultHeaderImage = document.getElementById('use_default_header_image');
         const defaultHeaderImageUrl = '../dcs-header-image.jpg';
+        const backgroundImageInput = document.getElementById('background_image');
+        const backgroundImagePreview = document.querySelector('.page-background-preview');
+        const backgroundPositionX = document.getElementById('background_position_x');
+        const backgroundPositionY = document.getElementById('background_position_y');
+        const backgroundZoom = document.getElementById('background_zoom');
+        const removeBackgroundImage = document.getElementById('remove_background_image');
         const headerLogoInput = document.getElementById('header_logo');
         const headerLogoPreview = document.querySelector('.header-logo-preview');
         const logoHeight = document.getElementById('logo_height');
@@ -2651,6 +2808,46 @@ $pageTitle = dcs_t('admin.themes.title');
                 input.addEventListener('input', updateHeaderImagePreview);
             }
         });
+
+        function updateBackgroundImagePreview() {
+            if (!backgroundImagePreview || !backgroundPositionX || !backgroundPositionY) return;
+            backgroundImagePreview.style.backgroundPosition = `${backgroundPositionX.value}% ${backgroundPositionY.value}%`;
+            if (backgroundZoom) {
+                backgroundImagePreview.style.backgroundSize = `${backgroundZoom.value}% auto`;
+            }
+        }
+
+        if (backgroundImageInput) {
+            backgroundImageInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                document.getElementById('background-image-file-name').textContent = file?.name || themeText.noNewBackgroundSelected;
+                if (file && backgroundImagePreview) {
+                    if (removeBackgroundImage) removeBackgroundImage.checked = false;
+                    backgroundImagePreview.style.backgroundImage = `url('${URL.createObjectURL(file)}')`;
+                    const label = backgroundImagePreview.querySelector('span');
+                    if (label) label.textContent = file.name;
+                    updateBackgroundImagePreview();
+                }
+            });
+        }
+
+        [backgroundPositionX, backgroundPositionY, backgroundZoom].forEach(input => {
+            if (input) {
+                input.addEventListener('input', updateBackgroundImagePreview);
+            }
+        });
+
+        if (removeBackgroundImage && backgroundImagePreview) {
+            removeBackgroundImage.addEventListener('change', function() {
+                if (this.checked) {
+                    backgroundImagePreview.style.backgroundImage = '';
+                    const label = backgroundImagePreview.querySelector('span');
+                    if (label) label.textContent = themeText.backgroundWillBeRemoved;
+                    document.getElementById('background-image-file-name').textContent = themeText.noNewBackgroundSelected;
+                    if (backgroundImageInput) backgroundImageInput.value = '';
+                }
+            });
+        }
 
         if (headerLogoInput) {
             headerLogoInput.addEventListener('change', function(e) {
