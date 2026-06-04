@@ -4,7 +4,7 @@ All notable changes to **DCS Statistics Dashboard** are recorded here.
 
 ---
 
-## 🚀 V1.2 - 2026-05-31
+## 🚀 V1.2
 
 V1.2 is a major dashboard, admin, theme, update, language, security, and performance release. It focuses on making the project easier to install, easier to customise, safer to run, and much better suited to different squadrons and server setups.
 
