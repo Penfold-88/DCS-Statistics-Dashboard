@@ -45,6 +45,11 @@ if ($headerLogoPath === '' || !file_exists(__DIR__ . '/' . $headerLogoPath)) {
 
 $showHeaderLogo = $headerLogoPath !== '' && in_array($headerBranding['branding_mode'], ['logo', 'both'], true);
 $showHeaderText = in_array($headerBranding['branding_mode'], ['text', 'both'], true) || !$showHeaderLogo;
+$hasPageBackgroundImage = false;
+if (file_exists($headerSettingsPath)) {
+    $savedBackgroundPath = ltrim((string)($savedHeaderSettings['background_image'] ?? ''), '/');
+    $hasPageBackgroundImage = $savedBackgroundPath !== '' && file_exists(__DIR__ . '/' . $savedBackgroundPath);
+}
 
 // Security headers for protection against common web vulnerabilities
 header("X-Content-Type-Options: nosniff");
@@ -191,7 +196,7 @@ if (file_exists($maintenanceFile)) {
   </style>
   <?php endif; ?>
 </head>
-<body class="<?php echo $frontendDemoMode ? 'has-demo-banner' : ''; ?>">
+<body class="<?php echo trim(($frontendDemoMode ? 'has-demo-banner ' : '') . ($hasPageBackgroundImage ? 'has-page-background-image' : '')); ?>">
   <?php $frontendDemoBannerShown = false; ?>
   <?php if ($frontendDemoMode): ?>
   <?php $frontendDemoBannerShown = true; ?>
