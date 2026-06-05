@@ -178,6 +178,14 @@ Admin Panel -> Settings -> API Settings
 
 If your DCSServerBot REST API has no key configured, leave the field blank.
 
+For Docker or server-managed installs, you can keep the API key out of `api_config.json` by setting:
+
+```env
+DCSBOT_API_KEY=your_key_here
+```
+
+When `DCSBOT_API_KEY` is present, the dashboard uses it for API requests and ignores the saved API key field.
+
 ---
 
 ## ⚡ API Caching
@@ -467,7 +475,7 @@ Then open `http://localhost:8080`.
 
 The Docker image includes PHP cURL, PHP ZIP / ZipArchive, cURL, zip/unzip, HTTPS certificate support, git tooling, and production OPcache defaults so the dashboard can talk to GitHub and process dashboard updates.
 
-An `.env` file is optional. Docker uses safe defaults if you do not create one. Copy `.env.example` to `.env` only if you want to change runtime settings such as the public port, PHP limits, OPcache behaviour, logs, health checks, or resource limits. Required PHP extensions and command-line tools are built into the Docker image.
+An `.env` file is optional. Docker uses safe defaults if you do not create one. Copy `.env.example` to `.env` only if you want to change runtime settings such as the public port, PHP limits, OPcache behaviour, logs, health checks, resource limits, or the optional `DCSBOT_API_KEY` secure API key override. Required PHP extensions and command-line tools are built into the Docker image.
 
 Useful Docker commands:
 

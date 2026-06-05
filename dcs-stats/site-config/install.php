@@ -16,6 +16,13 @@ if (!function_exists('e')) {
         return htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8');
     }
 }
+function isValidInstallerApiKey($apiKey) {
+    if ($apiKey === '') {
+        return true;
+    }
+
+    return strlen($apiKey) <= 256 && preg_match('/^[A-Za-z0-9._~:+\/=-]+$/', $apiKey);
+}
 $installerLanguage = dcs_language_code($_POST['install_language'] ?? $_GET['lang'] ?? 'en');
 dcs_set_language_override($installerLanguage);
 
@@ -115,7 +122,7 @@ if (!$is_cli) {
         if (empty($api_url)) {
             $errors[] = "API URL is required";
         }
-        if ($api_key !== '' && preg_match('/[\r\n]/', $api_key)) {
+        if (!isValidInstallerApiKey($api_key)) {
             $errors[] = "API key contains invalid characters";
         }
         
@@ -352,7 +359,7 @@ if ($is_cli) {
 
     echo "DCSServerBot API Key (optional, press Enter to skip): ";
     $api_key = trim(fgets(STDIN));
-    if ($api_key !== '' && preg_match('/[\r\n]/', $api_key)) {
+    if (!isValidInstallerApiKey($api_key)) {
         die("Error: API key contains invalid characters.\n");
     }
     

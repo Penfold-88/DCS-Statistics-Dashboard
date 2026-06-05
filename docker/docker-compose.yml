@@ -43,6 +43,7 @@ services:
       
       # Application Configuration  
       - SITE_URL=${SITE_URL:-http://localhost:8080}
+      - DCSBOT_API_KEY=${DCSBOT_API_KEY:-}
       - TZ=${TIMEZONE:-UTC}
       - DEBUG_MODE=${DEBUG_MODE:-false}
       - MAINTENANCE_MODE=${MAINTENANCE_MODE:-false}

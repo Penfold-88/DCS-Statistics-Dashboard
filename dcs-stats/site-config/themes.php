@@ -41,6 +41,41 @@ function getHeaderImageSettingsPath() {
     return __DIR__ . '/data/header_image.json';
 }
 
+function normalizeThemeImagePath($path, $allowDefaultHeader = false) {
+    $path = str_replace('\\', '/', trim((string)$path));
+    $path = ltrim($path, '/');
+
+    if ($path === '') {
+        return '';
+    }
+
+    if ($allowDefaultHeader && $path === 'dcs-header-image.jpg' && is_file(__DIR__ . '/../dcs-header-image.jpg')) {
+        return $path;
+    }
+
+    if (!preg_match('#^uploads/[A-Za-z0-9._-]+\.(?:jpe?g|png|webp)$#i', $path)) {
+        return '';
+    }
+
+    $root = realpath(__DIR__ . '/..');
+    $uploadsDir = realpath(__DIR__ . '/../uploads');
+    $realPath = realpath(__DIR__ . '/../' . $path);
+    if ($root === false || $uploadsDir === false || $realPath === false || !is_file($realPath)) {
+        return '';
+    }
+
+    $uploadsPrefix = rtrim($uploadsDir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+    if (strpos($realPath, $uploadsPrefix) !== 0) {
+        return '';
+    }
+
+    return $path;
+}
+
+function cssImageUrl($path) {
+    return str_replace(["\\", "'", ")", "("], ['/', "\\'", "\\)", "\\("], normalizeThemeImagePath($path, true));
+}
+
 function loadHeaderImageSettings() {
     $settings = getDefaultHeaderImageSettings();
     $path = getHeaderImageSettingsPath();
@@ -51,8 +86,8 @@ function loadHeaderImageSettings() {
         }
     }
 
-    $imagePath = __DIR__ . '/../' . ltrim($settings['image'], '/');
-    if (empty($settings['image']) || !file_exists($imagePath)) {
+    $settings['image'] = normalizeThemeImagePath($settings['image'], true);
+    if ($settings['image'] === '') {
         $settings['image'] = getDefaultHeaderImageSettings()['image'];
     }
 
@@ -65,15 +100,14 @@ function loadHeaderImageSettings() {
         $settings['branding_mode'] = 'text';
     }
     $settings['logo_height'] = max(32, min(96, (int)$settings['logo_height']));
-    if (!empty($settings['logo']) && !file_exists(__DIR__ . '/../' . ltrim($settings['logo'], '/'))) {
+    $settings['logo'] = normalizeThemeImagePath($settings['logo']);
+    if (empty($settings['logo'])) {
         $settings['logo'] = '';
         if ($settings['branding_mode'] === 'logo') {
             $settings['branding_mode'] = 'text';
         }
     }
-    if (!empty($settings['background_image']) && !file_exists(__DIR__ . '/../' . ltrim($settings['background_image'], '/'))) {
-        $settings['background_image'] = '';
-    }
+    $settings['background_image'] = normalizeThemeImagePath($settings['background_image']);
     return $settings;
 }
 
@@ -94,18 +128,14 @@ function saveHeaderImageSettings($settings) {
         mkdir($dataDir, 0755, true);
     }
 
-    $imagePath = __DIR__ . '/../' . ltrim($settings['image'], '/');
-    if (empty($settings['image']) || !file_exists($imagePath)) {
+    $settings['image'] = normalizeThemeImagePath($settings['image'], true);
+    if ($settings['image'] === '') {
         $settings['image'] = getDefaultHeaderImageSettings()['image'];
     }
-    if (!empty($settings['logo']) && !file_exists(__DIR__ . '/../' . ltrim($settings['logo'], '/'))) {
-        $settings['logo'] = '';
-    }
-    if (!empty($settings['background_image']) && !file_exists(__DIR__ . '/../' . ltrim($settings['background_image'], '/'))) {
-        $settings['background_image'] = '';
-    }
+    $settings['logo'] = normalizeThemeImagePath($settings['logo']);
+    $settings['background_image'] = normalizeThemeImagePath($settings['background_image']);
 
-    $imageUrl = str_replace(["\\", "'"], ['/', "\\'"], $settings['image']);
+    $imageUrl = cssImageUrl($settings['image']);
     $css = ".header-background {\n";
     $css .= "    background-image: url('{$imageUrl}') !important;\n";
     $css .= "    background-size: cover !important;\n";
@@ -114,7 +144,7 @@ function saveHeaderImageSettings($settings) {
     $css .= "}\n";
 
     if (!empty($settings['background_image'])) {
-        $backgroundUrl = str_replace(["\\", "'"], ['/', "\\'"], $settings['background_image']);
+        $backgroundUrl = cssImageUrl($settings['background_image']);
         $css .= "\nbody {\n";
         $css .= "    background-color: var(--background_color, #121212) !important;\n";
         $css .= "    background-image: linear-gradient(rgba(0, 0, 0, 0.58), rgba(0, 0, 0, 0.58)), url('{$backgroundUrl}') !important;\n";

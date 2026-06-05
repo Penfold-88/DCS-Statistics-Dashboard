@@ -356,6 +356,8 @@ V1.2 is a major dashboard, admin, theme, update, language, security, and perform
 - ⚠️ Admin dashboard now warns if `site-config/install.php` is still present after installation.
 - 🧹 Admin dashboard can now delete `site-config/install.php` directly when file permissions allow it.
 - 🕒 The existing “Show Last Update Time” setting now displays the latest data refresh timestamp in the public footer.
+- 🔒 Hardened installer cleanup, backup deletion, installer API key validation, and theme image path handling from the v4 security review.
+- 🔐 Added optional `DCSBOT_API_KEY` environment override so Docker/server installs can keep the DCSServerBot API key out of saved JSON config.
 - 🧭 Missing configuration now redirects to installer properly.
 - 🧹 Removed fragile `goto` flow from installer logic.
 - 🧰 Installer-generated local data stays out of Git distribution.

@@ -272,12 +272,6 @@ $pageTitle = dcs_t('admin.update.title');
                             <button class="btn btn-warning btn-block mb-2 demo-lockable" onclick="showDowngradeModal()" <?= $demoRestricted ? 'disabled' : '' ?>>
                                 <span class="nav-icon">⬇️</span> <?= e(dcs_t('admin.update.downgrade_version')) ?>
                             </button>
-                            <button class="btn btn-info btn-block mb-2 demo-lockable" onclick="checkForUpdates()" <?= $demoRestricted ? 'disabled' : '' ?>>
-                                <span class="nav-icon">🔍</span> <?= e(dcs_t('admin.update.check_for_updates')) ?>
-                            </button>
-                            <button class="btn btn-primary btn-block mb-2 demo-lockable" onclick="performUpdate()" <?= $demoRestricted ? 'disabled' : '' ?>>
-                                <span class="nav-icon">⬆️</span> <?= e(dcs_t('admin.update.update_now')) ?>
-                            </button>
                         </div>
                     </div>
                 </div>

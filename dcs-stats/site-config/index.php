@@ -26,10 +26,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'delet
     requireCSRFToken();
 
     $installPath = __DIR__ . '/install.php';
+    $installRealPath = realpath($installPath);
+    $adminRealPath = realpath(__DIR__);
     if (!file_exists($installPath)) {
         $installDeleteMessage = dcs_t('admin.dashboard.install_file_delete_missing');
         $installDeleteMessageType = 'success';
-    } elseif (@unlink($installPath)) {
+    } elseif (
+        $installRealPath === false ||
+        $adminRealPath === false ||
+        $installRealPath !== $adminRealPath . DIRECTORY_SEPARATOR . 'install.php' ||
+        !is_file($installRealPath)
+    ) {
+        $installDeleteMessage = dcs_t('admin.dashboard.install_file_delete_failed');
+        $installDeleteMessageType = 'error';
+    } elseif (@unlink($installRealPath)) {
         logAdminAction('INSTALLER_FILE_DELETE', ['file' => 'site-config/install.php']);
         $installDeleteMessage = dcs_t('admin.dashboard.install_file_delete_success');
         $installDeleteMessageType = 'success';

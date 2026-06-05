@@ -66,6 +66,34 @@ function getDefaultApiConfig($apiHost = '') {
     ];
 }
 
+function getEnvironmentApiKey() {
+    $apiKey = getenv('DCSBOT_API_KEY');
+    if ($apiKey === false || trim((string)$apiKey) === '') {
+        return null;
+    }
+
+    return trim((string)$apiKey);
+}
+
+function applyEnvironmentApiConfigOverrides($config) {
+    if (!is_array($config)) {
+        $config = getDefaultApiConfig();
+    }
+
+    $config['api_key_source'] = !empty($config['api_key']) ? 'config' : 'none';
+    $config['api_key_env_override'] = false;
+    $config['stored_api_key_present'] = !empty($config['api_key']);
+
+    $envApiKey = getEnvironmentApiKey();
+    if ($envApiKey !== null) {
+        $config['api_key'] = $envApiKey;
+        $config['api_key_source'] = 'environment';
+        $config['api_key_env_override'] = true;
+    }
+
+    return $config;
+}
+
 /**
  * Validate and fix an existing API configuration
  */
@@ -242,7 +270,7 @@ function loadApiConfigWithFix($configFile = null) {
         $defaultConfig = getDefaultApiConfig();
         @file_put_contents($configFile, json_encode($defaultConfig, JSON_PRETTY_PRINT));
         return [
-            'config' => $defaultConfig,
+            'config' => applyEnvironmentApiConfigOverrides($defaultConfig),
             'created' => true,
             'fixed' => false,
             'changes' => ['Created new configuration file'],
@@ -264,6 +292,7 @@ function loadApiConfigWithFix($configFile = null) {
     
     // Add config path to result
     $result['config_path'] = $configFile;
+    $result['config'] = applyEnvironmentApiConfigOverrides($result['config']);
     
     return $result;
 }

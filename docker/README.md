@@ -28,7 +28,15 @@ The image includes the dashboard requirements needed for GitHub updates and ZIP 
 - git command-line tool for Git status checks
 - production OPcache defaults for public internet-facing installs
 
-An `.env` file is optional. Docker uses safe defaults if you do not create one. Copy `.env.example` to `.env` only if you want to change runtime settings such as the public port, PHP limits, OPcache behaviour, logs, health checks, or resource limits. Required PHP extensions and command-line tools are built into the Docker image.
+An `.env` file is optional. Docker uses safe defaults if you do not create one. Copy `.env.example` to `.env` only if you want to change runtime settings such as the public port, PHP limits, OPcache behaviour, logs, health checks, resource limits, or the optional `DCSBOT_API_KEY` secure API key override. Required PHP extensions and command-line tools are built into the Docker image.
+
+To keep the DCSServerBot API key out of `site-config/data/api_config.json`, set this in `.env`:
+
+```env
+DCSBOT_API_KEY=your_key_here
+```
+
+When this variable is set, it overrides the saved API key field in the dashboard admin panel.
 
 Useful commands:
 

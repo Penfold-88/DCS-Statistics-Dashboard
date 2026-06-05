@@ -674,6 +674,8 @@ return [
     'admin.api.api_key_placeholder' => 'Leave blank if your DCSServerBot does not require a key',
     'admin.api.api_key_saved' => 'API key saved - enter a new key to replace it',
     'admin.api.api_key_help' => 'If your DCSServerBot REST API has an API key configured, enter it here. Leave blank to keep the existing key or to run without one.',
+    'admin.api.api_key_env_help' => 'An environment API key is active. This value is used for API requests and the saved key field is ignored unless the environment key is removed.',
+    'admin.api.env_key_active' => 'Environment API key detected. The dashboard will use DCSBOT_API_KEY instead of the saved API key.',
     'admin.api.timeout' => 'Request Timeout (seconds)',
     'admin.api.timeout_help' => 'Maximum time to wait for API responses',
     'admin.api.refresh_rate' => 'Dashboard Refresh Rate',

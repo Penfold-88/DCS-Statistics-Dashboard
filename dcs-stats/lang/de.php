@@ -673,6 +673,8 @@ return [
     'admin.api.api_key_placeholder' => 'Leer lassen, wenn dein DCSServerBot keinen Schlüssel benötigt',
     'admin.api.api_key_saved' => 'API-Schlüssel gespeichert - neuen Schlüssel eingeben, um ihn zu ersetzen',
     'admin.api.api_key_help' => 'Wenn deine DCSServerBot-REST-API einen API-Schlüssel nutzt, trage ihn hier ein. Leer lassen, um den bestehenden Schlüssel beizubehalten oder ohne Schlüssel zu arbeiten.',
+    'admin.api.api_key_env_help' => 'Ein API-Schlüssel aus der Umgebung ist aktiv. Dieser Wert wird für API-Anfragen genutzt und der gespeicherte Schlüssel wird ignoriert, bis der Umgebungsschlüssel entfernt wird.',
+    'admin.api.env_key_active' => 'Umgebungs-API-Schlüssel erkannt. Das Dashboard verwendet DCSBOT_API_KEY anstelle des gespeicherten API-Schlüssels.',
     'admin.api.timeout' => 'Zeitlimit für Anfragen (Sekunden)',
     'admin.api.timeout_help' => 'Maximale Wartezeit auf API-Antworten',
     'admin.api.refresh_rate' => 'Dashboard-Aktualisierungsrate',

@@ -23,6 +23,7 @@ $configResult = loadApiConfigWithFix();
 $apiConfig = $configResult['config'];
 $configFile = $configResult['config_path'];
 $autoFixMessage = '';
+$envApiKeyActive = !empty($apiConfig['api_key_env_override']);
 
 // Show any auto-fix messages
 if (isset($configResult['fixed']) && $configResult['fixed'] && !empty($configResult['changes'])) {
@@ -54,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     // Get form inputs
                     $apiHost = trim($_POST['api_host'] ?? '');
                     $apiKeyInput = trim($_POST['api_key'] ?? '');
-                    $existingApiKey = $apiConfig['api_key'] ?? null;
+                    $existingApiKey = $envApiKeyActive ? null : ($apiConfig['api_key'] ?? null);
                     $timeout = intval($_POST['timeout'] ?? 30);
                     $cacheTtl = intval($_POST['cache_ttl'] ?? 300);
                     $refreshInterval = intval($_POST['refresh_interval'] ?? 300);
@@ -75,6 +76,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         } elseif (!empty($existingApiKey)) {
                             $apiConfig['api_key'] = $existingApiKey;
                         }
+                        unset($apiConfig['api_key_source'], $apiConfig['api_key_env_override'], $apiConfig['stored_api_key_present']);
                         
                         // Save again with all settings
                         if (file_put_contents($configFile, json_encode($apiConfig, JSON_PRETTY_PRINT))) {
@@ -310,6 +312,12 @@ $displayApiHost = $demoRestricted ? maskDemoValue($apiHostValue) : $apiHostValue
                         <?= e(demoRestrictionMessage()) ?>
                     </div>
                 <?php endif; ?>
+
+                <?php if ($envApiKeyActive): ?>
+                    <div class="alert alert-info">
+                        <?= e(dcs_t('admin.api.env_key_active')) ?>
+                    </div>
+                <?php endif; ?>
                 
                 <div class="card">
                     <div class="card-header">
@@ -342,9 +350,9 @@ $displayApiHost = $demoRestricted ? maskDemoValue($apiHostValue) : $apiHostValue
                                    name="api_key"
                                    value=""
                                    autocomplete="new-password"
-                                   placeholder="<?= $demoRestricted ? '••••••••' : (!empty($apiConfig['api_key']) ? e(dcs_t('admin.api.api_key_saved')) : e(dcs_t('admin.api.api_key_placeholder'))) ?>"
+                                   placeholder="<?= $demoRestricted || $envApiKeyActive ? '••••••••' : (!empty($apiConfig['api_key']) ? e(dcs_t('admin.api.api_key_saved')) : e(dcs_t('admin.api.api_key_placeholder'))) ?>"
                                    <?= $demoRestricted ? 'disabled' : '' ?>>
-                            <div class="help-text"><?= e(dcs_t('admin.api.api_key_help')) ?></div>
+                            <div class="help-text"><?= e($envApiKeyActive ? dcs_t('admin.api.api_key_env_help') : dcs_t('admin.api.api_key_help')) ?></div>
                         </div>
                         
                         
