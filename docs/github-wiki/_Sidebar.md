@@ -14,4 +14,3 @@
 - 🧰 [Troubleshooting](Troubleshooting)
 - ✅ [Tester Checklist](Tester-Checklist)
 - 🚀 [V1.2 Release Notes](V1.2-Release-Notes)
-- 📚 [Publishing The Wiki](Publishing-The-Wiki)
