@@ -19,3 +19,4 @@ dcs-stats/uploads/*
 *.pdf
 php-preview.err.log
 php-preview.out.log
+.wiki-sync/
