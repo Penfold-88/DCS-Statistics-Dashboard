@@ -22,6 +22,8 @@ This page covers a standard browser-based installation of DCS Statistics Dashboa
 
 Docker or server-managed installs can also provide the API key with `DCSBOT_API_KEY`. When set, this environment variable is used instead of the saved JSON key.
 
+After installation, the installer attempts to remove `site-config/install.php` automatically. If the web server cannot remove it, the web installer is locked behind the admin session and the Admin Dashboard shows a cleanup warning with a delete button.
+
 ---
 
 ## ✨ Fresh Install

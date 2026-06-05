@@ -30,6 +30,8 @@ Optional DCSServerBot API key support is available and recommended where possibl
 
 For Docker or server-managed installs, the API key can be supplied through `DCSBOT_API_KEY`. When this environment variable is set, it is used at runtime instead of the saved JSON key, which keeps the key out of `site-config/data/api_config.json`.
 
+After installation, the installer attempts to remove `site-config/install.php` automatically. If the web server cannot remove it, `site-config/install.php` is locked behind the admin session and the Admin Dashboard shows a cleanup warning with a delete button.
+
 ---
 
 ## 📁 Protected Files And Folders

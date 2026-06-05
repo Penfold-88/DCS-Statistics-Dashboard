@@ -152,6 +152,8 @@ After installation, the admin panel is available at:
 /dcs-stats/site-config/
 ```
 
+Once the dashboard is installed, the installer attempts to remove `site-config/install.php` automatically. If the web server cannot remove it, the web installer is locked behind the admin session and the Admin Dashboard shows a cleanup warning with a delete button.
+
 ---
 
 ## 🔌 API Configuration

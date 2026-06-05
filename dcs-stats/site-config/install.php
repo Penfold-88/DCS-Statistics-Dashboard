@@ -10,6 +10,7 @@ $usersFile = $dataDir . '/users.json';
 $apiConfigFile = $dataDir . '/api_config.json';
 $legacyApiConfigFile = dirname(__DIR__) . '/api_config.json';
 $siteConfigFile = dirname(__DIR__) . '/site_config.json';
+$is_cli = (php_sapi_name() === 'cli');
 require_once dirname(__DIR__) . '/language.php';
 if (!function_exists('e')) {
     function e($value) {
@@ -22,6 +23,38 @@ function isValidInstallerApiKey($apiKey) {
     }
 
     return strlen($apiKey) <= 256 && preg_match('/^[A-Za-z0-9._~:+\/=-]+$/', $apiKey);
+}
+function showInstallerLockedPage() {
+    http_response_code(403);
+    ?>
+    <!DOCTYPE html>
+    <html lang="<?= e(dcs_default_language()) ?>">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title><?= e(dcs_t('admin.install.already_installed_title')) ?></title>
+        <link rel="stylesheet" href="css/admin.css">
+        <style>
+            body { align-items: center; display: flex; justify-content: center; min-height: 100vh; padding: 24px; }
+            .installer-locked-card { background: var(--bg-secondary, #252525); border: 1px solid var(--border-color, #444); border-radius: 8px; max-width: 560px; padding: 28px; text-align: center; width: 100%; }
+            .installer-locked-card h1 { margin-top: 0; }
+            .installer-locked-actions { display: flex; gap: 12px; justify-content: center; margin-top: 22px; flex-wrap: wrap; }
+        </style>
+    </head>
+    <body class="admin-body">
+        <div class="installer-locked-card">
+            <h1><?= e(dcs_t('admin.install.already_installed_title')) ?></h1>
+            <p><?= e(dcs_t('admin.install.already_installed_message')) ?></p>
+            <p class="text-muted"><?= e(dcs_t('admin.install.already_installed_delete_note')) ?></p>
+            <div class="installer-locked-actions">
+                <a href="index.php" class="btn btn-primary"><?= e(dcs_t('admin.install.go_to_dashboard')) ?></a>
+                <a href="logout.php" class="btn btn-secondary"><?= e(dcs_t('admin.common.logout')) ?></a>
+            </div>
+        </div>
+    </body>
+    </html>
+    <?php
+    exit;
 }
 $installerLanguage = dcs_language_code($_POST['install_language'] ?? $_GET['lang'] ?? 'en');
 dcs_set_language_override($installerLanguage);
@@ -43,11 +76,14 @@ if (file_exists($usersFile)) {
 }
 
 if (!$isDefaultInstall && file_exists($usersFile) && (file_exists($apiConfigFile) || file_exists($legacyApiConfigFile))) {
-    die("System appears to be already installed. Delete site-config/data/users.json and api_config.json to reinstall.\n");
-}
+    if ($is_cli) {
+        die("System appears to be already installed. Delete site-config/data/users.json and api_config.json to reinstall.\n");
+    }
 
-// Check if running from CLI or web
-$is_cli = (php_sapi_name() === 'cli');
+    require_once __DIR__ . '/auth.php';
+    requireAdmin();
+    showInstallerLockedPage();
+}
 
 if ($is_cli) {
     echo "DCS Statistics Admin Panel Installer\n";
@@ -540,6 +576,16 @@ if ($is_cli) {
     echo "✓ Version tracking initialized\n";
 }
 
+$installerSelfDeleteStatus = 'not_attempted';
+$installerSelfDeletePath = realpath(__FILE__);
+$installerDirPath = realpath(__DIR__);
+if ($installerSelfDeletePath !== false &&
+    $installerDirPath !== false &&
+    $installerSelfDeletePath === $installerDirPath . DIRECTORY_SEPARATOR . 'install.php' &&
+    is_file($installerSelfDeletePath)) {
+    $installerSelfDeleteStatus = @unlink($installerSelfDeletePath) ? 'removed' : 'failed';
+}
+
 if ($is_cli) {
     echo "\n";
     echo "========================================\n";
@@ -555,7 +601,11 @@ if ($is_cli) {
     echo "2. Change your password immediately\n";
     echo "3. Create additional admin users as needed\n";
     echo "4. Configure your settings\n";
-    echo "\nFor security, delete or rename this install.php file.\n";
+    if ($installerSelfDeleteStatus === 'removed') {
+        echo "\nSecurity cleanup: install.php was removed automatically.\n";
+    } else {
+        echo "\nFor security, delete or rename this install.php file.\n";
+    }
 } else {
     // Web installation success page
     ?>
@@ -610,10 +660,17 @@ if ($is_cli) {
                 
                 <a href="login.php" class="btn btn-primary" style="width: 100%;"><?= e(dcs_t('admin.install.go_to_login')) ?></a>
                 
-                <div class="alert alert-warning mt-3">
-                    <strong><?= e(dcs_t('admin.install.security_notice')) ?>:</strong><br>
-                    <?= e(dcs_t('admin.install.security_notice_text')) ?>
-                </div>
+                <?php if ($installerSelfDeleteStatus === 'removed'): ?>
+                    <div class="alert alert-success mt-3">
+                        <strong><?= e(dcs_t('admin.install.security_notice')) ?>:</strong><br>
+                        <?= e(dcs_t('admin.install.security_notice_removed')) ?>
+                    </div>
+                <?php else: ?>
+                    <div class="alert alert-warning mt-3">
+                        <strong><?= e(dcs_t('admin.install.security_notice')) ?>:</strong><br>
+                        <?= e(dcs_t('admin.install.security_notice_text')) ?>
+                    </div>
+                <?php endif; ?>
             </div>
         </div>
         <?= getDevModeIndicator() ?>
