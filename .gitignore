@@ -20,3 +20,4 @@ dcs-stats/uploads/*
 php-preview.err.log
 php-preview.out.log
 .wiki-sync/
+scripts/sync-github-wiki.ps1
