@@ -82,6 +82,8 @@ Do not use `chmod 777` unless you fully understand the risk. It makes files worl
 
 On shared hosting, use the hosting file manager or control panel to make the folders writable by the web server account. If unsure, ask your host which user PHP runs as.
 
+If the admin login says `Security token invalid` immediately after install, PHP is usually not saving sessions correctly. Check that `dcs-stats/site-config/data/` is writable by the web server; the dashboard will try to create a protected `php-sessions/` folder inside it.
+
 ---
 
 ## ⚙️ Admin Panel URL

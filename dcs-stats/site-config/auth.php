@@ -46,6 +46,24 @@ if (ENFORCE_HTTPS || isAdminRequestHttps()) {
     ini_set('session.cookie_secure', 1);
 }
 
+function prepareAdminSessionStorage() {
+    $sessionDir = rtrim(ADMIN_DATA_DIR, '/\\') . DIRECTORY_SEPARATOR . 'php-sessions';
+
+    if (!is_dir(ADMIN_DATA_DIR)) {
+        @mkdir(ADMIN_DATA_DIR, 0700, true);
+    }
+
+    if (is_dir(ADMIN_DATA_DIR) && is_writable(ADMIN_DATA_DIR) && !is_dir($sessionDir)) {
+        @mkdir($sessionDir, 0700, true);
+    }
+
+    if (is_dir($sessionDir) && is_writable($sessionDir)) {
+        @chmod($sessionDir, 0700);
+        session_save_path($sessionDir);
+    }
+}
+
+prepareAdminSessionStorage();
 session_name(ADMIN_SESSION_NAME);
 session_start();
 
