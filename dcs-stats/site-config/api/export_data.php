@@ -44,6 +44,39 @@ if (!in_array($format, EXPORT_FORMATS)) {
     die('Invalid export format');
 }
 
+function redactExportSensitiveData($value) {
+    $sensitiveKeys = [
+        'api_key',
+        'password',
+        'password_hash',
+        'token',
+        'token_hash',
+        'csrf_token',
+        'session_id',
+        'secret'
+    ];
+
+    if (!is_array($value)) {
+        return $value;
+    }
+
+    $redacted = [];
+    foreach ($value as $key => $item) {
+        $keyString = strtolower((string)$key);
+        $isSensitive = false;
+        foreach ($sensitiveKeys as $sensitiveKey) {
+            if ($keyString === $sensitiveKey || strpos($keyString, $sensitiveKey) !== false) {
+                $isSensitive = true;
+                break;
+            }
+        }
+
+        $redacted[$key] = $isSensitive ? '[REDACTED]' : redactExportSensitiveData($item);
+    }
+
+    return $redacted;
+}
+
 // Prepare data based on export type
 $data = [];
 $filename = '';
@@ -152,6 +185,15 @@ if (empty($data) && $exportType !== 'full') {
     http_response_code(404);
     die('No data found for the specified criteria');
 }
+
+$data = redactExportSensitiveData($data);
+logAdminActivity('DATA_EXPORT_DOWNLOAD', $_SESSION['admin_id'], 'export', $exportType, [
+    'format' => $format,
+    'date_from' => $dateFrom,
+    'date_to' => $dateTo,
+    'filename' => $filename,
+    'record_count' => is_array($data) ? count($data) : 0
+]);
 
 // Export based on format
 if ($format === 'csv') {

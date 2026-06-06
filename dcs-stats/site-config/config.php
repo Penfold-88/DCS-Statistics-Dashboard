@@ -102,6 +102,7 @@ const LOG_ACTIONS = [
     'PLAYER_BAN' => 'Banned Player',
     'PLAYER_UNBAN' => 'Unbanned Player',
     'DATA_EXPORT' => 'Exported Data',
+    'DATA_EXPORT_DOWNLOAD' => 'Downloaded Data Export',
     'ADMIN_CREATE' => 'Created Admin User',
     'ADMIN_EDIT' => 'Updated Admin User',
     'ADMIN_DELETE' => 'Deleted Admin User',
