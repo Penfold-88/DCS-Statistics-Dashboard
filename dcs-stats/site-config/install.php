@@ -24,6 +24,27 @@ function isValidInstallerApiKey($apiKey) {
 
     return strlen($apiKey) <= 256 && preg_match('/^[A-Za-z0-9._~:+\/=-]+$/', $apiKey);
 }
+
+function canCreateInPath($path) {
+    $parent = dirname($path);
+    while ($parent && $parent !== dirname($parent)) {
+        if (file_exists($parent)) {
+            return is_dir($parent) && is_writable($parent);
+        }
+        $parent = dirname($parent);
+    }
+
+    return false;
+}
+
+function installerPathIsWritable($path, $type) {
+    if ($type === 'dir') {
+        return is_dir($path) ? is_writable($path) : canCreateInPath($path);
+    }
+
+    return file_exists($path) ? is_writable($path) : canCreateInPath($path);
+}
+
 function showInstallerLockedPage() {
     http_response_code(403);
     ?>
@@ -248,15 +269,20 @@ if (!$is_cli) {
                 font-weight: 700;
             }
             .permission-details code {
-                display: block;
-                margin: 6px 0;
                 word-break: break-word;
             }
-            .permission-confirm {
+            .permission-row {
                 align-items: flex-start;
-                display: flex;
-                gap: 10px;
-                margin-top: 14px;
+                display: grid;
+                gap: 8px;
+                grid-template-columns: 22px 1fr;
+                margin: 8px 0;
+            }
+            .permission-row code {
+                word-break: break-word;
+            }
+            .permission-status {
+                font-weight: 700;
             }
         </style>
     </head>
@@ -300,20 +326,38 @@ if (!$is_cli) {
                     <summary><?= e(dcs_t('admin.install.permissions_view')) ?></summary>
                     <p class="text-muted"><?= e(dcs_t('admin.install.permissions_help')) ?></p>
                     <strong><?= e(dcs_t('admin.install.permissions_folders')) ?></strong>
-                    <code>dcs-stats/site-config/data/</code>
-                    <code>dcs-stats/uploads/</code>
-                    <code>dcs-stats/custom/</code>
-                    <code>dcs-stats/backups/</code>
+                    <?php
+                    $permissionFolders = [
+                        'dcs-stats/site-config/data/' => __DIR__ . '/data',
+                        'dcs-stats/uploads/' => dirname(__DIR__) . '/uploads',
+                        'dcs-stats/custom/' => dirname(__DIR__) . '/custom',
+                        'dcs-stats/backups/' => dirname(__DIR__) . '/backups'
+                    ];
+                    foreach ($permissionFolders as $label => $path):
+                        $pathWritable = installerPathIsWritable($path, 'dir');
+                    ?>
+                        <div class="permission-row <?= $pathWritable ? 'success' : 'error' ?>">
+                            <span class="permission-status"><?= $pathWritable ? '✓' : '✗' ?></span>
+                            <code><?= e($label) ?></code>
+                        </div>
+                    <?php endforeach; ?>
                     <strong><?= e(dcs_t('admin.install.permissions_files')) ?></strong>
-                    <code>dcs-stats/site_config.json</code>
-                    <code>dcs-stats/menu_config.json</code>
-                    <code>dcs-stats/custom_theme.css</code>
-                    <code>dcs-stats/header_custom.css</code>
-                    <code>dcs-stats/.version_meta.json</code>
-                    <div class="permission-confirm">
-                        <input type="checkbox" id="permissions_confirm" form="install_form" name="permissions_confirm" value="1" required>
-                        <label for="permissions_confirm"><?= e(dcs_t('admin.install.permissions_confirm')) ?></label>
-                    </div>
+                    <?php
+                    $permissionFiles = [
+                        'dcs-stats/site_config.json' => dirname(__DIR__) . '/site_config.json',
+                        'dcs-stats/menu_config.json' => dirname(__DIR__) . '/menu_config.json',
+                        'dcs-stats/custom_theme.css' => dirname(__DIR__) . '/custom_theme.css',
+                        'dcs-stats/header_custom.css' => dirname(__DIR__) . '/header_custom.css',
+                        'dcs-stats/.version_meta.json' => dirname(__DIR__) . '/.version_meta.json'
+                    ];
+                    foreach ($permissionFiles as $label => $path):
+                        $pathWritable = installerPathIsWritable($path, 'file');
+                    ?>
+                        <div class="permission-row <?= $pathWritable ? 'success' : 'error' ?>">
+                            <span class="permission-status"><?= $pathWritable ? '✓' : '✗' ?></span>
+                            <code><?= e($label) ?></code>
+                        </div>
+                    <?php endforeach; ?>
                 </details>
             </div>
             
@@ -326,7 +370,7 @@ if (!$is_cli) {
             <?php endif; ?>
             
             <?php if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !empty($errors)): ?>
-            <form method="POST" id="install_form">
+            <form method="POST">
                 <input type="hidden" name="install_language" value="<?= e($installerLanguage) ?>">
 
                 <div class="form-group">

@@ -367,7 +367,6 @@ return [
     'admin.install.permissions_help' => 'If the installer or admin panel cannot save settings, make sure the web server can write to these paths.',
     'admin.install.permissions_folders' => 'Writable folders',
     'admin.install.permissions_files' => 'Generated writable files',
-    'admin.install.permissions_confirm' => 'I confirm the required folders/files are writable or I will update permissions if the installer reports an error.',
     'admin.common.cancel' => 'Cancel',
     'admin.admins.title' => 'Admin Management',
     'admin.admins.add_new' => 'Add New Admin',

@@ -367,7 +367,6 @@ return [
     'admin.install.permissions_help' => 'Wenn der Installer oder das Admin-Panel keine Einstellungen speichern kann, stelle sicher, dass der Webserver diese Pfade beschreiben darf.',
     'admin.install.permissions_folders' => 'Beschreibbare Ordner',
     'admin.install.permissions_files' => 'Generierte beschreibbare Dateien',
-    'admin.install.permissions_confirm' => 'Ich bestätige, dass die benötigten Ordner/Dateien beschreibbar sind oder dass ich die Berechtigungen anpasse, wenn der Installer einen Fehler meldet.',
     'admin.common.cancel' => 'Abbrechen',
     'admin.admins.title' => 'Admin-Verwaltung',
     'admin.admins.add_new' => 'Neuen Admin hinzufügen',
