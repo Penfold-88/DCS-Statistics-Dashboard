@@ -7,6 +7,8 @@
 function getCurrentVersionInfo() {
     $rootPath = dirname(__DIR__);
     $metaFile = $rootPath . '/.version_meta.json';
+    require_once __DIR__ . '/update_channel.php';
+    $channelConfig = getUpdateChannelConfig();
     
     // Default values
     $info = [
@@ -18,23 +20,7 @@ function getCurrentVersionInfo() {
         'updated_by' => null
     ];
     
-    // Check for development environment indicators
-    $isDev = false;
-    
-    // 1. Check for .dev file in site root
-    if (file_exists($rootPath . '/.dev')) {
-        $isDev = true;
-    }
-    
-    // 2. Check for .dev file in parent directory (for site-config context)
-    if (file_exists(dirname($rootPath) . '/.dev')) {
-        $isDev = true;
-    }
-    
-    // 3. Optional: Check environment variable (backward compatibility)
-    if (getenv('DEV_BRANCH') === 'true') {
-        $isDev = true;
-    }
+    $isDev = !empty($channelConfig['is_dev']);
     
     // Load existing metadata if available
     if (file_exists($metaFile)) {
@@ -57,7 +43,7 @@ function getCurrentVersionInfo() {
     
     // Override with Dev if in development environment
     if ($isDev) {
-        $info['branch'] = 'Dev';
+        $info['branch'] = $channelConfig['branch'] ?? 'Dev';
         $info['is_dev_override'] = true;
     }
     
