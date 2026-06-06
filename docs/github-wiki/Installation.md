@@ -41,6 +41,49 @@ After installation, the installer attempts to remove `site-config/install.php` a
 
 ---
 
+## 🔐 File Permissions
+
+If you are not using XAMPP or Docker, your web server must be able to write to the dashboard runtime folders. This allows the installer, admin settings, themes, backups, cache, and uploaded branding to work.
+
+The most important writable locations are:
+
+```text
+dcs-stats/site-config/data/
+dcs-stats/uploads/
+dcs-stats/custom/
+dcs-stats/backups/
+```
+
+These generated files may also need write access:
+
+```text
+dcs-stats/site_config.json
+dcs-stats/menu_config.json
+dcs-stats/custom_theme.css
+dcs-stats/header_custom.css
+dcs-stats/.version_meta.json
+```
+
+On Debian or Ubuntu, the web server user is often `www-data`. From the folder above `dcs-stats`, you can usually grant safe ownership with:
+
+```bash
+sudo chown -R www-data:www-data dcs-stats/site-config/data dcs-stats/uploads dcs-stats/custom dcs-stats/backups
+sudo chmod -R 750 dcs-stats/site-config/data dcs-stats/uploads dcs-stats/custom dcs-stats/backups
+```
+
+If the generated root-level files already exist, you can also run:
+
+```bash
+sudo chown www-data:www-data dcs-stats/site_config.json dcs-stats/menu_config.json dcs-stats/custom_theme.css dcs-stats/header_custom.css dcs-stats/.version_meta.json
+sudo chmod 640 dcs-stats/site_config.json dcs-stats/menu_config.json dcs-stats/custom_theme.css dcs-stats/header_custom.css dcs-stats/.version_meta.json
+```
+
+Do not use `chmod 777` unless you fully understand the risk. It makes files world-writable and is not recommended for public servers.
+
+On shared hosting, use the hosting file manager or control panel to make the folders writable by the web server account. If unsure, ask your host which user PHP runs as.
+
+---
+
 ## ⚙️ Admin Panel URL
 
 After installation, the admin panel is available at:
