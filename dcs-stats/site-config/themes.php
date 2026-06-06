@@ -41,6 +41,35 @@ function getHeaderImageSettingsPath() {
     return __DIR__ . '/data/header_image.json';
 }
 
+function isAllowedThemeImageFile($filePath, $extension = null) {
+    if (!is_file($filePath)) {
+        return false;
+    }
+
+    $extension = strtolower((string)($extension ?: pathinfo($filePath, PATHINFO_EXTENSION)));
+    $allowedTypes = [
+        'jpg' => 'image/jpeg',
+        'jpeg' => 'image/jpeg',
+        'png' => 'image/png',
+        'webp' => 'image/webp'
+    ];
+
+    if (!isset($allowedTypes[$extension])) {
+        return false;
+    }
+
+    $mimeType = function_exists('mime_content_type') ? mime_content_type($filePath) : null;
+    if (!is_string($mimeType) || $mimeType !== $allowedTypes[$extension]) {
+        return false;
+    }
+
+    if (function_exists('getimagesize') && getimagesize($filePath) === false) {
+        return false;
+    }
+
+    return true;
+}
+
 function normalizeThemeImagePath($path, $allowDefaultHeader = false) {
     $path = str_replace('\\', '/', trim((string)$path));
     $path = ltrim($path, '/');
@@ -49,11 +78,11 @@ function normalizeThemeImagePath($path, $allowDefaultHeader = false) {
         return '';
     }
 
-    if ($allowDefaultHeader && $path === 'dcs-header-image.jpg' && is_file(__DIR__ . '/../dcs-header-image.jpg')) {
+    if ($allowDefaultHeader && $path === 'dcs-header-image.jpg' && isAllowedThemeImageFile(__DIR__ . '/../dcs-header-image.jpg', 'jpg')) {
         return $path;
     }
 
-    if (!preg_match('#^uploads/[A-Za-z0-9._-]+\.(?:jpe?g|png|webp)$#i', $path)) {
+    if (!preg_match('#^uploads/[A-Za-z0-9._-]+\.(jpe?g|png|webp)$#i', $path, $matches)) {
         return '';
     }
 
@@ -66,6 +95,10 @@ function normalizeThemeImagePath($path, $allowDefaultHeader = false) {
 
     $uploadsPrefix = rtrim($uploadsDir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
     if (strpos($realPath, $uploadsPrefix) !== 0) {
+        return '';
+    }
+
+    if (!isAllowedThemeImageFile($realPath, $matches[1] ?? null)) {
         return '';
     }
 
