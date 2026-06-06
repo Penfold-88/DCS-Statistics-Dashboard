@@ -55,6 +55,21 @@ function buildVersionLabel($branch, $commitDate, $commitSha) {
     return $branch . ' @ ' . $date . ' #' . $shortSha;
 }
 
+function rrmdir($dir) {
+    if (!is_dir($dir)) return;
+    $items = scandir($dir);
+    foreach ($items as $item) {
+        if ($item === '.' || $item === '..') continue;
+        $path = $dir . '/' . $item;
+        if (is_dir($path)) {
+            rrmdir($path);
+        } else {
+            unlink($path);
+        }
+    }
+    rmdir($dir);
+}
+
 if (!class_exists('ZipArchive')) {
     logMessage('Update cancelled: PHP ZipArchive is not available.');
     logMessage('Enable the PHP zip extension, then restart Apache and try again.');
@@ -90,12 +105,19 @@ if ($specificVersion) {
 }
 
 $rootPath = dirname(__DIR__, 2); // path to dcs-stats
-$upgradeDir = $rootPath . '/UPGRADE';
+$upgradeParentDir = $rootPath . '/UPGRADE';
+$upgradeDir = $upgradeParentDir . '/update-' . bin2hex(random_bytes(8));
 $backupDir = $rootPath . '/backups';
 
-if (!is_dir($upgradeDir)) {
-    mkdir($upgradeDir, 0755, true);
+if (!is_dir($upgradeParentDir)) {
+    mkdir($upgradeParentDir, 0755, true);
 }
+mkdir($upgradeDir, 0755, true);
+register_shutdown_function(function() use ($upgradeDir) {
+    if (is_dir($upgradeDir)) {
+        rrmdir($upgradeDir);
+    }
+});
 
 if ($backup && !is_dir($backupDir)) {
     mkdir($backupDir, 0755, true);
@@ -416,20 +438,6 @@ foreach ($iterator as $file) {
 }
 
 logMessage('Cleaning up...');
-function rrmdir($dir) {
-    if (!is_dir($dir)) return;
-    $items = scandir($dir);
-    foreach ($items as $item) {
-        if ($item === '.' || $item === '..') continue;
-        $path = $dir . '/' . $item;
-        if (is_dir($path)) {
-            rrmdir($path);
-        } else {
-            unlink($path);
-        }
-    }
-    rmdir($dir);
-}
 rrmdir($upgradeDir);
 
 // Update version metadata using tracker
