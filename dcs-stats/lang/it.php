@@ -212,6 +212,11 @@ $manual = [
     'admin.install.security_notice' => 'Avviso di sicurezza',
     'admin.install.security_notice_removed' => 'Il file installer è stato rimosso automaticamente.',
     'admin.install.security_notice_text' => 'Elimina o rinomina questo file install.php dopo il login.',
+    'admin.install.permissions_view' => 'Mostra i percorsi scrivibili richiesti',
+    'admin.install.permissions_help' => 'Se l\'installer o il pannello admin non riesce a salvare le impostazioni, assicurati che il web server possa scrivere in questi percorsi.',
+    'admin.install.permissions_folders' => 'Cartelle scrivibili',
+    'admin.install.permissions_files' => 'File generati scrivibili',
+    'admin.install.permissions_confirm' => 'Confermo che le cartelle/file richiesti sono scrivibili oppure aggiornerò i permessi se l\'installer segnala un errore.',
 
     'admin.login.title' => 'Accesso amministratore',
     'admin.login.password' => 'Password',

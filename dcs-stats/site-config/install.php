@@ -236,6 +236,28 @@ if (!$is_cli) {
                 width: 100%;
                 max-width: 600px;
             }
+            .permission-details {
+                background: var(--bg-tertiary, #1a1a1a);
+                border: 1px solid var(--border-color, #444);
+                border-radius: 6px;
+                margin-top: 12px;
+                padding: 12px;
+            }
+            .permission-details summary {
+                cursor: pointer;
+                font-weight: 700;
+            }
+            .permission-details code {
+                display: block;
+                margin: 6px 0;
+                word-break: break-word;
+            }
+            .permission-confirm {
+                align-items: flex-start;
+                display: flex;
+                gap: 10px;
+                margin-top: 14px;
+            }
         </style>
     </head>
     <body>
@@ -274,6 +296,25 @@ if (!$is_cli) {
                 <p class="<?= is_writable(dirname($dataDir)) ? 'success' : 'error' ?>">
                     <?= is_writable(dirname($dataDir)) ? '✓' : '✗' ?> <?= e(dcs_t('admin.install.write_permissions')) ?>
                 </p>
+                <details class="permission-details">
+                    <summary><?= e(dcs_t('admin.install.permissions_view')) ?></summary>
+                    <p class="text-muted"><?= e(dcs_t('admin.install.permissions_help')) ?></p>
+                    <strong><?= e(dcs_t('admin.install.permissions_folders')) ?></strong>
+                    <code>dcs-stats/site-config/data/</code>
+                    <code>dcs-stats/uploads/</code>
+                    <code>dcs-stats/custom/</code>
+                    <code>dcs-stats/backups/</code>
+                    <strong><?= e(dcs_t('admin.install.permissions_files')) ?></strong>
+                    <code>dcs-stats/site_config.json</code>
+                    <code>dcs-stats/menu_config.json</code>
+                    <code>dcs-stats/custom_theme.css</code>
+                    <code>dcs-stats/header_custom.css</code>
+                    <code>dcs-stats/.version_meta.json</code>
+                    <div class="permission-confirm">
+                        <input type="checkbox" id="permissions_confirm" form="install_form" name="permissions_confirm" value="1" required>
+                        <label for="permissions_confirm"><?= e(dcs_t('admin.install.permissions_confirm')) ?></label>
+                    </div>
+                </details>
             </div>
             
             <?php if (!empty($errors)): ?>
@@ -285,7 +326,7 @@ if (!$is_cli) {
             <?php endif; ?>
             
             <?php if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !empty($errors)): ?>
-            <form method="POST">
+            <form method="POST" id="install_form">
                 <input type="hidden" name="install_language" value="<?= e($installerLanguage) ?>">
 
                 <div class="form-group">
