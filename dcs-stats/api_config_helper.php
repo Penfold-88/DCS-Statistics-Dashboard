@@ -75,20 +75,18 @@ function getEnvironmentApiKey() {
     return trim((string)$apiKey);
 }
 
+function isEnvironmentApiKeyActive() {
+    return getEnvironmentApiKey() !== null;
+}
+
 function applyEnvironmentApiConfigOverrides($config) {
     if (!is_array($config)) {
         $config = getDefaultApiConfig();
     }
 
-    $config['api_key_source'] = !empty($config['api_key']) ? 'config' : 'none';
-    $config['api_key_env_override'] = false;
-    $config['stored_api_key_present'] = !empty($config['api_key']);
-
     $envApiKey = getEnvironmentApiKey();
     if ($envApiKey !== null) {
         $config['api_key'] = $envApiKey;
-        $config['api_key_source'] = 'environment';
-        $config['api_key_env_override'] = true;
     }
 
     return $config;

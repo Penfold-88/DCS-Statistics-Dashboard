@@ -23,7 +23,7 @@ $configResult = loadApiConfigWithFix();
 $apiConfig = $configResult['config'];
 $configFile = $configResult['config_path'];
 $autoFixMessage = '';
-$envApiKeyActive = !empty($apiConfig['api_key_env_override']);
+$envApiKeyActive = isEnvironmentApiKeyActive();
 
 // Show any auto-fix messages
 if (isset($configResult['fixed']) && $configResult['fixed'] && !empty($configResult['changes'])) {
