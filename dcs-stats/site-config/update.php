@@ -219,7 +219,7 @@ $pageTitle = dcs_t('admin.update.title');
                             <div class="version-details">
                                 <div class="version-detail-row">
                                     <strong><?= e(dcs_t('admin.update.current_branch')) ?></strong>
-                                    <span class="badge badge-<?= $currentBranch === 'Dev' ? 'warning' : 'primary' ?>"><?= e($currentBranch) ?></span>
+                                    <span class="badge badge-<?= $updateChannel['is_dev'] ? 'warning' : 'primary' ?>"><?= e($currentBranch) ?></span>
                                 </div>
                                 <div class="version-detail-row">
                                     <strong><?= e(dcs_t('admin.update.github_source')) ?></strong>
