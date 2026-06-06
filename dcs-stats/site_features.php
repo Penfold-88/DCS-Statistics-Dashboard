@@ -17,7 +17,7 @@ function getSettingsPath() {
     
     // Try to create directory
     if (!is_dir($primaryDir)) {
-        @mkdir($primaryDir, 0777, true);
+        @mkdir($primaryDir, 0700, true);
         if (is_dir($primaryDir) && is_writable($primaryDir)) {
             return $primaryPath;
         }
@@ -26,7 +26,7 @@ function getSettingsPath() {
     // Try alternative data directory
     $altDir = __DIR__ . '/data';
     if (!is_dir($altDir)) {
-        @mkdir($altDir, 0777, true);
+        @mkdir($altDir, 0700, true);
     }
     if (is_dir($altDir) && is_writable($altDir)) {
         return $altDir . '/site_settings.json';
@@ -35,7 +35,7 @@ function getSettingsPath() {
     // Fall back to temp directory
     $tempDir = sys_get_temp_dir() . '/dcs_stats';
     if (!is_dir($tempDir)) {
-        @mkdir($tempDir, 0777, true);
+        @mkdir($tempDir, 0700, true);
     }
     
     return $tempDir . '/site_settings.json';
@@ -43,6 +43,10 @@ function getSettingsPath() {
 
 // Load settings from JSON file
 function loadSiteFeatures() {
+    if (array_key_exists('dcs_site_features_cache', $GLOBALS)) {
+        return $GLOBALS['dcs_site_features_cache'];
+    }
+
     // Load site configuration if exists
     $siteConfigFile = __DIR__ . '/site_config.json';
     $siteConfig = [];
@@ -69,14 +73,30 @@ function loadSiteFeatures() {
         'home_mission_stats' => true,
         'home_top_pilots' => true,
         'home_recent_activity' => true,
+        'home_api_insights' => true,
+        'home_attendance_cards' => true,
+        'home_api_players_24h' => true,
+        'home_api_players_7d' => true,
+        'home_api_players_30d' => true,
+        'home_api_current_players' => true,
+        'home_top_theatres' => true,
+        'home_top_missions' => true,
+        'home_top_modules' => true,
         
         // Leaderboard Features
         'leaderboard_kills' => true,
         'leaderboard_deaths' => true,
         'leaderboard_kd_ratio' => true,
-        'leaderboard_flight_hours' => true,
-        'leaderboard_sorties' => true,
+        'leaderboard_pvp_kd_ratio' => true,
+        'leaderboard_credits' => true,
+        'leaderboard_playtime' => true,
+        'leaderboard_sorties' => false,
+        'leaderboard_takeoffs' => true,
+        'leaderboard_landings' => true,
+        'leaderboard_crashes' => true,
+        'leaderboard_ejections' => true,
         'leaderboard_aircraft' => true,
+        'leaderboard_chart' => true,
         
         // Pilot Statistics Features
         'pilot_search' => true,
@@ -86,6 +106,7 @@ function loadSiteFeatures() {
         'pilot_flight_stats' => true,
         'pilot_session_stats' => true,
         'pilot_aircraft_chart' => true,
+        'pilot_carrier_traps' => true,
         
         // Credits System
         'credits_enabled' => true,
@@ -97,19 +118,30 @@ function loadSiteFeatures() {
         'squadron_statistics' => false,
         
         // Server Features
-        'servers_list' => true,
-        'server_status' => true,
-        'server_players' => true,
+        'server_live_api_details' => true,
+        'server_detail_status' => true,
+        'server_detail_description' => true,
+        'server_detail_mission' => true,
+        'server_detail_slots' => true,
+        'server_detail_restart' => true,
+        'server_detail_weather' => true,
+        'server_detail_extensions' => true,
+        'server_detail_mask_extension_secrets' => true,
+        'server_detail_active_players' => true,
+        'server_scope_filter' => true,
         
         // Global Features
         'show_discord_link' => true,
         'show_last_update' => true,
+        'nav_custom_links' => true,
         
         // Custom Links
         'show_squadron_homepage' => false,
         'discord_link_url' => $siteConfig['discord_invite_url'] ?? 'https://discord.gg/DNENf6pUNX',
         'squadron_homepage_url' => '',
-        'squadron_homepage_text' => 'Squadron'
+        'squadron_homepage_text' => 'Squadron',
+        'custom_links_menu_text' => 'Squadron Links',
+        'custom_links' => []
     ];
     
     // Get settings file path
@@ -121,12 +153,14 @@ function loadSiteFeatures() {
         if ($content) {
             $saved = json_decode($content, true);
             if ($saved) {
-                return array_merge($defaults, $saved);
+                $GLOBALS['dcs_site_features_cache'] = array_merge($defaults, $saved);
+                return $GLOBALS['dcs_site_features_cache'];
             }
         }
     }
     
-    return $defaults;
+    $GLOBALS['dcs_site_features_cache'] = $defaults;
+    return $GLOBALS['dcs_site_features_cache'];
 }
 
 // Save settings
@@ -136,17 +170,15 @@ function saveSiteFeatures($features) {
     // Ensure directory exists
     $dir = dirname($settingsFile);
     if (!is_dir($dir)) {
-        @mkdir($dir, 0777, true);
+        @mkdir($dir, 0700, true);
     }
     
     // Try to save
     $result = @file_put_contents($settingsFile, json_encode($features, JSON_PRETTY_PRINT));
-    
-    // If failed, try to make writable and retry
-    if ($result === false) {
-        @chmod($dir, 0777);
-        @chmod($settingsFile, 0666);
-        $result = @file_put_contents($settingsFile, json_encode($features, JSON_PRETTY_PRINT));
+
+    if ($result !== false) {
+        @chmod($settingsFile, 0600);
+        $GLOBALS['dcs_site_features_cache'] = $features;
     }
     
     return $result !== false;
@@ -170,6 +202,18 @@ function getFeatureValue($feature, $default = '') {
     return isset($features[$feature]) ? $features[$feature] : $default;
 }
 
+function serverCardFeatureKey($serverName) {
+    $slug = strtolower(trim((string)$serverName));
+    $slug = preg_replace('/[^a-z0-9]+/', '_', $slug);
+    $slug = trim($slug, '_');
+
+    if ($slug === '') {
+        $slug = 'unknown_server';
+    }
+
+    return 'server_card_' . $slug;
+}
+
 // Feature groups for admin interface
 function getFeatureGroups() {
     return [
@@ -179,22 +223,43 @@ function getFeatureGroups() {
             'nav_pilot_credits' => 'Pilot Credits',
             'nav_pilot_statistics' => 'Pilot Statistics',
             'nav_squadrons' => 'Squadrons',
-            'nav_servers' => 'Servers'
+            'nav_servers' => 'Servers',
+            'nav_custom_links' => 'Squadron Links Dropdown'
         ],
         'Homepage Sections' => [
             'home_server_stats' => 'Server Statistics Box',
             'home_player_activity' => 'Player Activity Graph',
             'home_mission_stats' => 'Mission Statistics Graph',
             'home_top_pilots' => 'Top Pilots Table',
-            'home_recent_activity' => 'Recent Activity Feed'
+            'home_recent_activity' => 'Recent Activity Feed',
+            'home_api_insights' => 'Top 5 Insights',
+            'home_attendance_cards' => 'Attendance Cards'
+        ],
+        'Attendance Cards' => [
+            'home_api_players_24h' => 'Players 24h Card',
+            'home_api_players_7d' => 'Players 7d Card',
+            'home_api_players_30d' => 'Players 30d Card',
+            'home_api_current_players' => 'Current Players Card'
+        ],
+        'Top 5 Insights' => [
+            'home_top_theatres' => 'Top Theatres List',
+            'home_top_missions' => 'Top Missions List',
+            'home_top_modules' => 'Top Modules List'
         ],
         'Leaderboard Columns' => [
             'leaderboard_kills' => 'Kills Column',
             'leaderboard_deaths' => 'Deaths Column',
             'leaderboard_kd_ratio' => 'K/D Ratio Column',
-            'leaderboard_flight_hours' => 'Flight Hours Column',
-            'leaderboard_sorties' => 'Sorties Column',
-            'leaderboard_aircraft' => 'Most Used Aircraft Column'
+            'leaderboard_pvp_kd_ratio' => 'PvP K/D Ratio Column',
+            'leaderboard_credits' => 'Credits Column',
+            'leaderboard_playtime' => 'Playtime Column',
+            'leaderboard_sorties' => 'Sorties Column (Not Implimented)',
+            'leaderboard_takeoffs' => 'Takeoffs Column',
+            'leaderboard_landings' => 'Landings Column',
+            'leaderboard_crashes' => 'Crashes Column',
+            'leaderboard_ejections' => 'Ejections Column',
+            'leaderboard_aircraft' => 'Most Used Aircraft Column',
+            'leaderboard_chart' => 'Top 10 Chart'
         ],
         'Pilot Features' => [
             'pilot_search' => 'Pilot Search',
@@ -203,7 +268,8 @@ function getFeatureGroups() {
             'pilot_combat_stats' => 'Combat Statistics (Kills/Deaths)',
             'pilot_flight_stats' => 'Flight Statistics (Takeoffs/Landings)',
             'pilot_session_stats' => 'Last Session Statistics',
-            'pilot_aircraft_chart' => 'Aircraft Usage Chart'
+            'pilot_aircraft_chart' => 'Aircraft Usage Chart',
+            'pilot_carrier_traps' => 'Carrier Landing / LSO Stats'
         ],
         'Credits System' => [
             'credits_enabled' => 'Enable Credits System',
@@ -215,9 +281,17 @@ function getFeatureGroups() {
             'squadron_statistics' => 'Squadron Statistics'
         ],
         'Server Features' => [
-            'servers_list' => 'Server List',
-            'server_status' => 'Server Status Display',
-            'server_players' => 'Online Players Display'
+            'server_live_api_details' => 'Server Details Section',
+            'server_detail_status' => 'Status Badge',
+            'server_detail_description' => 'Server Description',
+            'server_detail_mission' => 'Mission and Theatre Details',
+            'server_detail_slots' => 'Slot Usage Details',
+            'server_detail_restart' => 'Restart Time Details',
+            'server_detail_weather' => 'Weather Details',
+            'server_detail_extensions' => 'Extensions/SRS Details',
+            'server_detail_mask_extension_secrets' => 'Mask Extension Passwords',
+            'server_detail_active_players' => 'Active Players Details',
+            'server_scope_filter' => 'Frontend Server Filter Dropdown'
         ],
         'Global Settings' => [
             'show_discord_link' => 'Show Discord Link',
@@ -232,6 +306,9 @@ function getFeatureDependencies() {
         'credits_enabled' => ['credits_leaderboard', 'nav_pilot_credits'],
         'squadrons_enabled' => ['squadron_management', 'squadron_statistics', 'nav_squadrons'],
         'pilot_search' => ['pilot_detailed_stats', 'pilot_mission_history'],
-        'servers_list' => ['server_status', 'server_players', 'nav_servers']
+        'nav_servers' => ['server_live_api_details'],
+        'server_live_api_details' => ['server_detail_status', 'server_detail_description', 'server_detail_mission', 'server_detail_slots', 'server_detail_restart', 'server_detail_weather', 'server_detail_extensions', 'server_detail_mask_extension_secrets', 'server_detail_active_players'],
+        'home_api_insights' => ['home_top_theatres', 'home_top_missions', 'home_top_modules'],
+        'home_attendance_cards' => ['home_api_players_24h', 'home_api_players_7d', 'home_api_players_30d', 'home_api_current_players']
     ];
 }

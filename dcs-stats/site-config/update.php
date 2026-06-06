@@ -4,13 +4,18 @@
  */
 require_once __DIR__ . '/auth.php';
 require_once __DIR__ . '/admin_functions.php';
+require_once __DIR__ . '/demo_helpers.php';
+require_once __DIR__ . '/update_channel.php';
+require_once dirname(__DIR__) . '/language.php';
 
 requireAdmin();
 requirePermission('manage_updates');
 
 $currentAdmin = getCurrentAdmin();
+$demoRestricted = isDemoRestricted($currentAdmin);
+$updateChannel = getUpdateChannelConfig();
 
-$pageTitle = 'Update Dashboard';
+$pageTitle = dcs_t('admin.update.title');
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -81,12 +86,68 @@ $pageTitle = 'Update Dashboard';
             background-color: #4CAF50;
             color: white;
         }
-        #git-status small {
-            color: #666;
-            font-weight: normal;
-        }
         .mt-2 {
             margin-top: 10px;
+        }
+        .version-summary-grid {
+            display: grid;
+            gap: 12px;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            margin-bottom: 16px;
+        }
+        .version-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 12px;
+        }
+        .version-label {
+            color: var(--text-muted);
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+        }
+        .version-value {
+            color: var(--text-primary);
+            display: block;
+            font-size: 18px;
+            font-weight: 700;
+            overflow-wrap: anywhere;
+        }
+        .version-details {
+            display: grid;
+            gap: 8px;
+            margin: 0 0 14px;
+        }
+        .version-detail-row {
+            align-items: center;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: space-between;
+        }
+        .version-detail-row strong {
+            color: var(--text-muted);
+        }
+        .version-status-panel {
+            background: rgba(33, 150, 243, 0.08);
+            border: 1px solid rgba(33, 150, 243, 0.22);
+            border-radius: 6px;
+            margin-top: 14px;
+            padding: 12px;
+        }
+        .version-status-title {
+            color: var(--text-primary);
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+        .version-status-meta {
+            color: var(--text-muted);
+            display: grid;
+            gap: 4px;
+            font-size: 13px;
         }
     </style>
 </head>
@@ -101,34 +162,99 @@ $pageTitle = 'Update Dashboard';
                     <div class="admin-username"><?= e($currentAdmin['username']) ?></div>
                     <div class="admin-role"><?= getRoleBadge($currentAdmin['role']) ?></div>
                 </div>
-                <a href="logout.php" class="btn btn-secondary btn-small">Logout</a>
+                <a href="logout.php" class="btn btn-secondary btn-small"><?= e(dcs_t('admin.common.logout')) ?></a>
             </div>
         </header>
         <div class="admin-content">
+            <?php if ($demoRestricted): ?>
+                <div class="alert alert-info">
+                    <?= e(demoRestrictionMessage()) ?>
+                </div>
+            <?php endif; ?>
             <div class="row">
                 <div class="col-md-6">
                     <div class="card">
                         <div class="card-header">
-                            <h3 class="card-title">System Information</h3>
+                            <h3 class="card-title"><?= e(dcs_t('admin.dashboard.system_information')) ?></h3>
                         </div>
                         <div class="card-content">
                             <?php
                             require_once __DIR__ . '/version_tracker.php';
                             require_once dirname(__DIR__) . '/dev_mode.php';
                             $versionInfo = initializeVersionTracking();
+                            $dashboardVersion = defined('ADMIN_PANEL_VERSION') ? ADMIN_PANEL_VERSION : 'Unknown';
                             $currentBranch = $versionInfo['branch'];
                             $isDev = isDevMode();
+                            $installedBuild = getInstalledBuildLabel($versionInfo);
+                            $installedCommit = !empty($versionInfo['commit_sha']) ? substr($versionInfo['commit_sha'], 0, 12) : 'Unknown';
+                            $installedDate = !empty($versionInfo['commit_date']) ? date('Y-m-d H:i:s', strtotime($versionInfo['commit_date'])) : 'Unknown';
+                            $lastUpdated = $versionInfo['updated_at'] ?? 'Unknown';
+                            $supportInfo = [
+                                dcs_t('admin.update.dashboard_version') => $dashboardVersion,
+                                dcs_t('admin.update.installed_build') => $installedBuild,
+                                dcs_t('admin.update.current_branch') => $currentBranch,
+                                dcs_t('admin.update.update_channel') => $updateChannel['channel'],
+                                dcs_t('admin.update.github_branch') => $updateChannel['branch'],
+                                dcs_t('admin.update.installed_commit') => $installedCommit,
+                                dcs_t('admin.update.installed_date') => $installedDate,
+                                dcs_t('admin.dashboard.php_version') => PHP_VERSION,
+                                dcs_t('admin.update.last_updated') => $lastUpdated
+                            ];
                             ?>
-                            <p><strong>Current Version:</strong> <?= $versionInfo['version'] ?></p>
-                            <p><strong>Current Branch:</strong> <span class="badge badge-<?= $currentBranch === 'Dev' ? 'warning' : 'primary' ?>"><?= $currentBranch ?></span></p>
-                            <?php if ($isDev): ?>
-                                <p><strong>Git Status:</strong> <span id="git-status" class="text-muted">Loading...</span></p>
-                            <?php endif; ?>
-                            <p><strong>PHP Version:</strong> <?= PHP_VERSION ?></p>
-                            <p><strong>Last Updated:</strong> <?= $versionInfo['updated_at'] ?? 'Unknown' ?></p>
+                            <div class="version-summary-grid">
+                                <div class="version-card">
+                                    <span class="version-label"><?= e(dcs_t('admin.update.dashboard_version')) ?></span>
+                                    <span class="version-value"><?= e($dashboardVersion) ?></span>
+                                </div>
+                                <div class="version-card">
+                                    <span class="version-label"><?= e(dcs_t('admin.update.installed_build')) ?></span>
+                                    <span class="version-value"><?= e($installedBuild) ?></span>
+                                </div>
+                                <div class="version-card">
+                                    <span class="version-label"><?= e(dcs_t('admin.update.update_channel')) ?></span>
+                                    <span class="badge badge-<?= $updateChannel['is_dev'] ? 'warning' : 'primary' ?>"><?= e($updateChannel['channel']) ?></span>
+                                </div>
+                            </div>
+
+                            <div class="version-details">
+                                <div class="version-detail-row">
+                                    <strong><?= e(dcs_t('admin.update.current_branch')) ?></strong>
+                                    <span class="badge badge-<?= $updateChannel['is_dev'] ? 'warning' : 'primary' ?>"><?= e($currentBranch) ?></span>
+                                </div>
+                                <div class="version-detail-row">
+                                    <strong><?= e(dcs_t('admin.update.github_source')) ?></strong>
+                                    <code><?= e($updateChannel['repo'] . ':' . $updateChannel['branch']) ?></code>
+                                </div>
+                                <div class="version-detail-row">
+                                    <strong><?= e(dcs_t('admin.update.installed_commit')) ?></strong>
+                                    <code><?= e($installedCommit) ?></code>
+                                </div>
+                                <div class="version-detail-row">
+                                    <strong><?= e(dcs_t('admin.update.installed_date')) ?></strong>
+                                    <span><?= e($installedDate) ?></span>
+                                </div>
+                                <div class="version-detail-row">
+                                    <strong><?= e(dcs_t('admin.update.last_updated')) ?></strong>
+                                    <span><?= e($lastUpdated) ?></span>
+                                </div>
+                                <div class="version-detail-row">
+                                    <strong><?= e(dcs_t('admin.dashboard.php_version')) ?></strong>
+                                    <span><?= e(PHP_VERSION) ?></span>
+                                </div>
+                            </div>
+
+                            <button class="btn btn-secondary btn-small" type="button" onclick="copySupportInfo()" style="margin-top: 8px;">
+                                <?= e(dcs_t('admin.update.copy_support_info')) ?>
+                            </button>
+                            <pre id="support-info" class="update-log" style="display: none; height: auto; max-height: 180px; margin-top: 10px;"><?php foreach ($supportInfo as $label => $value): ?><?= e($label . ': ' . $value) . "\n" ?><?php endforeach; ?></pre>
                             
-                            <div id="update-status" style="margin-top: 15px;">
-                                <p class="text-muted">Checking for updates...</p>
+                            <div class="version-status-panel">
+                                <div class="version-status-title" id="update-status-title"><?= e(dcs_t('admin.update.checking_github_source')) ?></div>
+                                <div class="version-status-meta">
+                                    <span id="update-status"><?= e(dcs_t('admin.update.checking_updates')) ?></span>
+                                    <span><?= e(dcs_t('admin.update.latest_commit')) ?>: <code id="remote-commit"><?= e(dcs_t('admin.update.checking')) ?></code></span>
+                                    <span><?= e(dcs_t('admin.update.latest_date')) ?>: <span id="remote-date"><?= e(dcs_t('admin.update.checking')) ?></span></span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -137,17 +263,14 @@ $pageTitle = 'Update Dashboard';
                 <div class="col-md-6">
                     <div class="card">
                         <div class="card-header">
-                            <h3 class="card-title">Quick Actions</h3>
+                            <h3 class="card-title"><?= e(dcs_t('admin.dashboard.quick_actions')) ?></h3>
                         </div>
                         <div class="card-content">
-                            <button class="btn btn-secondary btn-block mb-2" onclick="createBackup()">
-                                <span class="nav-icon">💾</span> Create Manual Backup
+                            <button class="btn btn-secondary btn-block mb-2 demo-lockable" onclick="createBackup()" <?= $demoRestricted ? 'disabled' : '' ?>>
+                                <span class="nav-icon">💾</span> <?= e(dcs_t('admin.update.create_backup')) ?>
                             </button>
-                            <button class="btn btn-warning btn-block mb-2" onclick="showDowngradeModal()">
-                                <span class="nav-icon">⬇️</span> Downgrade Version
-                            </button>
-                            <button class="btn btn-info btn-block mb-2" onclick="checkForUpdates()">
-                                <span class="nav-icon">🔍</span> Check for Updates
+                            <button class="btn btn-warning btn-block mb-2 demo-lockable" onclick="showDowngradeModal()" <?= $demoRestricted ? 'disabled' : '' ?>>
+                                <span class="nav-icon">⬇️</span> <?= e(dcs_t('admin.update.downgrade_version')) ?>
                             </button>
                         </div>
                     </div>
@@ -156,17 +279,17 @@ $pageTitle = 'Update Dashboard';
             
             <div class="card mt-3">
                 <div class="card-header">
-                    <h3 class="card-title">Update Log</h3>
+                    <h3 class="card-title"><?= e(dcs_t('admin.update.update_log')) ?></h3>
                 </div>
                 <pre id="log" class="update-log"></pre>
             </div>
             
             <div class="card mt-3">
                 <div class="card-header">
-                    <h3 class="card-title">Backup Management</h3>
+                    <h3 class="card-title"><?= e(dcs_t('admin.update.backup_management')) ?></h3>
                 </div>
                 <div id="backup-list" class="card-content">
-                    <p class="text-muted">Loading backups...</p>
+                    <p class="text-muted"><?= e(dcs_t('admin.update.loading_backups')) ?></p>
                 </div>
             </div>
         </div>
@@ -177,12 +300,12 @@ $pageTitle = 'Update Dashboard';
 <div id="restoreModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
-            <h3>Restore from Backup</h3>
+            <h3><?= e(dcs_t('admin.update.restore_backup')) ?></h3>
             <button class="modal-close" onclick="closeModal('restoreModal')">&times;</button>
         </div>
         <div class="modal-body">
-            <p>Select a backup to restore:</p>
-            <div id="restore-backup-list">Loading backups...</div>
+            <p><?= e(dcs_t('admin.update.select_backup_restore')) ?></p>
+            <div id="restore-backup-list"><?= e(dcs_t('admin.update.loading_backups')) ?></div>
         </div>
     </div>
 </div>
@@ -191,21 +314,21 @@ $pageTitle = 'Update Dashboard';
 <div id="downgradeModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
-            <h3>Downgrade Version</h3>
+            <h3><?= e(dcs_t('admin.update.downgrade_version')) ?></h3>
             <button class="modal-close" onclick="closeModal('downgradeModal')">&times;</button>
         </div>
         <div class="modal-body">
             <form id="downgrade-form">
                 <div class="form-group">
-                    <label for="downgrade-version">Select Version</label>
+                    <label for="downgrade-version"><?= e(dcs_t('admin.update.select_version')) ?></label>
                     <select id="downgrade-version" class="form-control">
-                        <option value="">Loading versions...</option>
+                        <option value=""><?= e(dcs_t('admin.update.loading_versions')) ?></option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <p class="text-muted">✓ Automatic backup will be created before downgrading</p>
+                    <p class="text-muted"><?= e(dcs_t('admin.update.auto_backup_before_downgrade')) ?></p>
                 </div>
-                <button type="submit" class="btn btn-warning">Downgrade</button>
+                <button type="submit" class="btn btn-warning"><?= e(dcs_t('admin.update.downgrade')) ?></button>
             </form>
         </div>
     </div>
@@ -215,12 +338,88 @@ $pageTitle = 'Update Dashboard';
 // Check for updates on page load
 let updateAvailable = false;
 let latestVersion = null;
+const adminCsrfToken = <?= json_encode(getCSRFToken()) ?>;
+const demoRestricted = <?= json_encode($demoRestricted) ?>;
+const demoRestrictionMessage = <?= json_encode(demoRestrictionMessage()) ?>;
+const updateText = <?= json_encode([
+    'supportCopied' => dcs_t('admin.update.support_copied'),
+    'unavailable' => dcs_t('admin.update.unavailable'),
+    'updateReady' => dcs_t('admin.update.update_ready'),
+    'latestCodeAvailable' => dcs_t('admin.update.latest_code_available'),
+    'updateNow' => dcs_t('admin.update.update_now'),
+    'upToDate' => dcs_t('admin.update.up_to_date'),
+    'upToDateDetail' => dcs_t('admin.update.up_to_date_detail'),
+    'githubFailed' => dcs_t('admin.update.github_check_failed'),
+    'githubFailedDetail' => dcs_t('admin.update.github_failed_detail'),
+    'unknownStatus' => dcs_t('admin.update.unknown_status'),
+    'unknownStatusDetail' => dcs_t('admin.update.unknown_status_detail'),
+    'failedCheck' => dcs_t('admin.update.failed_check'),
+    'startingUpdate' => dcs_t('admin.update.starting_update', ['channel' => $updateChannel['channel']]),
+    'backupDate' => dcs_t('admin.update.backup_date'),
+    'version' => dcs_t('admin.update.version'),
+    'branch' => dcs_t('admin.update.branch'),
+    'size' => dcs_t('admin.update.size'),
+    'status' => dcs_t('admin.update.status'),
+    'actions' => dcs_t('admin.update.actions'),
+    'protected' => dcs_t('admin.update.protected'),
+    'autoDeleted' => dcs_t('admin.update.auto_deleted'),
+    'restore' => dcs_t('admin.update.restore'),
+    'delete' => dcs_t('admin.update.delete'),
+    'keepsBackups' => dcs_t('admin.update.keeps_backups'),
+    'noBackups' => dcs_t('admin.update.no_backups'),
+    'failedLoadBackups' => dcs_t('admin.update.failed_load_backups'),
+    'confirmRestore' => dcs_t('admin.update.confirm_restore'),
+    'startingRestore' => dcs_t('admin.update.starting_restore'),
+    'restoreFailed' => dcs_t('admin.update.restore_failed'),
+    'confirmDelete' => dcs_t('admin.update.confirm_delete'),
+    'failedDelete' => dcs_t('admin.update.failed_delete'),
+    'creatingBackup' => dcs_t('admin.update.creating_backup'),
+    'checkingUpdates' => dcs_t('admin.update.checking_updates'),
+    'failedCheckUpdates' => dcs_t('admin.update.failed_check_updates'),
+    'noBackupsAvailable' => dcs_t('admin.update.no_backups_available'),
+    'selectVersion' => dcs_t('admin.update.select_version'),
+    'pleaseSelectVersion' => dcs_t('admin.update.please_select_version'),
+    'downgradingTo' => dcs_t('admin.update.downgrading_to')
+], JSON_UNESCAPED_UNICODE) ?>;
+
+function copySupportInfo() {
+    const supportInfo = document.getElementById('support-info');
+    if (!supportInfo) return;
+
+    supportInfo.style.display = 'block';
+    navigator.clipboard.writeText(supportInfo.textContent.trim())
+        .then(() => {
+            const log = document.getElementById('log');
+            log.textContent = updateText.supportCopied + '\n\n' + supportInfo.textContent.trim();
+        })
+        .catch(() => {
+            const range = document.createRange();
+            range.selectNodeContents(supportInfo);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+        });
+}
 
 function checkUpdateStatus() {
     fetch('api/check_updates.php')
         .then(response => response.text())
         .then(data => {
             const statusDiv = document.getElementById('update-status');
+            const statusTitle = document.getElementById('update-status-title');
+            const remoteCommit = document.getElementById('remote-commit');
+            const remoteDate = document.getElementById('remote-date');
+            const latestCommitMatch = data.match(/Latest Commit: ([^\n]+)/);
+            const latestDateMatch = data.match(/Latest Date: ([^\n]+)/);
+            const branchMatch = data.match(/GitHub Branch: ([^\n]+)/);
+            const sourceLabel = branchMatch ? branchMatch[1].trim() : 'selected branch';
+
+            if (remoteCommit) {
+                remoteCommit.textContent = latestCommitMatch ? latestCommitMatch[1].trim() : updateText.unavailable;
+            }
+            if (remoteDate) {
+                remoteDate.textContent = latestDateMatch ? latestDateMatch[1].trim() : updateText.unavailable;
+            }
             
             // Parse the response to check if update is available
             if (data.includes('✅ Update Available!')) {
@@ -230,18 +429,17 @@ function checkUpdateStatus() {
                 if (versionMatch) {
                     latestVersion = versionMatch[1];
                 }
-                statusDiv.innerHTML = `
-                    <div class="alert alert-info">
-                        <strong>Update Available!</strong> Version ${latestVersion}
-                        <button class="btn btn-primary btn-small" onclick="performUpdate()" style="margin-left: 10px;">
-                            Update Now
-                        </button>
-                    </div>
-                `;
+                statusTitle.textContent = updateText.updateReady;
+                statusDiv.innerHTML = `${updateText.latestCodeAvailable} ${sourceLabel}. <button class="btn btn-primary btn-small" onclick="performUpdate()" style="margin-left: 10px;">${updateText.updateNow}</button>`;
             } else if (data.includes('✓ You are running the latest')) {
-                statusDiv.innerHTML = '<p class="text-success">✓ System is up to date</p>';
+                statusTitle.textContent = updateText.upToDate;
+                statusDiv.innerHTML = `<span class="text-success">${updateText.upToDateDetail}</span>`;
+            } else if (data.includes('Could not fetch branch information')) {
+                statusTitle.textContent = updateText.githubFailed;
+                statusDiv.innerHTML = updateText.githubFailedDetail;
             } else {
-                statusDiv.innerHTML = '<p class="text-muted">Update status unknown</p>';
+                statusTitle.textContent = updateText.unknownStatus;
+                statusDiv.innerHTML = updateText.unknownStatusDetail;
             }
             
             // Also populate versions for downgrade
@@ -253,16 +451,20 @@ function checkUpdateStatus() {
             populateVersionSelect(versions);
         })
         .catch(error => {
-            document.getElementById('update-status').innerHTML = '<p class="text-danger">Failed to check updates</p>';
+            document.getElementById('update-status').innerHTML = `<p class="text-danger">${updateText.failedCheck}</p>`;
         });
 }
 
 function performUpdate() {
+    if (demoRestricted) {
+        alert(demoRestrictionMessage);
+        return;
+    }
     const formData = new FormData();
-    formData.append('branch', 'main');
+    formData.append('csrf_token', adminCsrfToken);
     
     const log = document.getElementById('log');
-    log.textContent = 'Starting update...\n';
+    log.textContent = updateText.startingUpdate + '\n';
     
     const xhr = new XMLHttpRequest();
     xhr.open('POST', 'api/update.php');
@@ -289,13 +491,13 @@ function loadBackups() {
             const backupList = document.getElementById('backup-list');
             if (data.backups && data.backups.length > 0) {
                 let html = '<div class="data-table-wrapper"><table class="data-table">';
-                html += '<thead><tr><th>Backup Date</th><th>Version</th><th>Branch</th><th>Size</th><th>Status</th><th>Actions</th></tr></thead><tbody>';
+                html += `<thead><tr><th>${updateText.backupDate}</th><th>${updateText.version}</th><th>${updateText.branch}</th><th>${updateText.size}</th><th>${updateText.status}</th><th>${updateText.actions}</th></tr></thead><tbody>`;
                 data.backups.forEach((backup, index) => {
                     const branchClass = backup.branch === 'Dev' ? 'badge-warning' : 'badge-primary';
                     const isProtected = index < 5;
                     const statusHtml = isProtected 
-                        ? '<span class="badge badge-success">Protected</span>' 
-                        : '<span class="badge badge-warning">Will be auto-deleted</span>';
+                        ? `<span class="badge badge-success">${updateText.protected}</span>` 
+                        : `<span class="badge badge-warning">${updateText.autoDeleted}</span>`;
                     html += `<tr>
                         <td>${backup.date}</td>
                         <td>${backup.version}</td>
@@ -303,38 +505,43 @@ function loadBackups() {
                         <td>${backup.size}</td>
                         <td>${statusHtml}</td>
                         <td>
-                            <button class="btn btn-small btn-secondary" onclick="restoreBackup('${backup.name}')">Restore</button>
-                            <button class="btn btn-small btn-danger" onclick="deleteBackup('${backup.name}')">Delete</button>
+                            <button class="btn btn-small btn-secondary" onclick="restoreBackup('${backup.name}')">${updateText.restore}</button>
+                            <button class="btn btn-small btn-danger" onclick="deleteBackup('${backup.name}')">${updateText.delete}</button>
                         </td>
                     </tr>`;
                 });
                 html += '</tbody></table></div>';
-                html += '<p class="text-muted mt-2">ℹ️ System keeps the 5 most recent backups. Older backups are automatically deleted.</p>';
+                html += `<p class="text-muted mt-2">${updateText.keepsBackups}</p>`;
                 backupList.innerHTML = html;
             } else {
-                backupList.innerHTML = '<p class="text-muted">No backups found.</p>';
+                backupList.innerHTML = `<p class="text-muted">${updateText.noBackups}</p>`;
             }
         })
         .catch(error => {
-            document.getElementById('backup-list').innerHTML = '<p class="text-danger">Failed to load backups.</p>';
+            document.getElementById('backup-list').innerHTML = `<p class="text-danger">${updateText.failedLoadBackups}</p>`;
         });
 }
 
 function restoreBackup(filename) {
-    if (!confirm('Are you sure you want to restore this backup? This will overwrite current files.')) {
+    if (demoRestricted) {
+        alert(demoRestrictionMessage);
+        return;
+    }
+    if (!confirm(updateText.confirmRestore)) {
         return;
     }
     
     const log = document.getElementById('log');
-    log.textContent = 'Starting restore...\n';
+    log.textContent = updateText.startingRestore + '\n';
     
     fetch('api/restore_backup.php', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest'
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRF-Token': adminCsrfToken
         },
-        body: JSON.stringify({ backup: filename })
+        body: JSON.stringify({ backup: filename, csrf_token: adminCsrfToken })
     })
     .then(response => response.text())
     .then(data => {
@@ -342,12 +549,16 @@ function restoreBackup(filename) {
         loadBackups();
     })
     .catch(error => {
-        log.textContent += 'Restore failed: ' + error.message;
+        log.textContent += updateText.restoreFailed + ': ' + error.message;
     });
 }
 
 function deleteBackup(filename) {
-    if (!confirm('Are you sure you want to delete this backup?')) {
+    if (demoRestricted) {
+        alert(demoRestrictionMessage);
+        return;
+    }
+    if (!confirm(updateText.confirmDelete)) {
         return;
     }
     
@@ -355,31 +566,37 @@ function deleteBackup(filename) {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest'
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRF-Token': adminCsrfToken
         },
-        body: JSON.stringify({ backup: filename })
+        body: JSON.stringify({ backup: filename, csrf_token: adminCsrfToken })
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
             loadBackups();
         } else {
-            alert('Failed to delete backup: ' + data.error);
+            alert(updateText.failedDelete + ': ' + data.error);
         }
     })
     .catch(error => {
-        alert('Failed to delete backup: ' + error.message);
+        alert(updateText.failedDelete + ': ' + error.message);
     });
 }
 
 // Create manual backup
 function createBackup() {
+    if (demoRestricted) {
+        alert(demoRestrictionMessage);
+        return;
+    }
     const log = document.getElementById('log');
-    log.textContent = 'Creating backup...\n';
+    log.textContent = updateText.creatingBackup + '\n';
     
     const xhr = new XMLHttpRequest();
     xhr.open('POST', 'api/create_backup.php');
     xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+    xhr.setRequestHeader('X-CSRF-Token', adminCsrfToken);
     xhr.onprogress = function() {
         log.textContent = xhr.responseText;
         log.scrollTop = log.scrollHeight;
@@ -394,8 +611,12 @@ function createBackup() {
 
 // Check for updates
 function checkForUpdates() {
+    if (demoRestricted) {
+        alert(demoRestrictionMessage);
+        return;
+    }
     const log = document.getElementById('log');
-    log.textContent = 'Checking for updates...\n';
+    log.textContent = updateText.checkingUpdates + '\n';
     
     fetch('api/check_updates.php')
         .then(response => response.text())
@@ -403,7 +624,7 @@ function checkForUpdates() {
             log.textContent = data;
         })
         .catch(error => {
-            log.textContent = 'Failed to check for updates: ' + error.message;
+            log.textContent = updateText.failedCheckUpdates + ': ' + error.message;
         });
 }
 
@@ -415,6 +636,10 @@ function showRestoreModal() {
 }
 
 function showDowngradeModal() {
+    if (demoRestricted) {
+        alert(demoRestrictionMessage);
+        return;
+    }
     document.getElementById('downgradeModal').classList.add('active');
 }
 
@@ -437,10 +662,10 @@ function loadBackupsForRestore() {
                             <div style="display: flex; justify-content: space-between; align-items: center;">
                                 <div>
                                     <strong>${backup.date}</strong><br>
-                                    Version: ${backup.version} | <span class="badge ${branchClass}">${backup.branch}</span> | Size: ${backup.size}
+                                    ${updateText.version}: ${backup.version} | <span class="badge ${branchClass}">${backup.branch}</span> | ${updateText.size}: ${backup.size}
                                 </div>
                                 <button class="btn btn-secondary btn-small" onclick="restoreBackup('${backup.name}'); closeModal('restoreModal');">
-                                    Restore
+                                    ${updateText.restore}
                                 </button>
                             </div>
                         </div>
@@ -449,7 +674,7 @@ function loadBackupsForRestore() {
                 html += '</div>';
                 restoreList.innerHTML = html;
             } else {
-                restoreList.innerHTML = '<p class="text-muted">No backups available.</p>';
+                restoreList.innerHTML = `<p class="text-muted">${updateText.noBackupsAvailable}</p>`;
             }
         });
 }
@@ -457,7 +682,7 @@ function loadBackupsForRestore() {
 // Populate version select
 function populateVersionSelect(versions) {
     const select = document.getElementById('downgrade-version');
-    let html = '<option value="">Select a version</option>';
+    let html = `<option value="">${updateText.selectVersion}</option>`;
     versions.forEach(version => {
         if (version !== '<?= ADMIN_PANEL_VERSION ?>') {
             html += `<option value="${version}">${version}</option>`;
@@ -469,9 +694,13 @@ function populateVersionSelect(versions) {
 // Handle downgrade form
 document.getElementById('downgrade-form').addEventListener('submit', function(e) {
     e.preventDefault();
+    if (demoRestricted) {
+        alert(demoRestrictionMessage);
+        return;
+    }
     const version = document.getElementById('downgrade-version').value;
     if (!version) {
-        alert('Please select a version');
+        alert(updateText.pleaseSelectVersion);
         return;
     }
     
@@ -479,9 +708,10 @@ document.getElementById('downgrade-form').addEventListener('submit', function(e)
     
     const formData = new FormData();
     formData.append('version', version);
+    formData.append('csrf_token', adminCsrfToken);
     
     const log = document.getElementById('log');
-    log.textContent = `Downgrading to version ${version}...\n`;
+    log.textContent = `${updateText.downgradingTo} ${version}...\n`;
     
     const xhr = new XMLHttpRequest();
     xhr.open('POST', 'api/update.php');
@@ -504,39 +734,6 @@ document.getElementById('downgrade-form').addEventListener('submit', function(e)
 loadBackups();
 checkUpdateStatus();
 
-<?php if ($isDev): ?>
-// In dev mode, check git status
-function checkGitStatus() {
-    fetch('api/git_status.php')
-        .then(response => response.json())
-        .then(data => {
-            const statusEl = document.getElementById('git-status');
-            if (data.success) {
-                let html = `<span class="badge badge-info">${data.branch}</span>`;
-                if (data.ahead > 0 || data.behind > 0) {
-                    html += ' <small>(';
-                    if (data.ahead > 0) html += `↑${data.ahead}`;
-                    if (data.ahead > 0 && data.behind > 0) html += ' ';
-                    if (data.behind > 0) html += `↓${data.behind}`;
-                    html += ')</small>';
-                }
-                if (data.modified > 0) {
-                    html += ` <span class="text-warning">• ${data.modified} modified</span>`;
-                }
-                if (data.untracked > 0) {
-                    html += ` <span class="text-muted">• ${data.untracked} untracked</span>`;
-                }
-                statusEl.innerHTML = html;
-            } else {
-                statusEl.innerHTML = '<span class="text-danger">Not a git repository</span>';
-            }
-        })
-        .catch(error => {
-            document.getElementById('git-status').innerHTML = '<span class="text-danger">Failed to check</span>';
-        });
-}
-checkGitStatus();
-<?php endif; ?>
 </script>
 </body>
 </html>

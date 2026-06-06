@@ -1,0 +1,16 @@
+## 📊 DCS Statistics Dashboard
+
+- 🏠 [Home](Home)
+- 🚀 [Installation](Installation)
+- 🐳 [Docker Deployment](Docker-Deployment)
+- ⚙️ [Admin Panel](Admin-Panel)
+- 🔌 [API Setup](API-Setup)
+- 🎚️ [Site Features](Site-Features)
+- 🎨 [Themes and Branding](Themes-and-Branding)
+- 🌍 [Language Support](Language-Support)
+- 🔄 [Updates and Backups](Updates-and-Backups)
+- 🔐 [Security and Privacy](Security-and-Privacy)
+- 🧪 [Demo Mode](Demo-Mode)
+- 🧰 [Troubleshooting](Troubleshooting)
+- ✅ [Tester Checklist](Tester-Checklist)
+- 🚀 [V1.2 Release Notes](V1.2-Release-Notes)

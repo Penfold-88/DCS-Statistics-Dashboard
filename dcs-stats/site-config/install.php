@@ -7,8 +7,78 @@
 // Check if already configured
 $dataDir = __DIR__ . '/data';
 $usersFile = $dataDir . '/users.json';
-$apiConfigFile = dirname(__DIR__) . '/api_config.json';
+$apiConfigFile = $dataDir . '/api_config.json';
+$legacyApiConfigFile = dirname(__DIR__) . '/api_config.json';
 $siteConfigFile = dirname(__DIR__) . '/site_config.json';
+$is_cli = (php_sapi_name() === 'cli');
+require_once dirname(__DIR__) . '/language.php';
+if (!function_exists('e')) {
+    function e($value) {
+        return htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8');
+    }
+}
+function isValidInstallerApiKey($apiKey) {
+    if ($apiKey === '') {
+        return true;
+    }
+
+    return strlen($apiKey) <= 256 && preg_match('/^[A-Za-z0-9._~:+\/=-]+$/', $apiKey);
+}
+
+function canCreateInPath($path) {
+    $parent = dirname($path);
+    while ($parent && $parent !== dirname($parent)) {
+        if (file_exists($parent)) {
+            return is_dir($parent) && is_writable($parent);
+        }
+        $parent = dirname($parent);
+    }
+
+    return false;
+}
+
+function installerPathIsWritable($path, $type) {
+    if ($type === 'dir') {
+        return is_dir($path) ? is_writable($path) : canCreateInPath($path);
+    }
+
+    return file_exists($path) ? is_writable($path) : canCreateInPath($path);
+}
+
+function showInstallerLockedPage() {
+    http_response_code(403);
+    ?>
+    <!DOCTYPE html>
+    <html lang="<?= e(dcs_default_language()) ?>">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title><?= e(dcs_t('admin.install.already_installed_title')) ?></title>
+        <link rel="stylesheet" href="css/admin.css">
+        <style>
+            body { align-items: center; display: flex; justify-content: center; min-height: 100vh; padding: 24px; }
+            .installer-locked-card { background: var(--bg-secondary, #252525); border: 1px solid var(--border-color, #444); border-radius: 8px; max-width: 560px; padding: 28px; text-align: center; width: 100%; }
+            .installer-locked-card h1 { margin-top: 0; }
+            .installer-locked-actions { display: flex; gap: 12px; justify-content: center; margin-top: 22px; flex-wrap: wrap; }
+        </style>
+    </head>
+    <body class="admin-body">
+        <div class="installer-locked-card">
+            <h1><?= e(dcs_t('admin.install.already_installed_title')) ?></h1>
+            <p><?= e(dcs_t('admin.install.already_installed_message')) ?></p>
+            <p class="text-muted"><?= e(dcs_t('admin.install.already_installed_delete_note')) ?></p>
+            <div class="installer-locked-actions">
+                <a href="index.php" class="btn btn-primary"><?= e(dcs_t('admin.install.go_to_dashboard')) ?></a>
+                <a href="logout.php" class="btn btn-secondary"><?= e(dcs_t('admin.common.logout')) ?></a>
+            </div>
+        </div>
+    </body>
+    </html>
+    <?php
+    exit;
+}
+$installerLanguage = dcs_language_code($_POST['install_language'] ?? $_GET['lang'] ?? 'en');
+dcs_set_language_override($installerLanguage);
 
 // Check if this is the auto-created default installation
 $isDefaultInstall = false;
@@ -26,12 +96,15 @@ if (file_exists($usersFile)) {
     }
 }
 
-if (!$isDefaultInstall && file_exists($usersFile) && file_exists($apiConfigFile)) {
-    die("System appears to be already installed. Delete site-config/data/users.json and api_config.json to reinstall.\n");
-}
+if (!$isDefaultInstall && file_exists($usersFile) && (file_exists($apiConfigFile) || file_exists($legacyApiConfigFile))) {
+    if ($is_cli) {
+        die("System appears to be already installed. Delete site-config/data/users.json and api_config.json to reinstall.\n");
+    }
 
-// Check if running from CLI or web
-$is_cli = (php_sapi_name() === 'cli');
+    require_once __DIR__ . '/auth.php';
+    requireAdmin();
+    showInstallerLockedPage();
+}
 
 if ($is_cli) {
     echo "DCS Statistics Admin Panel Installer\n";
@@ -78,14 +151,18 @@ $isDev = isDevMode();
 
 // For web installation, provide a form interface
 if (!$is_cli) {
+    $readyToInstall = false;
+
     // Handle form submission
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $username = $_POST['username'] ?? 'admin';
         $email = $_POST['email'] ?? '';
         $password = $_POST['password'] ?? '';
         $api_url = $_POST['api_url'] ?? '';
+        $api_key = trim($_POST['api_key'] ?? '');
         $site_name = $_POST['site_name'] ?? 'DCS Statistics';
         $discord_url = $_POST['discord_url'] ?? '';
+        $default_language = dcs_language_code($_POST['install_language'] ?? 'en');
         $update_branch = 'main'; // Always start with main branch
         
         // Validate inputs
@@ -101,6 +178,9 @@ if (!$is_cli) {
         }
         if (empty($api_url)) {
             $errors[] = "API URL is required";
+        }
+        if (!isValidInstallerApiKey($api_key)) {
+            $errors[] = "API key contains invalid characters";
         }
         
         // Test API connection with protocol auto-detection (skip in dev mode)
@@ -118,8 +198,11 @@ if (!$is_cli) {
                 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
                 curl_setopt($ch, CURLOPT_TIMEOUT, 5);
                 curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // Allow self-signed certs
-                curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+                curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
+                if ($api_key !== '') {
+                    curl_setopt($ch, CURLOPT_HTTPHEADER, ['X-API-Key: ' . $api_key]);
+                }
                 $response = curl_exec($ch);
                 $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
                 curl_close($ch);
@@ -136,6 +219,7 @@ if (!$is_cli) {
                 • DCSServerBot is running<br>
                 • The REST API is enabled in DCSServerBot<br>
                 • The address and port are correct (default port is 9876)<br>
+                • The API key is correct if your DCSServerBot REST API requires one<br>
                 • Firewall allows connections to the API port";
             }
         } elseif ($isDev && !empty($api_url)) {
@@ -146,19 +230,19 @@ if (!$is_cli) {
         }
         
         if (empty($errors)) {
-            // Proceed with installation
-            goto do_install;
+            $readyToInstall = true;
         }
     }
     
     // Show installation form
+    if (!$readyToInstall) {
     ?>
     <!DOCTYPE html>
-    <html lang="en">
+    <html lang="<?= e($installerLanguage) ?>">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Admin Panel Installation - DCS Statistics</title>
+        <title><?= e(dcs_t('admin.install.page_title')) ?> - DCS Statistics</title>
         <link rel="stylesheet" href="css/admin.css">
         <style>
             /* Installation specific overrides */
@@ -173,32 +257,108 @@ if (!$is_cli) {
                 width: 100%;
                 max-width: 600px;
             }
+            .permission-details {
+                background: var(--bg-tertiary, #1a1a1a);
+                border: 1px solid var(--border-color, #444);
+                border-radius: 6px;
+                margin-top: 12px;
+                padding: 12px;
+            }
+            .permission-details summary {
+                cursor: pointer;
+                font-weight: 700;
+            }
+            .permission-details code {
+                word-break: break-word;
+            }
+            .permission-row {
+                align-items: flex-start;
+                display: grid;
+                gap: 8px;
+                grid-template-columns: 22px 1fr;
+                margin: 8px 0;
+            }
+            .permission-row code {
+                word-break: break-word;
+            }
+            .permission-status {
+                font-weight: 700;
+            }
         </style>
     </head>
     <body>
         <div class="install-container">
             <div class="card">
                 <div class="card-header">
-                    <h1 class="card-title">🚀 Admin Panel Installation</h1>
+                    <h1 class="card-title"><?= e(dcs_t('admin.install.title')) ?></h1>
                 </div>
-                <p class="text-center text-muted mb-3">DCS Statistics Management System</p>
+                <p class="text-center text-muted mb-3"><?= e(dcs_t('admin.install.subtitle')) ?></p>
+
+                <form method="GET" class="card mb-3" style="padding: 16px;">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label for="installer_language_selector"><?= e(dcs_t('admin.install.language')) ?></label>
+                        <select id="installer_language_selector" name="lang" class="form-control" onchange="this.form.submit()">
+                            <?php foreach (dcs_supported_languages() as $code => $label): ?>
+                                <option value="<?= e($code) ?>" <?= $installerLanguage === $code ? 'selected' : '' ?>><?= e($label) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                </form>
+
             <div class="card mb-3">
-                <h3 class="text-success">System Requirements</h3>
+                <h3 class="text-success"><?= e(dcs_t('admin.install.system_requirements')) ?></h3>
                 <p class="<?= version_compare(PHP_VERSION, '7.4.0', '>=') ? 'success' : 'error' ?>">
-                    <?= version_compare(PHP_VERSION, '7.4.0', '>=') ? '✓' : '✗' ?> PHP version <?= PHP_VERSION ?> (7.4+ required)
+                    <?= version_compare(PHP_VERSION, '7.4.0', '>=') ? '✓' : '✗' ?> <?= e(dcs_t('admin.install.php_version_required', ['version' => PHP_VERSION])) ?>
                 </p>
                 <?php
                 $required_extensions = ['json', 'session', 'openssl', 'mbstring'];
                 foreach ($required_extensions as $ext) {
                     $loaded = extension_loaded($ext);
                     echo '<p class="' . ($loaded ? 'success' : 'error') . '">';
-                    echo ($loaded ? '✓' : '✗') . ' ' . $ext . ' extension';
+                    echo ($loaded ? '✓' : '✗') . ' ' . htmlspecialchars($ext) . ' ' . e(dcs_t('admin.install.extension'));
                     echo '</p>';
                 }
                 ?>
                 <p class="<?= is_writable(dirname($dataDir)) ? 'success' : 'error' ?>">
-                    <?= is_writable(dirname($dataDir)) ? '✓' : '✗' ?> Write permissions
+                    <?= is_writable(dirname($dataDir)) ? '✓' : '✗' ?> <?= e(dcs_t('admin.install.write_permissions')) ?>
                 </p>
+                <details class="permission-details">
+                    <summary><?= e(dcs_t('admin.install.permissions_view')) ?></summary>
+                    <p class="text-muted"><?= e(dcs_t('admin.install.permissions_help')) ?></p>
+                    <strong><?= e(dcs_t('admin.install.permissions_folders')) ?></strong>
+                    <?php
+                    $permissionFolders = [
+                        'dcs-stats/site-config/data/' => __DIR__ . '/data',
+                        'dcs-stats/uploads/' => dirname(__DIR__) . '/uploads',
+                        'dcs-stats/custom/' => dirname(__DIR__) . '/custom',
+                        'dcs-stats/backups/' => dirname(__DIR__) . '/backups'
+                    ];
+                    foreach ($permissionFolders as $label => $path):
+                        $pathWritable = installerPathIsWritable($path, 'dir');
+                    ?>
+                        <div class="permission-row <?= $pathWritable ? 'success' : 'error' ?>">
+                            <span class="permission-status"><?= $pathWritable ? '✓' : '✗' ?></span>
+                            <code><?= e($label) ?></code>
+                        </div>
+                    <?php endforeach; ?>
+                    <strong><?= e(dcs_t('admin.install.permissions_files')) ?></strong>
+                    <?php
+                    $permissionFiles = [
+                        'dcs-stats/site_config.json' => dirname(__DIR__) . '/site_config.json',
+                        'dcs-stats/menu_config.json' => dirname(__DIR__) . '/menu_config.json',
+                        'dcs-stats/custom_theme.css' => dirname(__DIR__) . '/custom_theme.css',
+                        'dcs-stats/header_custom.css' => dirname(__DIR__) . '/header_custom.css',
+                        'dcs-stats/.version_meta.json' => dirname(__DIR__) . '/.version_meta.json'
+                    ];
+                    foreach ($permissionFiles as $label => $path):
+                        $pathWritable = installerPathIsWritable($path, 'file');
+                    ?>
+                        <div class="permission-row <?= $pathWritable ? 'success' : 'error' ?>">
+                            <span class="permission-status"><?= $pathWritable ? '✓' : '✗' ?></span>
+                            <code><?= e($label) ?></code>
+                        </div>
+                    <?php endforeach; ?>
+                </details>
             </div>
             
             <?php if (!empty($errors)): ?>
@@ -211,54 +371,65 @@ if (!$is_cli) {
             
             <?php if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !empty($errors)): ?>
             <form method="POST">
+                <input type="hidden" name="install_language" value="<?= e($installerLanguage) ?>">
+
                 <div class="form-group">
-                    <label for="username">Admin Username</label>
+                    <label for="username"><?= e(dcs_t('admin.install.admin_username')) ?></label>
                     <input type="text" id="username" name="username" class="form-control" value="<?= htmlspecialchars($_POST['username'] ?? 'admin') ?>" required>
                 </div>
                 
                 <div class="form-group">
-                    <label for="email">Admin Email</label>
+                    <label for="email"><?= e(dcs_t('admin.install.admin_email')) ?></label>
                     <input type="text" id="email" name="email" class="form-control" value="<?= htmlspecialchars($_POST['email'] ?? '') ?>" required>
                 </div>
                 
                 <div class="form-group">
-                    <label for="password">Admin Password (min 8 characters)</label>
+                    <label for="password"><?= e(dcs_t('admin.install.admin_password')) ?></label>
                     <input type="password" id="password" name="password" class="form-control" required minlength="8">
                 </div>
                 
                 <div class="card mt-3">
                     <div class="card-header">
-                        <h3 class="card-title">API Configuration</h3>
+                        <h3 class="card-title"><?= e(dcs_t('admin.install.api_configuration')) ?></h3>
                     </div>
-                    <p class="text-muted">Configure the connection to your DCSServerBot REST API</p>
+                    <p class="text-muted"><?= e(dcs_t('admin.install.api_configuration_help')) ?></p>
                 
                 <div class="form-group">
-                    <label for="api_url">DCSServerBot API URL</label>
-                    <input type="text" id="api_url" name="api_url" class="form-control" placeholder="your-server:9876" required>
+                    <label for="api_url"><?= e(dcs_t('admin.install.api_url')) ?></label>
+                    <input type="text" id="api_url" name="api_url" class="form-control" placeholder="your-server:9876" value="<?= htmlspecialchars($_POST['api_url'] ?? '') ?>" required>
                     <?php if ($isDev): ?>
-                    <small class="text-warning">⚠️ Dev Mode: API connection test will be skipped</small>
+                    <small class="text-warning"><?= e(dcs_t('admin.install.dev_mode_skip')) ?></small>
                     <?php else: ?>
-                    <small class="text-muted">Example: 192.168.1.100:9876 or dcs.example.com:9876 (protocol will be auto-detected)</small>
+                    <small class="text-muted"><?= e(dcs_t('admin.install.api_example')) ?></small>
                     <?php endif; ?>
+                </div>
+
+                <div class="form-group">
+                    <label for="api_key">
+                        <?= e(dcs_t('admin.install.api_key')) ?>
+                        <span class="text-muted"><?= e(dcs_t('admin.install.api_key_optional')) ?></span>
+                    </label>
+                    <input type="password" id="api_key" name="api_key" class="form-control" value="" autocomplete="off" placeholder="<?= e(dcs_t('admin.install.api_key_placeholder')) ?>">
+                    <small class="text-muted"><?= e(dcs_t('admin.install.api_key_help')) ?></small>
                 </div>
                 
                 <div class="form-group">
-                    <label for="site_name">Site Name</label>
+                    <label for="site_name"><?= e(dcs_t('admin.install.site_name')) ?></label>
                     <input type="text" id="site_name" name="site_name" class="form-control" value="<?= htmlspecialchars($_POST['site_name'] ?? 'DCS Statistics') ?>" required>
                 </div>
                 
                 <div class="form-group">
-                    <label for="discord_url">Discord Invite URL (optional)</label>
+                    <label for="discord_url"><?= e(dcs_t('admin.install.discord_url')) ?></label>
                     <input type="url" id="discord_url" name="discord_url" class="form-control" placeholder="https://discord.gg/your-invite">
                 </div>
                 
                 </div>
                 
-                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 20px;">Install Admin Panel</button>
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 20px;"><?= e(dcs_t('admin.install.install_button')) ?></button>
             </form>
             
             <div class="alert alert-info">
-                <strong>Note:</strong> You can also run this installer from the command line:<br>
+                <strong><?= e(dcs_t('admin.common.note')) ?>:</strong> <?= e(dcs_t('admin.install.cli_note')) ?><br>
                 <code>php install.php</code>
             </div>
             <?php endif; ?>
@@ -269,9 +440,8 @@ if (!$is_cli) {
     </html>
     <?php
     exit;
+    }
 }
-
-do_install:
 
 if ($is_cli) {
     // CLI installation
@@ -307,6 +477,12 @@ if ($is_cli) {
         echo "Please enter the API address (host:port): ";
         $api_url = trim(fgets(STDIN));
     }
+
+    echo "DCSServerBot API Key (optional, press Enter to skip): ";
+    $api_key = trim(fgets(STDIN));
+    if (!isValidInstallerApiKey($api_key)) {
+        die("Error: API key contains invalid characters.\n");
+    }
     
     // Auto-detect protocol
     $api_url = preg_replace('#^https?://#', '', $api_url);
@@ -323,8 +499,11 @@ if ($is_cli) {
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_TIMEOUT, 5);
             curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
+            if (!empty($api_key)) {
+                curl_setopt($ch, CURLOPT_HTTPHEADER, ['X-API-Key: ' . $api_key]);
+            }
             $response = curl_exec($ch);
             $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
             curl_close($ch);
@@ -413,9 +592,11 @@ if ($is_cli) {
 // Create API configuration
 $apiConfig = [
     'api_base_url' => rtrim($api_url ?? '', '/'),
-    'api_key' => null,
+    'api_key' => !empty($api_key) ? $api_key : null,
     'timeout' => 30,
     'cache_ttl' => 300,
+    'refresh_interval' => 300,
+    'verify_ssl' => true,
     'fallback_to_json' => false,
     'use_api' => true,
     'enabled_endpoints' => [
@@ -449,6 +630,8 @@ if ($is_cli) {
 // Create site configuration
 $siteConfig = [
     'site_name' => $site_name ?? 'DCS Statistics',
+    'default_language' => $default_language ?? 'en',
+    'date_format' => 'd/m/Y',
     'discord_invite_url' => $discord_url ?? '',
     'theme' => 'dark',
     'maintenance_mode' => false,
@@ -467,15 +650,35 @@ if ($is_cli) {
 
 // Create version metadata
 require_once __DIR__ . '/version_tracker.php';
+require_once __DIR__ . '/update_channel.php';
 // Define ADMIN_PANEL constant if not already defined
 if (!defined('ADMIN_PANEL')) {
     define('ADMIN_PANEL', true);
 }
 require_once __DIR__ . '/config.php';
-updateVersionMetadata(ADMIN_PANEL_VERSION, 'main', 'installer');
+$channelConfig = getUpdateChannelConfig();
+$installBranch = $channelConfig['branch'] ?? 'main';
+$githubVersionInfo = getGitHubBranchVersionInfo($channelConfig['repo'] ?? '', $installBranch);
+updateVersionMetadata(
+    ADMIN_PANEL_VERSION,
+    $installBranch,
+    'installer',
+    $githubVersionInfo['commit_sha'] ?? null,
+    $githubVersionInfo['commit_date'] ?? null
+);
 
 if ($is_cli) {
     echo "✓ Version tracking initialized\n";
+}
+
+$installerSelfDeleteStatus = 'not_attempted';
+$installerSelfDeletePath = realpath(__FILE__);
+$installerDirPath = realpath(__DIR__);
+if ($installerSelfDeletePath !== false &&
+    $installerDirPath !== false &&
+    $installerSelfDeletePath === $installerDirPath . DIRECTORY_SEPARATOR . 'install.php' &&
+    is_file($installerSelfDeletePath)) {
+    $installerSelfDeleteStatus = @unlink($installerSelfDeletePath) ? 'removed' : 'failed';
 }
 
 if ($is_cli) {
@@ -493,7 +696,11 @@ if ($is_cli) {
     echo "2. Change your password immediately\n";
     echo "3. Create additional admin users as needed\n";
     echo "4. Configure your settings\n";
-    echo "\nFor security, delete or rename this install.php file.\n";
+    if ($installerSelfDeleteStatus === 'removed') {
+        echo "\nSecurity cleanup: install.php was removed automatically.\n";
+    } else {
+        echo "\nFor security, delete or rename this install.php file.\n";
+    }
 } else {
     // Web installation success page
     ?>
@@ -502,7 +709,7 @@ if ($is_cli) {
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Installation Complete - DCS Statistics</title>
+        <title><?= e(dcs_t('admin.install.complete_page_title')) ?> - DCS Statistics</title>
         <link rel="stylesheet" href="css/admin.css">
         <style>
             body {
@@ -528,30 +735,37 @@ if ($is_cli) {
         <div class="install-container">
             <div class="card text-center">
                 <div class="success-icon">✓</div>
-                <h1 class="text-success mb-3">Installation Complete!</h1>
+                <h1 class="text-success mb-3"><?= e(dcs_t('admin.install.complete_title')) ?></h1>
                 
                 <div class="card mb-3">
-                    <h3 class="card-title">Your admin account has been created:</h3>
-                    <p><strong>Username:</strong> <?= htmlspecialchars($username) ?></p>
-                    <p><strong>Email:</strong> <?= htmlspecialchars($email) ?></p>
-                    <p class="text-muted"><strong>Password:</strong> [the password you entered]</p>
+                    <h3 class="card-title"><?= e(dcs_t('admin.install.account_created')) ?></h3>
+                    <p><strong><?= e(dcs_t('admin.install.username')) ?>:</strong> <?= htmlspecialchars($username) ?></p>
+                    <p><strong><?= e(dcs_t('admin.install.email')) ?>:</strong> <?= htmlspecialchars($email) ?></p>
+                    <p class="text-muted"><strong><?= e(dcs_t('admin.install.password')) ?>:</strong> <?= e(dcs_t('admin.install.password_entered')) ?></p>
                 </div>
                 
                 <div class="card mb-3">
-                    <h3 class="card-title">API Configuration:</h3>
-                    <p><strong>API Endpoint:</strong> <?= htmlspecialchars($api_url) ?></p>
-                    <p><strong>Site Name:</strong> <?= htmlspecialchars($site_name) ?></p>
+                    <h3 class="card-title"><?= e(dcs_t('admin.install.api_configuration')) ?>:</h3>
+                    <p><strong><?= e(dcs_t('admin.install.api_endpoint')) ?>:</strong> <?= htmlspecialchars($api_url) ?></p>
+                    <p><strong><?= e(dcs_t('admin.install.site_name')) ?>:</strong> <?= htmlspecialchars($site_name) ?></p>
                     <?php if (!empty($discord_url)): ?>
                     <p><strong>Discord:</strong> <?= htmlspecialchars($discord_url) ?></p>
                     <?php endif; ?>
                 </div>
                 
-                <a href="login.php" class="btn btn-primary" style="width: 100%;">Go to Admin Login</a>
+                <a href="login.php" class="btn btn-primary" style="width: 100%;"><?= e(dcs_t('admin.install.go_to_login')) ?></a>
                 
-                <div class="alert alert-warning mt-3">
-                    <strong>⚠️ Security Notice:</strong><br>
-                    Please delete or rename this install.php file after logging in.
-                </div>
+                <?php if ($installerSelfDeleteStatus === 'removed'): ?>
+                    <div class="alert alert-success mt-3">
+                        <strong><?= e(dcs_t('admin.install.security_notice')) ?>:</strong><br>
+                        <?= e(dcs_t('admin.install.security_notice_removed')) ?>
+                    </div>
+                <?php else: ?>
+                    <div class="alert alert-warning mt-3">
+                        <strong><?= e(dcs_t('admin.install.security_notice')) ?>:</strong><br>
+                        <?= e(dcs_t('admin.install.security_notice_text')) ?>
+                    </div>
+                <?php endif; ?>
             </div>
         </div>
         <?= getDevModeIndicator() ?>

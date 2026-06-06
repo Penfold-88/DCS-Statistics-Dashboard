@@ -4,12 +4,14 @@
 <FilesMatch "\.(json|sql|log)$">
     Order deny,allow
     Deny from all
+    Require all denied
 </FilesMatch>
 
 # Protect config files
 <Files "config.php">
     Order deny,allow
     Deny from all
+    Require all denied
 </Files>
 
 # Protect data directory

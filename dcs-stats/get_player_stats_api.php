@@ -17,6 +17,7 @@ $playerName = validateInput($_GET['name'] ?? '', [
     'max_length' => 50,
     'min_length' => 1
 ]);
+$playerDate = $_GET['date'] ?? null;
 
 if ($playerName === false) {
     logSecurityEvent('INVALID_INPUT', 'Invalid player name format: ' . substr($_GET['name'] ?? '', 0, 20));
@@ -35,9 +36,16 @@ try {
     // Create API client
     $apiClient = createEnhancedAPIClient();
     
-    // Get player stats from API
-    // API /stats returns: deaths, aakills, aakdr, lastSessionKills, lastSessionDeaths, killsbymodule, kdrByModule
-    $apiStats = $apiClient->getPlayerStats($playerName);
+    $playerInfo = null;
+    try {
+        $playerInfo = $apiClient->getPlayerInfo($playerName, $playerDate);
+    } catch (Exception $e) {
+        $playerInfo = null;
+    }
+
+    $apiStats = $playerInfo['overall'] ?? $apiClient->getPlayerStats($playerName, $playerDate);
+    $lastSession = $playerInfo['last_session'] ?? [];
+    $moduleStats = $playerInfo['module_stats'] ?? ($apiStats['killsByModule'] ?? []);
     
     if ($apiStats && is_array($apiStats)) {
         // Transform API response to our format
@@ -46,9 +54,10 @@ try {
             'kills' => $apiStats['kills'] ?? 0,
             'deaths' => $apiStats['deaths'] ?? 0,
             'kdr' => $apiStats['kdr'] ?? 0,
-            'kills_pvp' => $apiStats['kills'] ?? 0,
-            'deaths_pvp' => $apiStats['deaths'] ?? 0,
-            'kdr_pvp' => $apiStats['kdr'] ?? 0,
+            'kd_ratio' => $apiStats['kdr'] ?? 0,
+            'kills_pvp' => $apiStats['kills_pvp'] ?? 0,
+            'deaths_pvp' => $apiStats['deaths_pvp'] ?? 0,
+            'kdr_pvp' => $apiStats['kdr_pvp'] ?? 0,
             'teamkills' => $apiStats['teamkills'] ?? 0,
             'takeoffs' => $apiStats['takeoffs'] ?? 0,
             'landings' => $apiStats['landings'] ?? 0,
@@ -61,11 +70,52 @@ try {
             'killsByModule' => $apiStats['killsByModule'] ?? [],
             'kdrByModule' => $apiStats['kdrByModule'] ?? []
         ];
+
+        if (!empty($lastSession)) {
+            $stats['last_session_kills'] = $lastSession['kills'] ?? 0;
+            $stats['last_session_deaths'] = $lastSession['deaths'] ?? 0;
+            $stats['last_session_takeoffs'] = $lastSession['takeoffs'] ?? 0;
+            $stats['last_session_landings'] = $lastSession['landings'] ?? 0;
+        }
+
+        if (isset($playerInfo['credits']) && is_array($playerInfo['credits'])) {
+            $stats['credits'] = $playerInfo['credits']['credits'] ?? 0;
+            $stats['rank'] = $playerInfo['credits']['rank'] ?? null;
+            $stats['badge'] = $playerInfo['credits']['badge'] ?? null;
+            $stats['campaign'] = $playerInfo['credits']['name'] ?? null;
+        }
+
+        if (!empty($playerInfo['current_server'])) {
+            $stats['current_server'] = $playerInfo['current_server'];
+        }
+
+        if (!empty($playerInfo['squadrons']) && is_array($playerInfo['squadrons'])) {
+            $stats['squadrons'] = $playerInfo['squadrons'];
+            $stats['squadron'] = $playerInfo['squadrons'][0]['name'] ?? null;
+        }
+
+        if (!empty($moduleStats) && is_array($moduleStats)) {
+            $stats['killsByModule'] = $moduleStats;
+            $stats['aircraftUsage'] = array_map(function($module) {
+                return [
+                    'name' => $module['module'] ?? 'Unknown',
+                    'count' => $module['kills'] ?? 0
+                ];
+            }, $moduleStats);
+        }
         
         // Find most used aircraft from killsbymodule
         if (!empty($stats['killsByModule'])) {
-            $mostUsed = array_keys($stats['killsByModule'], max($stats['killsByModule']));
-            $stats['most_used_aircraft'] = $mostUsed[0] ?? "Unknown";
+            $mostUsedModule = null;
+            foreach ($stats['killsByModule'] as $module) {
+                if (!is_array($module)) {
+                    continue;
+                }
+                if ($mostUsedModule === null || ($module['kills'] ?? 0) > ($mostUsedModule['kills'] ?? 0)) {
+                    $mostUsedModule = $module;
+                }
+            }
+            $stats['most_used_aircraft'] = $mostUsedModule['module'] ?? "Unknown";
         } else {
             $stats['most_used_aircraft'] = "Unknown";
         }

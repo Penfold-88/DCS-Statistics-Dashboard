@@ -15,6 +15,8 @@ function getDefaultApiConfig($apiHost = '') {
         'api_key' => null,
         'timeout' => 30,
         'cache_ttl' => 300,
+        'refresh_interval' => 300,
+        'verify_ssl' => true,
         
         // Feature flags
         'use_api' => true, // Always use API
@@ -42,16 +44,52 @@ function getDefaultApiConfig($apiHost = '') {
         'endpoints' => [
             'getuser' => '/getuser',
             'stats' => '/stats',
+            'player_info' => '/player_info',
             'topkills' => '/topkills',
             'topkdr' => '/topkdr',
+            'leaderboard' => '/leaderboard',
+            'highscore' => '/highscore',
+            'trueskill' => '/trueskill',
+            'modulestats' => '/modulestats',
+            'traps' => '/traps',
             'weaponpk' => '/weaponpk',
             'credits' => '/credits',
             'servers' => '/servers',
+            'serverstats' => '/serverstats',
+            'server_attendance' => '/server_attendance',
+            'current_server' => '/current_server',
             'squadrons' => '/squadrons',
+            'player_squadrons' => '/player_squadrons',
             'squadron_members' => '/squadron_members',
             'squadron_credits' => '/squadron_credits'
         ]
     ];
+}
+
+function getEnvironmentApiKey() {
+    $apiKey = getenv('DCSBOT_API_KEY');
+    if ($apiKey === false || trim((string)$apiKey) === '') {
+        return null;
+    }
+
+    return trim((string)$apiKey);
+}
+
+function isEnvironmentApiKeyActive() {
+    return getEnvironmentApiKey() !== null;
+}
+
+function applyEnvironmentApiConfigOverrides($config) {
+    if (!is_array($config)) {
+        $config = getDefaultApiConfig();
+    }
+
+    $envApiKey = getEnvironmentApiKey();
+    if ($envApiKey !== null) {
+        $config['api_key'] = $envApiKey;
+    }
+
+    return $config;
 }
 
 /**
@@ -83,7 +121,7 @@ function validateAndFixApiConfig($config) {
     }
     
     // Fix missing required fields
-    $requiredFields = ['timeout', 'cache_ttl', 'use_api'];
+    $requiredFields = ['timeout', 'cache_ttl', 'refresh_interval', 'use_api', 'verify_ssl'];
     foreach ($requiredFields as $field) {
         if (!isset($config[$field])) {
             $config[$field] = $default[$field];
@@ -142,6 +180,14 @@ function validateAndFixApiConfig($config) {
         $changes[] = 'Fixed invalid cache_ttl value';
         $fixed = true;
     }
+
+    if (!is_int($config['refresh_interval']) || $config['refresh_interval'] < 60) {
+        $config['refresh_interval'] = 300;
+        $changes[] = 'Fixed invalid refresh_interval value';
+        $fixed = true;
+    }
+
+    $config['verify_ssl'] = filter_var($config['verify_ssl'], FILTER_VALIDATE_BOOLEAN);
     
     // Always ensure use_api is true
     if ($config['use_api'] !== true) {
@@ -162,7 +208,11 @@ function validateAndFixApiConfig($config) {
  */
 function getWritableConfigPath($preferredFile = null) {
     if ($preferredFile === null) {
-        $preferredFile = __DIR__ . '/api_config.json';
+        $legacyFile = __DIR__ . '/api_config.json';
+        if (file_exists($legacyFile)) {
+            return $legacyFile;
+        }
+        $preferredFile = __DIR__ . '/site-config/data/api_config.json';
     }
     
     // First try the preferred location
@@ -185,8 +235,8 @@ function getWritableConfigPath($preferredFile = null) {
     // Try creating data directory
     $dataDir = __DIR__ . '/data/';
     if (!is_dir($dataDir)) {
-        @mkdir($dataDir, 0777, true);
-        @chmod($dataDir, 0777);
+        @mkdir($dataDir, 0700, true);
+        @chmod($dataDir, 0700);
     }
     if (is_writable($dataDir)) {
         return $dataDir . 'api_config.json';
@@ -200,7 +250,7 @@ function getWritableConfigPath($preferredFile = null) {
     // Fall back to system temp directory
     $tempDir = sys_get_temp_dir() . '/dcs_stats/';
     if (!is_dir($tempDir)) {
-        @mkdir($tempDir, 0777, true);
+        @mkdir($tempDir, 0700, true);
     }
     
     return $tempDir . 'api_config.json';
@@ -218,7 +268,7 @@ function loadApiConfigWithFix($configFile = null) {
         $defaultConfig = getDefaultApiConfig();
         @file_put_contents($configFile, json_encode($defaultConfig, JSON_PRETTY_PRINT));
         return [
-            'config' => $defaultConfig,
+            'config' => applyEnvironmentApiConfigOverrides($defaultConfig),
             'created' => true,
             'fixed' => false,
             'changes' => ['Created new configuration file'],
@@ -240,6 +290,7 @@ function loadApiConfigWithFix($configFile = null) {
     
     // Add config path to result
     $result['config_path'] = $configFile;
+    $result['config'] = applyEnvironmentApiConfigOverrides($result['config']);
     
     return $result;
 }

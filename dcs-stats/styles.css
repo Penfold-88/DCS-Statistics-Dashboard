@@ -26,6 +26,37 @@ body {
     overflow-x: hidden;
 }
 
+.demo-notice-bar {
+    align-items: center;
+    background: linear-gradient(90deg, #ffd21f 0%, #ff8a00 100%);
+    border-bottom: 2px solid rgba(0, 0, 0, 0.28);
+    color: #101010;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 14px;
+    justify-content: center;
+    padding: 10px 18px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0;
+    position: relative;
+    z-index: 1200;
+}
+
+.demo-notice-bar a {
+    background: rgba(0, 0, 0, 0.16);
+    border: 1px solid rgba(0, 0, 0, 0.24);
+    border-radius: 6px;
+    color: #101010;
+    padding: 4px 10px;
+    text-decoration: none;
+}
+
+.demo-notice-bar a:hover {
+    background: rgba(255, 255, 255, 0.34);
+}
+
 /* Modern Header Styling with Combat Background */
 .main-header {
     position: relative;
@@ -82,12 +113,73 @@ body {
 .header-brand {
     display: flex;
     align-items: center;
+    gap: 18px;
+    min-width: 0;
+}
+
+.server-scope-bar[hidden] {
+    display: none;
+}
+
+.server-scope-bar {
+    background: var(--background_color, #121212);
+    display: flex;
+    justify-content: flex-end;
+    padding: 8px max(16px, calc((100vw - 1400px) / 2 + 24px)) 0;
+}
+
+body.has-page-background-image .server-scope-bar {
+    background: transparent;
+}
+
+.server-scope-control {
+    align-items: center;
+    display: flex;
+    max-width: min(100%, 320px);
+}
+
+.server-scope-control select {
+    appearance: none;
+    background: color-mix(in srgb, var(--background_color, #121212) 88%, transparent);
+    border: 1px solid color-mix(in srgb, var(--border_color, #556b2f) 72%, transparent);
+    border-radius: 5px;
+    color: var(--text_color, #ffffff);
+    cursor: pointer;
+    font-size: 0.82rem;
+    font-weight: 700;
+    min-height: 32px;
+    overflow: hidden;
+    padding: 6px 28px 6px 9px;
+    text-overflow: ellipsis;
+    width: min(300px, 58vw);
+}
+
+.server-scope-control::after {
+    color: var(--accent_color, #4CAF50);
+    content: "▼";
+    font-size: 0.66rem;
+    margin-left: -28px;
+    pointer-events: none;
 }
 
 .brand-text {
     display: flex;
     flex-direction: column;
     gap: 2px;
+    min-width: 0;
+}
+
+.brand-text.is-hidden {
+    display: none;
+}
+
+.site-logo {
+    display: block;
+    height: var(--site_logo_height, 72px);
+    max-height: 96px;
+    max-width: min(360px, 42vw);
+    object-fit: contain;
+    width: auto;
 }
 
 .site-title {
@@ -202,8 +294,22 @@ body {
     .main-header {
         min-height: 100px;
     }
+
+    .server-scope-bar {
+        padding: 8px 12px 0;
+    }
+
+    .server-scope-control {
+        width: 100%;
+    }
+
+    .server-scope-control select {
+        flex: 1;
+        width: auto;
+    }
     
     .header-container {
+        flex-wrap: wrap;
         padding: 1rem;
         width: 100%;
         max-width: 100%;
@@ -218,6 +324,11 @@ body {
     .site-subtitle {
         font-size: 0.8rem;
         letter-spacing: 1.5px;
+    }
+
+    .site-logo {
+        max-height: 72px;
+        max-width: min(260px, 52vw);
     }
     
     .status-indicator {
@@ -256,6 +367,11 @@ body {
     .site-subtitle {
         font-size: 0.75rem;
         letter-spacing: 1px;
+    }
+
+    .site-logo {
+        max-height: 58px;
+        max-width: min(220px, 56vw);
     }
     
     .header-actions {
@@ -417,6 +533,10 @@ h2 {
     margin: 0;
 }
 
+.public-nav-dropdown {
+    position: relative;
+}
+
 .nav-link {
     display: block;
     padding: 14px 20px;
@@ -426,6 +546,48 @@ h2 {
     text-transform: uppercase;
     font-family: 'Courier New', Courier, monospace;
     transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.nav-dropdown-button {
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+    font-size: inherit;
+}
+
+.nav-dropdown-caret {
+    display: inline-block;
+    font-size: 0.7rem;
+    margin-left: 6px;
+    transition: transform 0.2s ease;
+}
+
+.public-nav-dropdown.open .nav-dropdown-caret {
+    transform: rotate(180deg);
+}
+
+.public-nav-dropdown-menu {
+    background: var(--primary_color);
+    border: 1px solid var(--border_color);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    display: none;
+    left: 0;
+    list-style: none;
+    margin: 0;
+    min-width: 220px;
+    padding: 0;
+    position: absolute;
+    top: 100%;
+    z-index: 1000;
+}
+
+.public-nav-dropdown.open .public-nav-dropdown-menu {
+    display: block;
+}
+
+.public-nav-dropdown-link {
+    text-align: left;
+    white-space: nowrap;
 }
 
 .nav-link:hover,

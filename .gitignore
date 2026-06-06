@@ -1,82 +1,24 @@
-# Environment variables
-.env
+tools/install-checkin-receiver/
+dcs-stats/.dev
+.dev
+dcs-stats/.demo
+.demo
+.php-sessions/
 
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
-
-# Log files
-*.log
-upload_log.txt
-
-# IDE
-.vscode/
-.idea/
-
-# API Configuration
+.php-sessions/
+dcs-stats/site-config/data/*.json
+!dcs-stats/site-config/data/.htaccess
+dcs-stats/site-config/data/api-cache/
+dcs-stats/site-config/data/php-sessions/
 dcs-stats/api_config.json
 dcs-stats/site_config.json
-
-# Docker related
-docker-compose.override.yml
-*.dockerfile
-.docker/
-data/
-!data/.gitkeep
-
-# Claude AI related
-.claude/
-CLAUDE.md
-claude-project.json
-.claude-files/
-claude-cache/
-
-# Admin data (sensitive)
-dcs-stats/admin/data/
-dcs-stats/data/*.json
-dcs-stats/security.log
-dcs-stats/site-config/data/
-!dcs-stats/site-config/data/.gitkeep
-
-# Version and backup files
-dcs-stats/.version_meta.json
-dcs-stats/.backup_meta.json
-dcs-stats/backups/
-!dcs-stats/backups/.gitkeep
-
-# Development/Testing
-dcs-stats/docker/sample-data/
-test_*.php
-*.test.php
-testing/
-dcs-stats/.dev
-
-# OS files
-.DS_Store
-Thumbs.db
-
-# Backup files
-*.bak
-*.backup
-*~
-*.swp
-*.swo
+dcs-stats/menu_config.json
+dcs-stats/custom_theme.css
+dcs-stats/header_custom.css
+dcs-stats/uploads/*
+!dcs-stats/uploads/.gitkeep
+*.pdf
+php-preview.err.log
+php-preview.out.log
+.wiki-sync/
+scripts/sync-github-wiki.ps1

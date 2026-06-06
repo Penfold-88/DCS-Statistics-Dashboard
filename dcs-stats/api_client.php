@@ -7,18 +7,22 @@
  */
 
 require_once __DIR__ . '/dev_mode.php';
+require_once __DIR__ . '/api_config_helper.php';
+require_once __DIR__ . '/api_cache.php';
 
 class DCSServerBotAPIClient {
     protected $apiBaseUrl;
     protected $apiKey;
     protected $timeout;
     protected $isDevMode;
+    protected $config;
     
     public function __construct($config = []) {
         $this->apiBaseUrl = $config['api_base_url'] ?? 'http://localhost:9876';
         $this->apiKey = $config['api_key'] ?? null;
         $this->timeout = $config['timeout'] ?? 30;
         $this->isDevMode = isDevMode();
+        $this->config = $config;
     }
     
     /**
@@ -31,6 +35,14 @@ class DCSServerBotAPIClient {
         }
         
         $url = $this->apiBaseUrl . $endpoint;
+        $requestEndpoint = $endpoint;
+        if ($method === 'GET' && $data) {
+            $requestEndpoint .= '?' . http_build_query($data);
+        }
+        $cached = apiCacheRead($method, $this->apiBaseUrl, $requestEndpoint, $method === 'POST' ? $data : null, $this->config);
+        if ($cached !== null) {
+            return json_decode($cached['body'], true);
+        }
         
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
@@ -78,7 +90,18 @@ class DCSServerBotAPIClient {
             throw new Exception('API returned error code: ' . $httpCode);
         }
         
+        apiCacheWrite($method, $this->apiBaseUrl, $requestEndpoint, $method === 'POST' ? $data : null, $this->config, $response, $httpCode);
+
         return json_decode($response, true);
+    }
+
+    public function getLeaderboard($what = 'kills', $limit = 10, $offset = 0, $order = 'desc') {
+        return $this->makeRequest('GET', '/leaderboard', [
+            'what' => $what,
+            'limit' => $limit,
+            'offset' => $offset,
+            'order' => $order
+        ]);
     }
     
     /**
@@ -139,6 +162,27 @@ class DCSServerBotAPIClient {
     public function getTopKDR() {
         return $this->makeRequest('GET', '/topkdr');
     }
+
+    public function getServerStats() {
+        return $this->makeRequest('GET', '/serverstats');
+    }
+
+    public function getServerAttendance() {
+        return $this->makeRequest('GET', '/server_attendance');
+    }
+
+    public function getPlayerInfo($nickname, $date = null) {
+        if (!$nickname) {
+            return null;
+        }
+
+        $data = ['nick' => $nickname];
+        if ($date) {
+            $data['date'] = $date;
+        }
+
+        return $this->makeRequest('POST', '/player_info', $data);
+    }
     
     /**
      * Get missile probability of kill for a player
@@ -187,8 +231,8 @@ class DCSServerBotAPIClient {
      * This endpoint doesn't exist in the current API
      */
     public function getCredits() {
-        // This will need a custom endpoint or different approach
-        throw new Exception('Credits endpoint not yet available in API');
+        $leaderboard = $this->getLeaderboard('credits', 50);
+        return $leaderboard['items'] ?? [];
     }
     
     /**
@@ -196,8 +240,7 @@ class DCSServerBotAPIClient {
      * This endpoint doesn't exist in the current API
      */
     public function getSquadrons() {
-        // This will need a custom endpoint or different approach
-        throw new Exception('Squadron endpoint not yet available in API');
+        return $this->makeRequest('GET', '/squadrons');
     }
     
     /**
@@ -205,8 +248,7 @@ class DCSServerBotAPIClient {
      * This endpoint doesn't exist in the current API
      */
     public function getServers() {
-        // This will need a custom endpoint or different approach
-        throw new Exception('Server info endpoint not yet available in API');
+        return $this->makeRequest('GET', '/servers');
     }
     
     /**
@@ -329,9 +371,9 @@ class DCSServerBotAPIClient {
 
 // Configuration loader
 function loadAPIConfig() {
-    $configFile = __DIR__ . '/api_config.json';
-    if (file_exists($configFile)) {
-        return json_decode(file_get_contents($configFile), true);
+    $configResult = loadApiConfigWithFix();
+    if (!empty($configResult['config']) && is_array($configResult['config'])) {
+        return $configResult['config'];
     }
     
     // Default configuration

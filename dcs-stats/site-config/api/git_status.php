@@ -7,6 +7,7 @@ requireAdmin();
 requirePermission('manage_updates');
 
 header('Content-Type: application/json');
+header('X-Content-Type-Options: nosniff');
 
 // Only allow in dev mode
 if (!isDevMode()) {
@@ -23,68 +24,145 @@ $response = [
     'untracked' => 0
 ];
 
+function runGitCommand($repoPath, $args, &$errorOutput = null) {
+    $errorOutput = '';
+    if (!is_dir($repoPath)) {
+        return '';
+    }
+
+    $command = array_merge(['git'], $args);
+    $descriptorSpec = [
+        0 => ['pipe', 'r'],
+        1 => ['pipe', 'w'],
+        2 => ['pipe', 'w']
+    ];
+
+    $process = @proc_open($command, $descriptorSpec, $pipes, $repoPath);
+    if (!is_resource($process)) {
+        return '';
+    }
+
+    fclose($pipes[0]);
+    $output = stream_get_contents($pipes[1]);
+    $errorOutput = stream_get_contents($pipes[2]);
+    fclose($pipes[1]);
+    fclose($pipes[2]);
+    $exitCode = proc_close($process);
+
+    return $exitCode === 0 ? trim($output) : '';
+}
+
+function cleanGitStatusError($error, $repoPath) {
+    $error = trim((string)$error);
+    if ($error === '') {
+        return '';
+    }
+
+    $error = str_replace(['\\', $repoPath], ['/', '[repo]'], $error);
+    return substr($error, 0, 300);
+}
+
+function isAllowedGitRepoPath($repoPath, $dashboardRoot) {
+    $repoPath = realpath($repoPath);
+    $dashboardRoot = realpath($dashboardRoot);
+
+    if (!$repoPath || !$dashboardRoot) {
+        return false;
+    }
+
+    // Allow either a git repo directly in dcs-stats, or the project root that
+    // contains dcs-stats. Do not walk higher up the filesystem.
+    return $repoPath === $dashboardRoot || $repoPath === dirname($dashboardRoot);
+}
+
 // Check if we're in a git repository
-$gitDir = dirname(__DIR__, 2) . '/.git';
+$dashboardRoot = realpath(dirname(__DIR__, 2));
+$repoPath = $dashboardRoot;
+$gitDir = $repoPath . '/.git';
 if (!is_dir($gitDir)) {
-    // Try parent directories (in case we're in a subdirectory)
-    $checkDir = dirname(__DIR__, 2);
-    for ($i = 0; $i < 3; $i++) {
-        $checkDir = dirname($checkDir);
-        if (is_dir($checkDir . '/.git')) {
-            $gitDir = $checkDir . '/.git';
-            chdir($checkDir);
-            break;
-        }
+    // Try the parent project directory, but never walk further up the host.
+    $checkDir = $repoPath;
+    $checkDir = dirname($checkDir);
+    if (is_dir($checkDir . '/.git') && isAllowedGitRepoPath($checkDir, $dashboardRoot)) {
+        $repoPath = realpath($checkDir);
+        $gitDir = $repoPath . '/.git';
     }
     
-    if (!is_dir($gitDir)) {
+    if (!is_dir($gitDir) || !isAllowedGitRepoPath($repoPath, $dashboardRoot)) {
         echo json_encode($response);
         exit;
     }
-} else {
-    chdir(dirname(__DIR__, 2));
+} elseif (!isAllowedGitRepoPath($repoPath, $dashboardRoot)) {
+    echo json_encode($response);
+    exit;
 }
 
 // Get current branch
-$branch = trim(shell_exec('git rev-parse --abbrev-ref HEAD 2>/dev/null'));
+$gitErrors = [];
+$branch = runGitCommand($repoPath, ['rev-parse', '--abbrev-ref', 'HEAD'], $gitError);
+if ($gitError !== '') {
+    $gitErrors[] = cleanGitStatusError($gitError, $repoPath);
+}
 if ($branch) {
     $response['branch'] = $branch;
     $response['success'] = true;
     
     // Get ahead/behind counts
-    $upstream = trim(shell_exec("git rev-parse --abbrev-ref --symbolic-full-name @{u} 2>/dev/null"));
+    $upstream = runGitCommand($repoPath, ['rev-parse', '--abbrev-ref', '--symbolic-full-name', '@{u}'], $gitError);
+    if ($gitError !== '') {
+        $gitErrors[] = cleanGitStatusError($gitError, $repoPath);
+    }
     if ($upstream) {
-        $counts = trim(shell_exec("git rev-list --left-right --count HEAD...$upstream 2>/dev/null"));
+        $counts = runGitCommand($repoPath, ['rev-list', '--left-right', '--count', 'HEAD...@{u}'], $gitError);
+        if ($gitError !== '') {
+            $gitErrors[] = cleanGitStatusError($gitError, $repoPath);
+        }
         if ($counts) {
-            list($ahead, $behind) = explode("\t", $counts);
+            list($ahead, $behind) = preg_split('/\s+/', $counts);
             $response['ahead'] = (int)$ahead;
             $response['behind'] = (int)$behind;
         }
     }
     
     // Get modified files count
-    $modified = trim(shell_exec('git diff --name-only 2>/dev/null'));
+    $modified = runGitCommand($repoPath, ['diff', '--name-only'], $gitError);
+    if ($gitError !== '') {
+        $gitErrors[] = cleanGitStatusError($gitError, $repoPath);
+    }
     if ($modified) {
         $response['modified'] = count(array_filter(explode("\n", $modified)));
     }
     
     // Get staged files count
-    $staged = trim(shell_exec('git diff --cached --name-only 2>/dev/null'));
+    $staged = runGitCommand($repoPath, ['diff', '--cached', '--name-only'], $gitError);
+    if ($gitError !== '') {
+        $gitErrors[] = cleanGitStatusError($gitError, $repoPath);
+    }
     if ($staged) {
         $response['staged'] = count(array_filter(explode("\n", $staged)));
     }
     
     // Get untracked files count
-    $untracked = trim(shell_exec('git ls-files --others --exclude-standard 2>/dev/null'));
+    $untracked = runGitCommand($repoPath, ['ls-files', '--others', '--exclude-standard'], $gitError);
+    if ($gitError !== '') {
+        $gitErrors[] = cleanGitStatusError($gitError, $repoPath);
+    }
     if ($untracked) {
         $response['untracked'] = count(array_filter(explode("\n", $untracked)));
     }
     
     // Get last commit info
-    $lastCommit = trim(shell_exec('git log -1 --format="%h - %s (%cr)" 2>/dev/null'));
+    $lastCommit = runGitCommand($repoPath, ['log', '-1', '--format=%h - %s (%cr)'], $gitError);
+    if ($gitError !== '') {
+        $gitErrors[] = cleanGitStatusError($gitError, $repoPath);
+    }
     if ($lastCommit) {
         $response['last_commit'] = $lastCommit;
     }
+}
+
+if (!empty($gitErrors)) {
+    $response['git_errors'] = array_values(array_unique(array_filter($gitErrors)));
 }
 
 echo json_encode($response);

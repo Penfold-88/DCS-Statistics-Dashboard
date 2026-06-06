@@ -1,14 +1,22 @@
 <?php
 require_once __DIR__ . '/../auth.php';
 require_once __DIR__ . '/../admin_functions.php';
+require_once __DIR__ . '/../demo_helpers.php';
+require_once __DIR__ . '/../update_channel.php';
 
 requireAdmin();
 requirePermission('manage_updates');
+requireCSRFToken();
 
 set_time_limit(0);
 header('Content-Type: text/plain; charset=utf-8');
 header('Cache-Control: no-cache');
 header('X-Accel-Buffering: no');
+
+if (isDemoRestricted()) {
+    echo demoRestrictionMessage() . "\n";
+    exit;
+}
 
 function logMessage($msg) {
     echo $msg . "\n";
@@ -16,19 +24,74 @@ function logMessage($msg) {
     flush();
 }
 
-// Always use main branch for updates
-$branch = 'main';
+function normalizeUpdatePath($path) {
+    return str_replace('\\', '/', (string)$path);
+}
+
+function isSafeUpdateZipPath($path) {
+    $path = normalizeUpdatePath($path);
+
+    return $path !== '' &&
+        $path[0] !== '/' &&
+        strpos($path, '../') === false &&
+        strpos($path, '/..') === false &&
+        strpos($path, ':') === false;
+}
+
+function validateUpdateZip($zip) {
+    for ($i = 0; $i < $zip->numFiles; $i++) {
+        $name = $zip->getNameIndex($i);
+        if (!isSafeUpdateZipPath($name)) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+function buildVersionLabel($branch, $commitDate, $commitSha) {
+    $date = $commitDate ? date('Y-m-d', strtotime($commitDate)) : date('Y-m-d');
+    $shortSha = $commitSha ? substr($commitSha, 0, 12) : 'unknown';
+    return $branch . ' @ ' . $date . ' #' . $shortSha;
+}
+
+function rrmdir($dir) {
+    if (!is_dir($dir)) return;
+    $items = scandir($dir);
+    foreach ($items as $item) {
+        if ($item === '.' || $item === '..') continue;
+        $path = $dir . '/' . $item;
+        if (is_dir($path)) {
+            rrmdir($path);
+        } else {
+            unlink($path);
+        }
+    }
+    rmdir($dir);
+}
+
+if (!class_exists('ZipArchive')) {
+    logMessage('Update cancelled: PHP ZipArchive is not available.');
+    logMessage('Enable the PHP zip extension, then restart Apache and try again.');
+    logMessage('For XAMPP, open php.ini, enable extension=zip, save, and restart Apache.');
+    exit;
+}
+
+$channelConfig = getUpdateChannelConfig();
+$branch = $channelConfig['branch'];
+$repo = $channelConfig['repo'];
 // ALWAYS backup before updates, regardless of user choice
 $backup = true; // Force backup for safety
 $specificVersion = !empty($_POST['version']) ? $_POST['version'] : null;
 
-// Repository configuration
-// Note: GitHub redirects from Website-Uploader to Dashboard
-$repo = 'Penfold-88/DCS-Statistics-Dashboard';
-
 // Get current version
 $currentVersion = defined('ADMIN_PANEL_VERSION') ? ADMIN_PANEL_VERSION : '1.0.0';
-logMessage("Current version: $currentVersion");
+require_once dirname(__DIR__) . '/version_tracker.php';
+$currentVersionInfo = getCurrentVersionInfo();
+$currentBuildLabel = $currentVersionInfo['version'] ?? $currentVersion;
+logMessage("Current version: $currentBuildLabel");
+logMessage("Update channel: {$channelConfig['channel']}");
+logMessage("GitHub branch: $branch");
 
 // Determine download URL
 if ($specificVersion) {
@@ -42,36 +105,90 @@ if ($specificVersion) {
 }
 
 $rootPath = dirname(__DIR__, 2); // path to dcs-stats
-$upgradeDir = $rootPath . '/UPGRADE';
+$upgradeParentDir = $rootPath . '/UPGRADE';
+$upgradeDir = $upgradeParentDir . '/update-' . bin2hex(random_bytes(8));
 $backupDir = $rootPath . '/backups';
 
-if (!is_dir($upgradeDir)) {
-    mkdir($upgradeDir, 0755, true);
+if (!is_dir($upgradeParentDir)) {
+    mkdir($upgradeParentDir, 0755, true);
 }
+mkdir($upgradeDir, 0755, true);
+register_shutdown_function(function() use ($upgradeDir) {
+    if (is_dir($upgradeDir)) {
+        rrmdir($upgradeDir);
+    }
+});
 
 if ($backup && !is_dir($backupDir)) {
     mkdir($backupDir, 0755, true);
 }
 
-// Always check for latest release
-logMessage("Checking for latest release...");
-$releaseUrl = "https://api.github.com/repos/$repo/releases/latest";
-$ch = curl_init($releaseUrl);
+// Check selected branch exists and log the latest commit.
+logMessage("Checking GitHub branch...");
+$branchUrl = "https://api.github.com/repos/$repo/branches/" . rawurlencode($branch);
+$ch = curl_init($branchUrl);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($ch, CURLOPT_USERAGENT, 'DCS-Stats-Updater');
-$releaseData = curl_exec($ch);
+$branchData = curl_exec($ch);
+$branchCurlError = curl_error($ch);
+$branchHttpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 curl_close($ch);
 
-if ($releaseData) {
-    $release = json_decode($releaseData, true);
-    if (isset($release['tag_name'])) {
-        logMessage("Latest release: " . $release['tag_name']);
-        // Compare versions (handle V prefix)
-        $current = ltrim($currentVersion, 'Vv');
-        $latest = ltrim($release['tag_name'], 'Vv');
-        if (version_compare($current, $latest, '>=') && !$specificVersion) {
-            logMessage("You are already running the latest version.");
-            exit;
+if (!$specificVersion && ($branchHttpCode !== 200 || !$branchData)) {
+    logMessage("Selected branch was not found: $branch");
+    if ($branch === 'master') {
+        logMessage("Trying fallback branch: main");
+        $branch = 'main';
+        $apiUrl = "https://api.github.com/repos/$repo/zipball/$branch";
+        $branchUrl = "https://api.github.com/repos/$repo/branches/main";
+        $ch = curl_init($branchUrl);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_USERAGENT, 'DCS-Stats-Updater');
+        $branchData = curl_exec($ch);
+        $branchCurlError = curl_error($ch);
+        $branchHttpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+    }
+}
+
+if (!$specificVersion && $branchHttpCode !== 200) {
+    logMessage("Could not find a usable GitHub branch. Update cancelled.");
+    logMessage("HTTP Code: $branchHttpCode");
+    if (!empty($branchCurlError)) {
+        logMessage("Connection Error: $branchCurlError");
+    }
+    exit;
+}
+
+$remoteCommitSha = null;
+$remoteCommitDate = null;
+if (!$specificVersion && $branchData) {
+    $branchInfo = json_decode($branchData, true);
+    $remoteCommitSha = $branchInfo['commit']['sha'] ?? null;
+    $remoteCommitDate = $branchInfo['commit']['commit']['committer']['date'] ?? null;
+    if ($remoteCommitSha) {
+        logMessage("Latest branch commit: " . substr($remoteCommitSha, 0, 12));
+    }
+    if ($remoteCommitDate) {
+        logMessage("Latest branch date: " . date('Y-m-d H:i:s', strtotime($remoteCommitDate)));
+    }
+}
+
+// Check latest release only when a specific downgrade/tag is requested for context.
+$release = null;
+if ($specificVersion) {
+    logMessage("Checking release information...");
+    $releaseUrl = "https://api.github.com/repos/$repo/releases/latest";
+    $ch = curl_init($releaseUrl);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_USERAGENT, 'DCS-Stats-Updater');
+    $releaseData = curl_exec($ch);
+    curl_close($ch);
+
+    if ($releaseData) {
+        $release = json_decode($releaseData, true);
+        if (isset($release['tag_name'])) {
+            logMessage("Latest release: " . $release['tag_name']);
         }
     }
 }
@@ -88,14 +205,25 @@ $configFiles = [
     '/api_config.json',
     '/site_config.json',
     '/.version_meta.json',
+    '/custom_theme.css',
+    '/header_custom.css',
+    '/menu_config.json',
+    '/site-config/data/api_config.json',
     '/site-config/data/users.json',
     '/site-config/data/logs.json',
     '/site-config/data/bans.json',
     '/site-config/data/sessions.json',
     '/.env',
     '/docker-compose.yml',
+    '/docker-compose.override.yml',
     '/Dockerfile',
-    '/Dockerfile.simple'
+    '/Dockerfile.simple',
+    '/.dockerignore',
+    '/docker/docker-compose.yml',
+    '/docker/docker-compose.override.yml',
+    '/docker/Dockerfile',
+    '/docker/Dockerfile.dockerignore',
+    '/docker/Dockerfile.simple'
 ];
 
 foreach ($configFiles as $file) {
@@ -115,7 +243,7 @@ foreach ($configFiles as $file) {
 }
 logMessage("Config backup complete: $configBackupDir");
 
-$downloadLabel = $specificVersion ? "version $specificVersion" : "latest release";
+$downloadLabel = $specificVersion ? "version $specificVersion" : "{$channelConfig['channel']} branch ($branch)";
 logMessage("Downloading $downloadLabel...");
 $zipFile = $upgradeDir . '/update.zip';
 $ch = curl_init($apiUrl);
@@ -141,6 +269,12 @@ logMessage('Download complete.');
 $zip = new ZipArchive();
 if ($zip->open($zipFile) !== TRUE) {
     logMessage('Failed to open zip archive');
+    exit;
+}
+if (!validateUpdateZip($zip)) {
+    $zip->close();
+    @unlink($zipFile);
+    logMessage('Update cancelled: downloaded archive contains unsafe file paths.');
     exit;
 }
 $zip->extractTo($upgradeDir);
@@ -169,7 +303,7 @@ if ($backup) {
         );
         foreach ($files as $file) {
             $filePath = $file->getRealPath();
-            $relPath = substr($filePath, strlen($rootPath) + 1);
+            $relPath = normalizeUpdatePath(substr($filePath, strlen($rootPath) + 1));
             if (strpos($relPath, 'backups') === 0 || strpos($relPath, 'UPGRADE') === 0) {
                 continue;
             }
@@ -201,6 +335,10 @@ $exceptions = [
     'api_config.json',
     'site_config.json',
     '.version_meta.json',
+    'custom_theme.css',
+    'header_custom.css',
+    'menu_config.json',
+    'site-config/theme_backups',
     '.env',
     '.dev',
     
@@ -210,11 +348,17 @@ $exceptions = [
     'Dockerfile',
     'Dockerfile.simple',
     '.dockerignore',
+    'docker/docker-compose.yml',
+    'docker/docker-compose.override.yml',
+    'docker/Dockerfile',
+    'docker/Dockerfile.simple',
+    'docker/Dockerfile.dockerignore',
     
     // User uploads or custom files
     'uploads',
     'custom',
     'logs',
+    'site-config/theme_backups',
     
     // Git files
     '.git',
@@ -229,7 +373,7 @@ $files = new RecursiveIteratorIterator(
 );
 foreach ($files as $file) {
     $filePath = $file->getRealPath();
-    $relPath = substr($filePath, strlen($newCodeDir) + 1);
+    $relPath = normalizeUpdatePath(substr($filePath, strlen($newCodeDir) + 1));
     $targetPath = $rootPath . '/' . $relPath;
     $newFiles[] = $relPath;
 
@@ -274,7 +418,7 @@ $iterator = new RecursiveIteratorIterator(
 );
 foreach ($iterator as $file) {
     $filePath = $file->getRealPath();
-    $relPath = substr($filePath, strlen($rootPath) + 1);
+    $relPath = normalizeUpdatePath(substr($filePath, strlen($rootPath) + 1));
 
     foreach ($exceptions as $ex) {
         if ($relPath === $ex || strpos($relPath, $ex . '/') === 0) {
@@ -294,32 +438,31 @@ foreach ($iterator as $file) {
 }
 
 logMessage('Cleaning up...');
-function rrmdir($dir) {
-    if (!is_dir($dir)) return;
-    $items = scandir($dir);
-    foreach ($items as $item) {
-        if ($item === '.' || $item === '..') continue;
-        $path = $dir . '/' . $item;
-        if (is_dir($path)) {
-            rrmdir($path);
-        } else {
-            unlink($path);
-        }
-    }
-    rmdir($dir);
-}
 rrmdir($upgradeDir);
 
 // Update version metadata using tracker
-require_once dirname(__DIR__) . '/version_tracker.php';
+$versionLabel = $specificVersion ?? buildVersionLabel($branch, $remoteCommitDate, $remoteCommitSha);
 updateVersionMetadata(
-    $specificVersion ?? ($release['tag_name'] ?? $currentVersion),
+    $versionLabel,
     $branch,
-    getCurrentAdmin()['username']
+    getCurrentAdmin()['username'],
+    $remoteCommitSha,
+    $remoteCommitDate
 );
 
+$checkinFile = dirname(__DIR__, 2) . '/install_checkin.php';
+if (file_exists($checkinFile)) {
+    require_once $checkinFile;
+    $checkinResult = runInstallCheckinIfDue(
+        getCurrentVersionInfo(),
+        getUpdateChannelConfig(),
+        ['event' => 'update', 'force' => true]
+    );
+    logMessage('Install check-in after update: ' . ($checkinResult['status'] ?? 'unknown'));
+}
+
 // Update version in config file if we have a new version number
-$newVersion = $specificVersion ?? ($release['tag_name'] ?? null);
+$newVersion = $specificVersion ?? null;
 if ($newVersion && $newVersion !== $currentVersion) {
     $configFile = dirname(__DIR__) . '/config.php';
     if (file_exists($configFile)) {
@@ -337,7 +480,7 @@ if ($newVersion && $newVersion !== $currentVersion) {
 // Log the update action
 logAdminAction('SYSTEM_UPDATE', [
     'from_version' => $currentVersion,
-    'to_version' => $newVersion ?? 'latest',
+    'to_version' => $newVersion ?? $versionLabel,
     'branch' => $branch,
     'admin' => getCurrentAdmin()['username']
 ]);

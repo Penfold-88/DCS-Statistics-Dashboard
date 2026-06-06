@@ -5,7 +5,8 @@ error_reporting(0);
 
 // Include required files
 require_once __DIR__ . '/security_functions.php';
-require_once __DIR__ . '/api_client.php';
+require_once __DIR__ . '/api_client_enhanced.php';
+require_once __DIR__ . '/api_config_helper.php';
 
 // Rate limiting
 if (!checkRateLimit(60, 60)) {
@@ -13,8 +14,7 @@ if (!checkRateLimit(60, 60)) {
 }
 
 // Load API configuration
-$configFile = __DIR__ . '/api_config.json';
-$config = file_exists($configFile) ? json_decode(file_get_contents($configFile), true) : [];
+$config = loadApiConfigWithFix()['config'];
 
 // Check if API is enabled
 if (!$config || !$config['use_api']) {
@@ -30,46 +30,57 @@ if (!$config || !$config['use_api']) {
 }
 
 try {
-    // Initialize API client
-    $apiClient = new DCSServerBotAPIClient($config);
-    
-    // Get top kills data (this gives us the top players with their stats)
-    $topKills = $apiClient->getTopKills();
-    
-    // Calculate totals from the data we have
-    $totalKills = 0;
-    $totalDeaths = 0;
-    $pilotStats = [];
-    
-    if (is_array($topKills)) {
-        foreach ($topKills as $pilot) {
-            // Store pilot data for top 5
-            $pilotStats[] = [
-                'name' => $pilot['nick'] ?? 'Unknown',
-                'kills' => $pilot['kills'] ?? 0,
-                'deaths' => $pilot['deaths'] ?? 0,
-                'kdr' => $pilot['kdr'] ?? 0
-            ];
-        }
+    $apiClient = createEnhancedAPIClient();
+
+    $stats = $apiClient->getServerStats();
+    $attendance = [];
+    try {
+        $attendance = $apiClient->getServerAttendance();
+    } catch (Exception $e) {
+        $attendance = [];
     }
-    
-    // Sort by kills (visits) and get top 5
-    usort($pilotStats, function($a, $b) {
-        return $b['visits'] - $a['visits'];
-    });
-    $top5Pilots = array_slice($pilotStats, 0, 5);
-    
-    // Since the API doesn't provide squadron data, we'll return empty for now
-    $top3Squadrons = [];
-    
-    // Count unique players (from the data we have)
-    $totalPlayers = count($pilotStats);
-    
-    // Return the data in the expected format
+
+    $leaderboard = $apiClient->getLeaderboard('kills', 5);
+    $topPlayers = $leaderboard['items'] ?? $apiClient->getTopKills();
+    $top5Pilots = array_map(function($pilot) {
+        return [
+            'name' => $pilot['nick'] ?? 'Unknown',
+            'nick' => $pilot['nick'] ?? 'Unknown',
+            'kills' => $pilot['kills'] ?? 0,
+            'deaths' => $pilot['deaths'] ?? 0,
+            'kdr' => $pilot['kdr'] ?? 0,
+            'credits' => $pilot['credits'] ?? 0,
+            'playtime' => $pilot['playtime'] ?? 0
+        ];
+    }, is_array($topPlayers) ? array_slice($topPlayers, 0, 5) : []);
+
+    $squadrons = [];
+    try {
+        $squadrons = $apiClient->getSquadrons();
+    } catch (Exception $e) {
+        $squadrons = [];
+    }
+
+    $top3Squadrons = array_map(function($squadron) {
+        return [
+            'name' => $squadron['name'] ?? 'Unknown',
+            'members' => isset($squadron['members']) && is_array($squadron['members']) ? count($squadron['members']) : 0,
+            'credits' => $squadron['credits'] ?? 0
+        ];
+    }, array_slice(is_array($squadrons) ? $squadrons : [], 0, 3));
+
     echo json_encode([
-        'totalPlayers' => $totalPlayers,
-        'totalKills' => $totalKills,
-        'totalDeaths' => $totalDeaths,
+        'totalPlayers' => $stats['totalPlayers'] ?? ($attendance['unique_players_30d'] ?? 0),
+        'totalPlaytime' => $stats['totalPlaytime'] ?? 0,
+        'avgPlaytime' => $stats['avgPlaytime'] ?? 0,
+        'activePlayers' => $stats['activePlayers'] ?? ($attendance['current_players'] ?? 0),
+        'totalSorties' => $stats['totalSorties'] ?? ($attendance['total_sorties'] ?? 0),
+        'totalKills' => $stats['totalKills'] ?? ($attendance['total_kills'] ?? 0),
+        'totalDeaths' => $stats['totalDeaths'] ?? ($attendance['total_deaths'] ?? 0),
+        'totalPvPKills' => $stats['totalPvPKills'] ?? ($attendance['total_pvp_kills'] ?? 0),
+        'totalPvPDeaths' => $stats['totalPvPDeaths'] ?? ($attendance['total_pvp_deaths'] ?? 0),
+        'activityLastWeek' => $stats['daily_players'] ?? ($attendance['daily_trend'] ?? []),
+        'attendance' => $attendance,
         'top5Pilots' => $top5Pilots,
         'top3Squadrons' => $top3Squadrons,
         'source' => 'api'

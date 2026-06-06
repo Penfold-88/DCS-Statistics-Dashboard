@@ -10,7 +10,7 @@ if (!defined('ADMIN_PANEL')) {
 }
 
 // Admin panel settings
-define('ADMIN_PANEL_VERSION', 'V0.0.04');
+define('ADMIN_PANEL_VERSION', 'V1.2');
 define('ADMIN_SESSION_NAME', 'dcs_admin_session');
 define('ADMIN_COOKIE_NAME', 'dcs_admin_remember');
 define('ADMIN_COOKIE_LIFETIME', 30 * 24 * 60 * 60); // 30 days
@@ -74,6 +74,7 @@ define('ADMIN_SESSIONS_FILE', ADMIN_DATA_DIR . 'sessions.json');
 // Logging settings
 define('LOG_ADMIN_ACTIONS', true);
 define('LOG_RETENTION_DAYS', 90);
+define('MAX_ADMIN_LOGS', 1000);
 
 // Export settings
 define('EXPORT_MAX_RECORDS', 10000);
@@ -85,11 +86,11 @@ define('RECORDS_PER_PAGE', 25);
 // Date format
 define('DATE_FORMAT', 'Y-m-d H:i:s');
 
-// Default admin user (only used for initial setup)
-// IMPORTANT: These are example values only - must be changed on first login!
+// Default admin identity labels for legacy checks only.
+// The first real admin user must be created by the installer.
 define('DEFAULT_ADMIN_USERNAME', 'admin');
 define('DEFAULT_ADMIN_EMAIL', 'admin@example.com');
-define('DEFAULT_ADMIN_PASSWORD', ''); // Must be set during installation
+define('DEFAULT_ADMIN_PASSWORD', null);
 
 // Activity log action types
 const LOG_ACTIONS = [
@@ -101,6 +102,7 @@ const LOG_ACTIONS = [
     'PLAYER_BAN' => 'Banned Player',
     'PLAYER_UNBAN' => 'Unbanned Player',
     'DATA_EXPORT' => 'Exported Data',
+    'DATA_EXPORT_DOWNLOAD' => 'Downloaded Data Export',
     'ADMIN_CREATE' => 'Created Admin User',
     'ADMIN_EDIT' => 'Updated Admin User',
     'ADMIN_DELETE' => 'Deleted Admin User',

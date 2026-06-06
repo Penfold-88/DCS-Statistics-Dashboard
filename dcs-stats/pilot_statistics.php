@@ -7,28 +7,29 @@ include 'header.php';
 ?>
 <?php require_once __DIR__ . '/site_features.php'; ?>
 <?php require_once __DIR__ . '/table-responsive.php'; ?>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<?php require_once __DIR__ . '/language.php'; ?>
+<script src="<?php echo htmlspecialchars(assetUrl('js/vendor/chart.umd.min.js')); ?>"></script>
 <?php include 'nav.php'; ?>
 
-<main>
+<main class="pilot-statistics-page">
     <div class="dashboard-header">
-        <h1>Pilot Statistics</h1>
-        <p class="dashboard-subtitle">Search and analyze individual pilot performance</p>
+        <h1><?php echo htmlspecialchars(dcs_t('pilot.title')); ?></h1>
+        <p class="dashboard-subtitle"><?php echo htmlspecialchars(dcs_t('pilot.subtitle')); ?></p>
     </div>
     
     <?php if (isFeatureEnabled('pilot_search')): ?>
     <div class="search-container">
-        <input type="text" id="playerSearchInput" placeholder="Search for a pilot..." />
-        <button onclick="searchForPlayers()">Search</button>
+        <input type="text" id="playerSearchInput" placeholder="<?php echo htmlspecialchars(dcs_t('pilot.search_placeholder')); ?>" />
+        <button onclick="searchForPlayers()"><?php echo htmlspecialchars(dcs_t('pilot.search_button')); ?></button>
     </div>
     <?php else: ?>
     <div class="alert" style="text-align: center; padding: 20px;">
-        <p>Pilot search functionality is currently disabled.</p>
+        <p><?php echo htmlspecialchars(dcs_t('pilot.search_disabled')); ?></p>
     </div>
     <?php endif; ?>
     
     <div id="multiple-results" style="display: none;">
-        <h3 style="text-align: center; color: #ccc;">Multiple pilots found. Please select one:</h3>
+        <h3 style="text-align: center; color: #ccc;"><?php echo htmlspecialchars(dcs_t('pilot.multiple_found')); ?></h3>
         <div id="results-list" class="results-list"></div>
     </div>
     
@@ -37,21 +38,21 @@ include 'header.php';
             <h3 id="pilot-name"></h3>
             <div class="pilot-stats">
                 <div class="stat-group" id="combat-stats-group">
-                    <h4>Combat Statistics</h4>
+                    <h4><?php echo htmlspecialchars(dcs_t('pilot.combat_statistics')); ?></h4>
                     <div class="stats-grid" id="combat-stats-grid">
                         <!-- Combat stats will be dynamically added here -->
                     </div>
                 </div>
                 
                 <div class="stat-group" id="secondary-stats-group" style="display: none;">
-                    <h4>Additional Information</h4>
+                    <h4><?php echo htmlspecialchars(dcs_t('pilot.additional_information')); ?></h4>
                     <div class="stats-grid" id="secondary-stats-grid">
                         <!-- Secondary stats will be dynamically added here -->
                     </div>
                 </div>
                 
                 <div class="stat-group" id="session-stats-group" style="display: none;">
-                    <h4>Last Session</h4>
+                    <h4><?php echo htmlspecialchars(dcs_t('pilot.last_session')); ?></h4>
                     <div class="stats-grid" id="session-stats-grid">
                         <!-- Session stats will be dynamically added here -->
                     </div>
@@ -60,37 +61,106 @@ include 'header.php';
             
             <div class="charts-container">
                 <?php if (isFeatureEnabled('pilot_combat_stats')): ?>
-                <div class="chart-wrapper" title="Shows your air-to-air kills vs deaths in combat">
-                    <h4>Combat Performance <span class="chart-info">ⓘ</span></h4>
+                <div class="chart-wrapper" title="<?php echo htmlspecialchars(dcs_t('pilot.combat_performance_title')); ?>">
+                    <h4><?php echo htmlspecialchars(dcs_t('pilot.combat_performance')); ?> <span class="chart-info">ⓘ</span></h4>
                     <canvas id="combatChart"></canvas>
                 </div>
                 <?php endif; ?>
                 <?php if (isFeatureEnabled('pilot_flight_stats')): ?>
-                <div class="chart-wrapper" title="Breakdown of your flight outcomes: successful landings, crashes, ejections, and aircraft still in flight">
-                    <h4>Flight Statistics <span class="chart-info">ⓘ</span></h4>
+                <div class="chart-wrapper" title="<?php echo htmlspecialchars(dcs_t('pilot.flight_statistics_title')); ?>">
+                    <h4><?php echo htmlspecialchars(dcs_t('pilot.flight_statistics')); ?> <span class="chart-info">ⓘ</span></h4>
                     <canvas id="flightChart"></canvas>
                 </div>
                 <?php endif; ?>
                 <?php if (isFeatureEnabled('pilot_aircraft_chart')): ?>
-                <div class="chart-wrapper" id="aircraftChartWrapper" style="display: none;" title="Shows which aircraft you've scored the most kills with">
-                    <h4>Aircraft Usage <span class="chart-info">ⓘ</span></h4>
+                <div class="chart-wrapper" id="aircraftChartWrapper" style="display: none;" title="<?php echo htmlspecialchars(dcs_t('pilot.aircraft_usage_title')); ?>">
+                    <h4><?php echo htmlspecialchars(dcs_t('pilot.aircraft_usage')); ?> <span class="chart-info">ⓘ</span></h4>
                     <canvas id="aircraftChart"></canvas>
                 </div>
                 <?php endif; ?>
             </div>
         </div>
+
+        <?php if (isFeatureEnabled('pilot_carrier_traps')): ?>
+        <div class="pilot-card carrier-traps-card" id="carrier-traps-group" style="display: none;">
+            <h3><?php echo htmlspecialchars(dcs_t('pilot.carrier_landings')); ?></h3>
+            <p class="carrier-traps-status" id="carrier-traps-status"></p>
+            <div class="stats-grid" id="carrier-traps-summary"></div>
+            <div class="carrier-traps-table-wrap" id="carrier-traps-table-wrap" style="display: none;">
+                <table class="carrier-traps-table">
+                    <thead>
+                        <tr>
+                            <th><?php echo htmlspecialchars(dcs_t('pilot.trap_grade')); ?></th>
+                            <th><?php echo htmlspecialchars(dcs_t('pilot.trap_points')); ?></th>
+                            <th><?php echo htmlspecialchars(dcs_t('pilot.trap_wire')); ?></th>
+                            <th><?php echo htmlspecialchars(dcs_t('pilot.trap_aircraft')); ?></th>
+                            <th><?php echo htmlspecialchars(dcs_t('pilot.trap_location')); ?></th>
+                            <th><?php echo htmlspecialchars(dcs_t('pilot.trap_time')); ?></th>
+                        </tr>
+                    </thead>
+                    <tbody id="carrier-traps-table-body"></tbody>
+                </table>
+            </div>
+        </div>
+        <?php endif; ?>
     </div>
     
     <div id="no-results" style="display: none; text-align: center; color: #ccc; margin-top: 30px;">
-        <p id="no-results-message">No pilot found with that name. Please check the spelling and try again.</p>
+        <p id="no-results-message"><?php echo htmlspecialchars(dcs_t('pilot.no_pilot_found')); ?></p>
     </div>
     
     <div id="loading" style="display: none; text-align: center; color: #ccc; margin-top: 30px;">
-        <p>Searching...</p>
+        <p><?php echo htmlspecialchars(dcs_t('pilot.searching')); ?></p>
     </div>
 </main>
 
 <script>
+const i18n = <?php echo json_encode([
+    'enterName' => dcs_t('pilot.enter_name'),
+    'noMatches' => dcs_t('pilot.no_matches'),
+    'checkSpelling' => dcs_t('pilot.check_spelling'),
+    'usePartial' => dcs_t('pilot.use_partial'),
+    'searchStart' => dcs_t('pilot.search_start'),
+    'searchError' => dcs_t('pilot.search_error'),
+    'loadError' => dcs_t('pilot.load_error'),
+    'consoleDetails' => dcs_t('pilot.console_details'),
+    'noPilotFound' => dcs_t('pilot.no_pilot_found'),
+    'noStatsEnabled' => dcs_t('pilot.no_stats_enabled'),
+    'contactAdmin' => dcs_t('pilot.contact_admin'),
+    'kills' => dcs_t('pilot.kills'),
+    'deaths' => dcs_t('pilot.deaths'),
+    'kdRatio' => dcs_t('pilot.kd_ratio'),
+    'takeoffs' => dcs_t('pilot.takeoffs'),
+    'landings' => dcs_t('pilot.landings'),
+    'crashes' => dcs_t('pilot.crashes'),
+    'ejections' => dcs_t('pilot.ejections'),
+    'credits' => dcs_t('pilot.credits'),
+    'mostUsedAircraft' => dcs_t('pilot.most_used_aircraft'),
+    'squadron' => dcs_t('pilot.squadron'),
+    'none' => dcs_t('pilot.none'),
+    'sessionKills' => dcs_t('pilot.session_kills'),
+    'sessionDeaths' => dcs_t('pilot.session_deaths'),
+    'statistics' => dcs_t('pilot.statistics'),
+    'count' => dcs_t('pilot.count'),
+    'combatMetrics' => dcs_t('pilot.combat_metrics'),
+    'numberOfEvents' => dcs_t('pilot.number_of_events'),
+    'combatStats' => dcs_t('pilot.combat_stats'),
+    'successfulLandings' => dcs_t('pilot.successful_landings'),
+    'inFlight' => dcs_t('pilot.in_flight'),
+    'timesUsed' => dcs_t('pilot.times_used'),
+    'aircraftType' => dcs_t('pilot.aircraft_type'),
+    'carrierLandings' => dcs_t('pilot.carrier_landings'),
+    'loadingTraps' => dcs_t('pilot.loading_traps'),
+    'noTrapData' => dcs_t('pilot.no_trap_data'),
+    'trapLoadError' => dcs_t('pilot.trap_load_error'),
+    'trapLatestGrade' => dcs_t('pilot.trap_latest_grade'),
+    'trapLatestPoints' => dcs_t('pilot.trap_latest_points'),
+    'trapLatestWire' => dcs_t('pilot.trap_latest_wire'),
+    'trapLatestAircraft' => dcs_t('pilot.trap_latest_aircraft'),
+    'trapLatestCase' => dcs_t('pilot.trap_latest_case'),
+    'trapLatestLocation' => dcs_t('pilot.trap_latest_location')
+], JSON_UNESCAPED_UNICODE); ?>;
+
 // Feature flags from PHP
 const siteFeatures = {
     credits: <?php echo json_encode(isFeatureEnabled('credits_enabled')); ?>,
@@ -98,13 +168,14 @@ const siteFeatures = {
     leaderboard_kills: <?php echo json_encode(isFeatureEnabled('leaderboard_kills')); ?>,
     leaderboard_deaths: <?php echo json_encode(isFeatureEnabled('leaderboard_deaths')); ?>,
     leaderboard_kd_ratio: <?php echo json_encode(isFeatureEnabled('leaderboard_kd_ratio')); ?>,
-    leaderboard_flight_hours: <?php echo json_encode(isFeatureEnabled('leaderboard_flight_hours')); ?>,
     leaderboard_aircraft: <?php echo json_encode(isFeatureEnabled('leaderboard_aircraft')); ?>,
     pilot_combat_stats: <?php echo json_encode(isFeatureEnabled('pilot_combat_stats')); ?>,
     pilot_flight_stats: <?php echo json_encode(isFeatureEnabled('pilot_flight_stats')); ?>,
     pilot_session_stats: <?php echo json_encode(isFeatureEnabled('pilot_session_stats')); ?>,
-    pilot_aircraft_chart: <?php echo json_encode(isFeatureEnabled('pilot_aircraft_chart')); ?>
+    pilot_aircraft_chart: <?php echo json_encode(isFeatureEnabled('pilot_aircraft_chart')); ?>,
+    pilot_carrier_traps: <?php echo json_encode(isFeatureEnabled('pilot_carrier_traps')); ?>
 };
+const publicDateFormat = <?php echo json_encode(dcs_public_date_format()); ?>;
 
 // Function to create stat items dynamically
 function createStatItem(label, value, id) {
@@ -127,15 +198,15 @@ function populateStatsGrid(stats) {
     // Show combat stats if enabled and data exists
     if (siteFeatures.pilot_combat_stats) {
         if (stats.kills !== undefined) {
-            combatGrid.innerHTML += createStatItem('Kills', stats.kills || 0, 'pilot-kills');
+            combatGrid.innerHTML += createStatItem(i18n.kills, stats.kills || 0, 'pilot-kills');
             hasCombatStats = true;
         }
         if (stats.deaths !== undefined) {
-            combatGrid.innerHTML += createStatItem('Deaths', stats.deaths || 0, 'pilot-deaths');
+            combatGrid.innerHTML += createStatItem(i18n.deaths, stats.deaths || 0, 'pilot-deaths');
             hasCombatStats = true;
         }
         if (stats.kd_ratio !== undefined) {
-            combatGrid.innerHTML += createStatItem('K/D Ratio', (stats.kd_ratio || 0).toFixed(2), 'pilot-kd');
+            combatGrid.innerHTML += createStatItem(i18n.kdRatio, (stats.kd_ratio || 0).toFixed(2), 'pilot-kd');
             hasCombatStats = true;
         }
     }
@@ -143,19 +214,19 @@ function populateStatsGrid(stats) {
     // Show flight stats if enabled and data exists
     if (siteFeatures.pilot_flight_stats) {
         if (stats.takeoffs !== undefined) {
-            combatGrid.innerHTML += createStatItem('Takeoffs', stats.takeoffs || 0, 'pilot-takeoffs');
+            combatGrid.innerHTML += createStatItem(i18n.takeoffs, stats.takeoffs || 0, 'pilot-takeoffs');
             hasCombatStats = true;
         }
         if (stats.landings !== undefined) {
-            combatGrid.innerHTML += createStatItem('Landings', stats.landings || 0, 'pilot-landings');
+            combatGrid.innerHTML += createStatItem(i18n.landings, stats.landings || 0, 'pilot-landings');
             hasCombatStats = true;
         }
         if (stats.crashes !== undefined) {
-            combatGrid.innerHTML += createStatItem('Crashes', stats.crashes || 0, 'pilot-crashes');
+            combatGrid.innerHTML += createStatItem(i18n.crashes, stats.crashes || 0, 'pilot-crashes');
             hasCombatStats = true;
         }
         if (stats.ejections !== undefined) {
-            combatGrid.innerHTML += createStatItem('Ejections', stats.ejections || 0, 'pilot-ejections');
+            combatGrid.innerHTML += createStatItem(i18n.ejections, stats.ejections || 0, 'pilot-ejections');
             hasCombatStats = true;
         }
     }
@@ -170,13 +241,13 @@ function populateStatsGrid(stats) {
     
     // Credits if enabled
     if (siteFeatures.credits && stats.credits !== undefined) {
-        secondaryGrid.innerHTML += createStatItem('Credits', stats.credits || 0, 'pilot-credits');
+        secondaryGrid.innerHTML += createStatItem(i18n.credits, stats.credits || 0, 'pilot-credits');
         hasSecondaryStats = true;
     }
     
     // Aircraft if we have data
     if (stats.most_used_aircraft && stats.most_used_aircraft !== 'N/A') {
-        secondaryGrid.innerHTML += createStatItem('Most Used Aircraft', stats.most_used_aircraft, 'pilot-aircraft');
+        secondaryGrid.innerHTML += createStatItem(i18n.mostUsedAircraft, stats.most_used_aircraft, 'pilot-aircraft');
         hasSecondaryStats = true;
     }
     
@@ -184,7 +255,7 @@ function populateStatsGrid(stats) {
     if (siteFeatures.squadrons && stats.squadron) {
         const squadronHtml = `
             <div class="stat-item" id="squadron-info">
-                <span class="stat-label">Squadron:</span>
+                <span class="stat-label">${escapeHtml(i18n.squadron)}:</span>
                 <span class="stat-value" id="pilot-squadron">${stats.squadron}</span>
             </div>
         `;
@@ -202,11 +273,11 @@ function populateStatsGrid(stats) {
     
     if (siteFeatures.pilot_session_stats && (stats.last_session_kills !== undefined || stats.last_session_deaths !== undefined)) {
         if (stats.last_session_kills !== undefined) {
-            sessionGrid.innerHTML += createStatItem('Session Kills', stats.last_session_kills || 0, 'pilot-session-kills');
+            sessionGrid.innerHTML += createStatItem(i18n.sessionKills, stats.last_session_kills || 0, 'pilot-session-kills');
             hasSessionStats = true;
         }
         if (stats.last_session_deaths !== undefined) {
-            sessionGrid.innerHTML += createStatItem('Session Deaths', stats.last_session_deaths || 0, 'pilot-session-deaths');
+            sessionGrid.innerHTML += createStatItem(i18n.sessionDeaths, stats.last_session_deaths || 0, 'pilot-session-deaths');
             hasSessionStats = true;
         }
     }
@@ -220,7 +291,7 @@ async function searchForPlayers() {
     const searchTerm = searchInput.value.trim();
     
     if (!searchTerm) {
-        alert('Please enter a pilot name to search.');
+        alert(i18n.enterName);
         return;
     }
     
@@ -239,7 +310,7 @@ async function searchForPlayers() {
         document.getElementById('loading').style.display = 'none';
         
         if (searchData.error || searchData.count === 0) {
-            let errorMessage = searchData.error || `No pilots found matching "${searchTerm}". Try:\n• Checking the spelling\n• Using a partial name\n• Searching for the beginning of the name`;
+            let errorMessage = searchData.error || `${i18n.noMatches.replace('{search}', searchTerm)}\n• ${i18n.checkSpelling}\n• ${i18n.usePartial}\n• ${i18n.searchStart}`;
             if (searchData.message) {
                 errorMessage += '\n\n' + searchData.message;
             }
@@ -259,7 +330,7 @@ async function searchForPlayers() {
     } catch (error) {
         console.error('Error searching for pilots:', error);
         document.getElementById('loading').style.display = 'none';
-        document.getElementById('no-results-message').textContent = 'Error searching for pilots: ' + error.message;
+        document.getElementById('no-results-message').textContent = i18n.searchError.replace('{error}', error.message);
         document.getElementById('no-results').style.display = 'block';
     }
 }
@@ -295,7 +366,7 @@ async function loadPilotStats(player) {
             document.getElementById('loading').style.display = 'none';
             
             // Show more detailed error message
-            let errorMessage = statsResult.error || 'No pilot found with that name.';
+            let errorMessage = statsResult.error || i18n.noPilotFound;
             if (statsResult.message) {
                 errorMessage += '<br><br>' + statsResult.message;
             }
@@ -317,7 +388,7 @@ async function loadPilotStats(player) {
             try {
                 // Get API config
                 const config = await window.dcsAPI.loadConfig();
-                if (config.use_api && config.api_base_url) {
+                if (config.use_api) {
                     // Call credits endpoint with player name and current date
                     const basePath = window.DCS_CONFIG ? window.DCS_CONFIG.basePath : '';
                     const buildUrl = (path) => basePath ? `${basePath}/${path}` : path;
@@ -346,7 +417,7 @@ async function loadPilotStats(player) {
         }
         
         // Get squadron data - simplified approach
-        let squadron = 'None';
+        let squadron = i18n.none;
         let squadronLogo = null;
         
         // buildUrl should already be defined from earlier in the code
@@ -449,10 +520,10 @@ async function loadPilotStats(player) {
         if (!hasAnyStats) {
             const pilotCard = document.getElementById('pilot-card');
             pilotCard.innerHTML = `
-                <h3 id="pilot-name">${player.nick}</h3>
+                <h3 id="pilot-name">${escapeHtml(player.nick)}</h3>
                 <div class="no-stats-message">
-                    <p>No statistics are currently enabled for display.</p>
-                    <p>Contact your administrator to enable pilot statistics features.</p>
+                    <p>${escapeHtml(i18n.noStatsEnabled)}</p>
+                    <p>${escapeHtml(i18n.contactAdmin)}</p>
                 </div>
             `;
             
@@ -473,9 +544,9 @@ async function loadPilotStats(player) {
         // Update squadron info with logo if available (only if element exists)
         const squadronInfoDiv = document.getElementById('squadron-info');
         if (squadronInfoDiv) {
-            if (squadronLogo && squadron !== 'None' && squadron !== 'N/A') {
+            if (squadronLogo && squadron !== i18n.none && squadron !== 'N/A') {
                 squadronInfoDiv.innerHTML = `
-                    <span class="stat-label">Squadron:</span>
+                    <span class="stat-label">${escapeHtml(i18n.squadron)}:</span>
                     <div class="squadron-display">
                         <img src="${squadronLogo}" alt="${squadron}" class="squadron-logo">
                         <span class="stat-value">${squadron}</span>
@@ -492,6 +563,8 @@ async function loadPilotStats(player) {
         // Show results
         document.getElementById('loading').style.display = 'none';
         document.getElementById('search-results').style.display = 'block';
+
+        loadCarrierTraps(player);
         
         // Create charts based on enabled features
         if (siteFeatures.pilot_combat_stats) {
@@ -541,7 +614,7 @@ async function loadPilotStats(player) {
     } catch (error) {
         console.error('Error loading pilot stats:', error);
         document.getElementById('loading').style.display = 'none';
-        document.getElementById('no-results-message').innerHTML = `Error loading pilot stats: ${error.message}<br><br>Please check the console for more details.`;
+        document.getElementById('no-results-message').innerHTML = `${escapeHtml(i18n.loadError.replace('{error}', error.message))}<br><br>${escapeHtml(i18n.consoleDetails)}`;
         document.getElementById('no-results').style.display = 'block';
     }
 }
@@ -552,63 +625,253 @@ let flightChart = null;
 let aircraftChart = null;
 let trapScoresChart = null;
 
-// Chart configuration with dark theme
+function cssThemeValue(name, fallback) {
+    const value = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    return value || fallback;
+}
+
+function firstValue(source, keys, fallback = '') {
+    for (const key of keys) {
+        if (source && source[key] !== undefined && source[key] !== null && source[key] !== '') {
+            return source[key];
+        }
+    }
+    return fallback;
+}
+
+function normaliseTrap(trap) {
+    return {
+        grade: firstValue(trap, ['grade', 'Grade', 'lso_grade'], '-'),
+        points: firstValue(trap, ['points', 'Points', 'score'], '-'),
+        wire: firstValue(trap, ['wire', 'Wire'], '-'),
+        aircraft: firstValue(trap, ['unit_type', 'aircraft', 'Aircraft', 'module', 'unit'], '-'),
+        caseType: firstValue(trap, ['trapcase', 'case', 'Case'], '-'),
+        location: firstValue(trap, ['place', 'location', 'carrier'], '-'),
+        comment: firstValue(trap, ['comment', 'details'], ''),
+        time: firstValue(trap, ['time', 'date'], '-'),
+        night: firstValue(trap, ['night'], null)
+    };
+}
+
+function formatTrapTime(value) {
+    if (!value || value === '-') {
+        return '-';
+    }
+
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+        return String(value);
+    }
+
+    return date.toLocaleString();
+}
+
+function stripTrapDatePadding(value) {
+    return String(value)
+        .replace(/\b0(\d)(?=[\/.-])/g, '$1')
+        .replace(/([\/.-])0(\d)\b/g, '$1$2');
+}
+
+function formatTrapDateNoPadding(date) {
+    const day = date.getDate();
+    const month = date.getMonth() + 1;
+    const year = date.getFullYear();
+
+    switch (publicDateFormat) {
+        case 'm/d/Y':
+            return `${month}/${day}/${year}`;
+        case 'Y-m-d':
+            return `${year}-${month}-${day}`;
+        case 'd-m-Y':
+            return `${day}-${month}-${year}`;
+        case 'm-d-Y':
+            return `${month}-${day}-${year}`;
+        case 'Y/m/d':
+            return `${year}/${month}/${day}`;
+        case 'd/m/Y':
+        default:
+            return `${day}/${month}/${year}`;
+    }
+}
+
+function formatTrapDateTime(value) {
+    if (!value || value === '-') {
+        return { date: '-', time: '' };
+    }
+
+    const date = new Date(value);
+    if (!Number.isNaN(date.getTime())) {
+        return {
+            date: formatTrapDateNoPadding(date),
+            time: date.toLocaleTimeString()
+        };
+    }
+
+    const raw = String(value).trim();
+    const commaParts = raw.split(',');
+    if (commaParts.length >= 2) {
+        return {
+            date: stripTrapDatePadding(commaParts[0].trim()),
+            time: commaParts.slice(1).join(',').trim()
+        };
+    }
+
+    const isoParts = raw.split(/[T ]/);
+    if (isoParts.length >= 2) {
+        return {
+            date: stripTrapDatePadding(isoParts[0].trim()),
+            time: isoParts.slice(1).join(' ').replace(/Z$/, '').trim()
+        };
+    }
+
+    return { date: stripTrapDatePadding(raw), time: '' };
+}
+
+async function loadCarrierTraps(player) {
+    if (!siteFeatures.pilot_carrier_traps || !window.dcsAPI?.getPilotTraps) return;
+
+    const group = document.getElementById('carrier-traps-group');
+    const status = document.getElementById('carrier-traps-status');
+    const summary = document.getElementById('carrier-traps-summary');
+    const tableWrap = document.getElementById('carrier-traps-table-wrap');
+    const tableBody = document.getElementById('carrier-traps-table-body');
+    if (!group || !status || !summary || !tableWrap || !tableBody) return;
+
+    group.style.display = 'block';
+    status.textContent = i18n.loadingTraps;
+    summary.innerHTML = '';
+    tableBody.innerHTML = '';
+    tableWrap.style.display = 'none';
+
+    try {
+        const traps = await window.dcsAPI.getPilotTraps(player.nick, null, { limit: 10 });
+        if (!Array.isArray(traps) || traps.length === 0) {
+            status.textContent = i18n.noTrapData;
+            return;
+        }
+
+        const normalised = traps.map(normaliseTrap);
+        const latest = normalised[0];
+        status.textContent = '';
+        summary.innerHTML = [
+            createStatItem(i18n.trapLatestGrade, escapeHtml(String(latest.grade)), 'trap-latest-grade'),
+            createStatItem(i18n.trapLatestPoints, escapeHtml(String(latest.points)), 'trap-latest-points'),
+            createStatItem(i18n.trapLatestWire, escapeHtml(String(latest.wire)), 'trap-latest-wire'),
+            createStatItem(i18n.trapLatestAircraft, escapeHtml(String(latest.aircraft)), 'trap-latest-aircraft'),
+            createStatItem(i18n.trapLatestCase, escapeHtml(String(latest.caseType)), 'trap-latest-case'),
+            createStatItem(i18n.trapLatestLocation, escapeHtml(String(latest.location)), 'trap-latest-location')
+        ].join('');
+
+        tableBody.innerHTML = normalised.map(trap => {
+            const trapDateTime = formatTrapDateTime(trap.time);
+            return `
+                <tr>
+                    <td>${escapeHtml(String(trap.grade))}</td>
+                    <td>${escapeHtml(String(trap.points))}</td>
+                    <td>${escapeHtml(String(trap.wire))}</td>
+                    <td>${escapeHtml(String(trap.aircraft))}</td>
+                    <td>${escapeHtml(String(trap.location))}</td>
+                    <td class="trap-date-time-cell">
+                        <span class="trap-date">${escapeHtml(trapDateTime.date)}</span>
+                        ${trapDateTime.time ? `<span class="trap-time">${escapeHtml(trapDateTime.time)}</span>` : ''}
+                    </td>
+                </tr>
+            `;
+        }).join('');
+        tableWrap.style.display = 'block';
+    } catch (error) {
+        console.warn('Could not load carrier trap data:', error);
+        status.textContent = i18n.trapLoadError;
+    }
+}
+
+function themeRgba(name, alpha, fallback) {
+    const hex = cssThemeValue(name, fallback).replace('#', '');
+    if (!/^[0-9a-fA-F]{6}$/.test(hex)) {
+        return fallback;
+    }
+    const value = parseInt(hex, 16);
+    const red = (value >> 16) & 255;
+    const green = (value >> 8) & 255;
+    const blue = value & 255;
+    return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
+}
+
+function buildPilotChartTheme() {
+    return {
+        primary: cssThemeValue('--accent_color', '#4CAF50'),
+        secondary: cssThemeValue('--accent_hover_color', '#2196F3'),
+        danger: cssThemeValue('--danger_color', '#f44336'),
+        warning: cssThemeValue('--warning_color', '#ff9800'),
+        muted: cssThemeValue('--muted_text_color', '#cccccc'),
+        text: cssThemeValue('--card_text_color', '#ffffff'),
+        heading: cssThemeValue('--card_heading_color', '#4CAF50'),
+        grid: themeRgba('--border_color', 0.55, 'rgba(85, 107, 47, 0.55)'),
+        tooltipBg: cssThemeValue('--surface_dark_color', '#1e1e1e'),
+        surface: cssThemeValue('--surface_color', '#2c2c2c'),
+        primaryFill: themeRgba('--accent_color', 0.65, 'rgba(76, 175, 80, 0.65)'),
+        secondaryFill: themeRgba('--accent_hover_color', 0.65, 'rgba(33, 150, 243, 0.65)'),
+        dangerFill: themeRgba('--danger_color', 0.65, 'rgba(244, 67, 54, 0.65)'),
+        warningFill: themeRgba('--warning_color', 0.65, 'rgba(255, 152, 0, 0.65)'),
+        mutedFill: themeRgba('--muted_text_color', 0.5, 'rgba(158, 158, 158, 0.5)')
+    };
+}
+
+const pilotChartTheme = buildPilotChartTheme();
+
+function makeAxisTitle(text) {
+    return {
+        display: true,
+        text,
+        color: pilotChartTheme.heading,
+        font: {
+            size: 14,
+            weight: 'bold'
+        }
+    };
+}
+
+// Chart configuration using active theme colours
 const chartOptions = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
         legend: {
             labels: {
-                color: '#ccc',
+                color: pilotChartTheme.muted,
                 font: {
                     size: 12
                 }
             }
         },
         tooltip: {
-            backgroundColor: '#1e1e1e',
-            titleColor: '#4CAF50',
-            bodyColor: '#ccc',
-            borderColor: '#444',
+            backgroundColor: pilotChartTheme.tooltipBg,
+            titleColor: pilotChartTheme.heading,
+            bodyColor: pilotChartTheme.muted,
+            borderColor: pilotChartTheme.grid,
             borderWidth: 1
         }
     },
     scales: {
         x: {
             ticks: {
-                color: '#ccc'
+                color: pilotChartTheme.muted
             },
             grid: {
-                color: '#333',
-                borderColor: '#444'
+                color: pilotChartTheme.grid,
+                borderColor: pilotChartTheme.grid
             },
-            title: {
-                display: true,
-                text: 'Statistics',
-                color: '#4CAF50',
-                font: {
-                    size: 14,
-                    weight: 'bold'
-                }
-            }
+            title: makeAxisTitle(i18n.statistics)
         },
         y: {
             ticks: {
-                color: '#ccc'
+                color: pilotChartTheme.muted
             },
             grid: {
-                color: '#333',
-                borderColor: '#444'
+                color: pilotChartTheme.grid,
+                borderColor: pilotChartTheme.grid
             },
-            title: {
-                display: true,
-                text: 'Count',
-                color: '#4CAF50',
-                font: {
-                    size: 14,
-                    weight: 'bold'
-                }
-            }
+            title: makeAxisTitle(i18n.count)
         }
     }
 };
@@ -628,17 +891,17 @@ function createCombatChart(statsData) {
     const borderColor = [];
     
     if (statsData.kills !== undefined) {
-        labels.push('Kills');
+        labels.push(i18n.kills);
         data.push(statsData.kills || 0);
-        backgroundColor.push('rgba(76, 175, 80, 0.6)');
-        borderColor.push('rgba(76, 175, 80, 1)');
+        backgroundColor.push(pilotChartTheme.primaryFill);
+        borderColor.push(pilotChartTheme.primary);
     }
     
     if (statsData.deaths !== undefined) {
-        labels.push('Deaths');
+        labels.push(i18n.deaths);
         data.push(statsData.deaths || 0);
-        backgroundColor.push('rgba(244, 67, 54, 0.6)');
-        borderColor.push('rgba(244, 67, 54, 1)');
+        backgroundColor.push(pilotChartTheme.dangerFill);
+        borderColor.push(pilotChartTheme.danger);
     }
     
     // Don't create chart if no data
@@ -655,7 +918,7 @@ function createCombatChart(statsData) {
         data: {
             labels: labels,
             datasets: [{
-                label: 'Combat Stats',
+                label: i18n.combatStats,
                 data: data,
                 backgroundColor: backgroundColor,
                 borderColor: borderColor,
@@ -675,25 +938,13 @@ function createCombatChart(statsData) {
                 x: {
                     ...chartOptions.scales.x,
                     title: {
-                        display: true,
-                        text: 'Combat Metrics',
-                        color: '#4CAF50',
-                        font: {
-                            size: 14,
-                            weight: 'bold'
-                        }
+                        ...makeAxisTitle(i18n.combatMetrics)
                     }
                 },
                 y: {
                     ...chartOptions.scales.y,
                     title: {
-                        display: true,
-                        text: 'Number of Events',
-                        color: '#4CAF50',
-                        font: {
-                            size: 14,
-                            weight: 'bold'
-                        }
+                        ...makeAxisTitle(i18n.numberOfEvents)
                     }
                 }
             }
@@ -721,31 +972,31 @@ function createFlightChart(statsData) {
     const borderColor = [];
     
     if (statsData.landings !== undefined) {
-        labels.push('Successful Landings');
+        labels.push(i18n.successfulLandings);
         data.push(landings);
-        backgroundColor.push('rgba(76, 175, 80, 0.6)');
-        borderColor.push('rgba(76, 175, 80, 1)');
+        backgroundColor.push(pilotChartTheme.primaryFill);
+        borderColor.push(pilotChartTheme.primary);
     }
     
     if (statsData.crashes !== undefined) {
-        labels.push('Crashes');
+        labels.push(i18n.crashes);
         data.push(crashes);
-        backgroundColor.push('rgba(244, 67, 54, 0.6)');
-        borderColor.push('rgba(244, 67, 54, 1)');
+        backgroundColor.push(pilotChartTheme.dangerFill);
+        borderColor.push(pilotChartTheme.danger);
     }
     
     if (statsData.ejections !== undefined) {
-        labels.push('Ejections');
+        labels.push(i18n.ejections);
         data.push(ejections);
-        backgroundColor.push('rgba(255, 152, 0, 0.6)');
-        borderColor.push('rgba(255, 152, 0, 1)');
+        backgroundColor.push(pilotChartTheme.warningFill);
+        borderColor.push(pilotChartTheme.warning);
     }
     
     if (statsData.takeoffs !== undefined && takeoffs > (landings + crashes + ejections)) {
-        labels.push('In Flight');
+        labels.push(i18n.inFlight);
         data.push(Math.max(0, takeoffs - landings - crashes - ejections));
-        backgroundColor.push('rgba(158, 158, 158, 0.6)');
-        borderColor.push('rgba(158, 158, 158, 1)');
+        backgroundColor.push(pilotChartTheme.mutedFill);
+        borderColor.push(pilotChartTheme.muted);
     }
     
     // Don't create chart if no data
@@ -791,21 +1042,27 @@ function createAircraftChart(aircraftData) {
     
     // Generate colors for each aircraft
     const colors = [
-        'rgba(76, 175, 80, 0.6)',
-        'rgba(33, 150, 243, 0.6)',
-        'rgba(255, 193, 7, 0.6)',
-        'rgba(233, 30, 99, 0.6)',
-        'rgba(156, 39, 176, 0.6)'
+        pilotChartTheme.primaryFill,
+        pilotChartTheme.secondaryFill,
+        pilotChartTheme.warningFill,
+        pilotChartTheme.dangerFill,
+        pilotChartTheme.mutedFill
     ];
     
-    const borderColors = colors.map(c => c.replace('0.6', '1'));
+    const borderColors = [
+        pilotChartTheme.primary,
+        pilotChartTheme.secondary,
+        pilotChartTheme.warning,
+        pilotChartTheme.danger,
+        pilotChartTheme.muted
+    ];
     
     aircraftChart = new Chart(ctx, {
         type: 'bar',
         data: {
             labels: labels,
             datasets: [{
-                label: 'Times Used',
+                label: i18n.timesUsed,
                 data: data,
                 backgroundColor: colors.slice(0, data.length),
                 borderColor: borderColors.slice(0, data.length),
@@ -831,25 +1088,13 @@ function createAircraftChart(aircraftData) {
                         stepSize: 1
                     },
                     title: {
-                        display: true,
-                        text: 'Times Used',
-                        color: '#4CAF50',
-                        font: {
-                            size: 14,
-                            weight: 'bold'
-                        }
+                        ...makeAxisTitle(i18n.timesUsed)
                     }
                 },
                 y: {
                     ...chartOptions.scales.y,
                     title: {
-                        display: true,
-                        text: 'Aircraft Type',
-                        color: '#4CAF50',
-                        font: {
-                            size: 14,
-                            weight: 'bold'
-                        }
+                        ...makeAxisTitle(i18n.aircraftType)
                     }
                 }
             }
@@ -890,14 +1135,20 @@ function createTrapScoresChart(trapScores) {
     
     // Generate colors matching carrier grading standards
     const colors = [
-        'rgba(76, 175, 80, 0.6)',   // OK - green (perfect)
-        'rgba(255, 193, 7, 0.6)',   // Fair - yellow
-        'rgba(158, 158, 158, 0.6)', // No Grade - gray
-        'rgba(255, 152, 0, 0.6)',   // Cut - orange (dangerous)
-        'rgba(244, 67, 54, 0.6)'    // Wave Off - red
+        pilotChartTheme.primaryFill,
+        pilotChartTheme.secondaryFill,
+        pilotChartTheme.mutedFill,
+        pilotChartTheme.warningFill,
+        pilotChartTheme.dangerFill
     ];
     
-    const borderColors = colors.map(c => c.replace('0.6', '1'));
+    const borderColors = [
+        pilotChartTheme.primary,
+        pilotChartTheme.secondary,
+        pilotChartTheme.muted,
+        pilotChartTheme.warning,
+        pilotChartTheme.danger
+    ];
     
     trapScoresChart = new Chart(ctx, {
         type: 'bar',
@@ -934,13 +1185,7 @@ function createTrapScoresChart(trapScores) {
                 x: {
                     ...chartOptions.scales.x,
                     title: {
-                        display: true,
-                        text: 'Landing Grade',
-                        color: '#4CAF50',
-                        font: {
-                            size: 14,
-                            weight: 'bold'
-                        }
+                        ...makeAxisTitle('Landing Grade')
                     }
                 },
                 y: {
@@ -951,13 +1196,7 @@ function createTrapScoresChart(trapScores) {
                         stepSize: 1
                     },
                     title: {
-                        display: true,
-                        text: 'Number of Carrier Traps',
-                        color: '#4CAF50',
-                        font: {
-                            size: 14,
-                            weight: 'bold'
-                        }
+                        ...makeAxisTitle('Number of Carrier Traps')
                     }
                 }
             }
@@ -1000,15 +1239,37 @@ document.addEventListener('DOMContentLoaded', function() {
 
 /* Squadron styling moved to unified styles.css */
 
+.pilot-statistics-page {
+    width: min(96vw, 1800px);
+    max-width: none;
+}
+
+.pilot-statistics-page #search-results {
+    width: 100%;
+}
+
+.pilot-statistics-page .pilot-card {
+    width: 100%;
+    max-width: none;
+}
+
+.pilot-statistics-page .stats-grid {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
 .charts-container {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
     gap: 25px;
-    margin: 40px auto 0;
-    max-width: 1000px;
+    margin: 40px 0 0;
+    max-width: none;
 }
 
 @media (max-width: 768px) {
+    .pilot-statistics-page {
+        width: 100%;
+    }
+
     .charts-container {
         grid-template-columns: 1fr;
     }
@@ -1082,6 +1343,58 @@ document.addEventListener('DOMContentLoaded', function() {
 .no-stats-message p:first-child {
     font-size: 1.2rem;
     color: #ccc;
+}
+
+.carrier-traps-card {
+    margin-top: 24px;
+}
+
+.carrier-traps-status {
+    color: var(--card_muted_text_color, #b0b0b0);
+    margin: 0 0 16px;
+}
+
+.carrier-traps-table-wrap {
+    margin-top: 18px;
+    overflow-x: auto;
+}
+
+.carrier-traps-table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+.carrier-traps-table th,
+.carrier-traps-table td {
+    border-bottom: 1px solid color-mix(in srgb, var(--border_color, #444) 60%, transparent);
+    color: var(--card_text_color, #e0e0e0);
+    padding: 10px 12px;
+    text-align: left;
+}
+
+.carrier-traps-table th {
+    color: var(--card_heading_color, #4CAF50);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+}
+
+.trap-date-time-cell {
+    min-width: 190px;
+    white-space: nowrap;
+}
+
+.trap-date,
+.trap-time {
+    display: inline-block;
+    line-height: 1.35;
+    white-space: nowrap;
+}
+
+.trap-time {
+    border-left: 1px solid color-mix(in srgb, var(--border_color, #444) 70%, transparent);
+    color: var(--card_muted_text_color, #b0b0b0);
+    margin-left: 14px;
+    padding-left: 14px;
 }
 
 /* Enhanced tooltip styling */

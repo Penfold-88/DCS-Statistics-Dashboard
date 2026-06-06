@@ -5,6 +5,7 @@
 
 require_once __DIR__ . '/auth.php';
 require_once __DIR__ . '/admin_functions.php';
+require_once dirname(__DIR__) . '/language.php';
 require_once dirname(__DIR__) . '/site_features.php';
 
 // Require admin login and permission
@@ -13,6 +14,7 @@ requirePermission('manage_squadrons');
 
 // Get current admin
 $currentAdmin = getCurrentAdmin();
+$demoRestricted = isDemoRestricted($currentAdmin);
 
 // Handle form submission
 $message = '';
@@ -21,7 +23,10 @@ $messageType = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Verify CSRF token
     if (!isset($_POST['csrf_token']) || !verifyCSRFToken($_POST['csrf_token'])) {
-        $message = ERROR_MESSAGES['csrf_invalid'];
+        $message = dcs_t('admin.squadron_settings.csrf_invalid');
+        $messageType = 'error';
+    } elseif ($demoRestricted) {
+        $message = demoWriteLockMessage();
         $messageType = 'error';
     } else {
         // Load current features
@@ -35,17 +40,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Validate inputs
         if ($currentFeatures['show_squadron_homepage']) {
             if (empty($currentFeatures['squadron_homepage_url'])) {
-                $message = 'Squadron homepage URL is required when enabled';
+                $message = dcs_t('admin.squadron_settings.url_required');
                 $messageType = 'error';
             } elseif (!filter_var($currentFeatures['squadron_homepage_url'], FILTER_VALIDATE_URL)) {
-                $message = 'Please enter a valid squadron homepage URL';
+                $message = dcs_t('admin.squadron_settings.invalid_url');
                 $messageType = 'error';
             }
             
             if (empty($currentFeatures['squadron_homepage_text'])) {
                 $currentFeatures['squadron_homepage_text'] = 'Squadron';
             } elseif (strlen($currentFeatures['squadron_homepage_text']) > 50) {
-                $message = 'Link text must be 50 characters or less';
+                $message = dcs_t('admin.squadron_settings.link_text_too_long');
                 $messageType = 'error';
             }
         }
@@ -54,10 +59,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Save settings
             if (saveSiteFeatures($currentFeatures)) {
                 logAdminActivity('SETTINGS_CHANGE', $_SESSION['admin_id'], 'settings', 'squadron_homepage', $currentFeatures);
-                $message = 'Squadron homepage settings saved successfully';
+                $message = dcs_t('admin.squadron_settings.save_success');
                 $messageType = 'success';
             } else {
-                $message = 'Failed to save settings';
+                $message = dcs_t('admin.squadron_settings.save_failed');
                 $messageType = 'error';
             }
         }
@@ -68,14 +73,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $currentFeatures = loadSiteFeatures();
 
 // Page title
-$pageTitle = 'Squadron Homepage Settings';
+$pageTitle = dcs_t('admin.squadron_settings.title');
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?= e(dcs_default_language()) ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= $pageTitle ?> - Carrier Air Wing Command</title>
+    <title><?= e($pageTitle) ?> - Carrier Air Wing Command</title>
     <link rel="stylesheet" href="css/admin.css">
 </head>
 <body>
@@ -86,13 +91,13 @@ $pageTitle = 'Squadron Homepage Settings';
         <main class="admin-main">
             <!-- Header -->
             <header class="admin-header">
-                <h1><?= $pageTitle ?></h1>
+                <h1><?= e($pageTitle) ?></h1>
                 <div class="admin-user-menu">
                     <div class="admin-user-info">
                         <div class="admin-username"><?= e($currentAdmin['username']) ?></div>
                         <div class="admin-role"><?= getRoleBadge($currentAdmin['role']) ?></div>
                     </div>
-                    <a href="logout.php" class="btn btn-secondary btn-small">Logout</a>
+                    <a href="logout.php" class="btn btn-secondary btn-small"><?= e(dcs_t('admin.common.logout')) ?></a>
                 </div>
             </header>
             
@@ -107,8 +112,8 @@ $pageTitle = 'Squadron Homepage Settings';
                 <!-- Squadron Settings Form -->
                 <div class="card">
                     <div class="card-header">
-                        <h2 class="card-title">Squadron Homepage Configuration</h2>
-                        <p class="text-muted">Add a custom link to your squadron's website or homepage in the main navigation</p>
+                        <h2 class="card-title"><?= e(dcs_t('admin.squadron_settings.configuration')) ?></h2>
+                        <p class="text-muted"><?= e(dcs_t('admin.squadron_settings.configuration_help')) ?></p>
                     </div>
                     
                     <form method="POST" action="">
@@ -121,24 +126,24 @@ $pageTitle = 'Squadron Homepage Settings';
                                        name="show_squadron_homepage" 
                                        value="1"
                                        <?= ($currentFeatures['show_squadron_homepage'] ?? false) ? 'checked' : '' ?>>
-                                <label for="show_squadron_homepage">Enable Squadron Homepage Link</label>
+                                <label for="show_squadron_homepage"><?= e(dcs_t('admin.squadron_settings.enable_link')) ?></label>
                             </div>
-                            <small class="text-muted">Show a custom squadron link in the main site navigation (appears between Discord and Servers)</small>
+                            <small class="text-muted"><?= e(dcs_t('admin.squadron_settings.enable_help')) ?></small>
                         </div>
                         
                         <div class="form-group">
-                            <label for="squadron_homepage_url">Squadron Homepage URL</label>
+                            <label for="squadron_homepage_url"><?= e(dcs_t('admin.squadron_settings.homepage_url')) ?></label>
                             <input type="url" 
                                    id="squadron_homepage_url" 
                                    name="squadron_homepage_url" 
                                    class="form-control" 
                                    value="<?= e($currentFeatures['squadron_homepage_url'] ?? '') ?>"
                                    placeholder="https://your-squadron-website.com">
-                            <small class="text-muted">The URL to your squadron's website, forum, or homepage</small>
+                            <small class="text-muted"><?= e(dcs_t('admin.squadron_settings.url_help')) ?></small>
                         </div>
                         
                         <div class="form-group">
-                            <label for="squadron_homepage_text">Link Text</label>
+                            <label for="squadron_homepage_text"><?= e(dcs_t('admin.squadron_settings.link_text')) ?></label>
                             <input type="text" 
                                    id="squadron_homepage_text" 
                                    name="squadron_homepage_text" 
@@ -146,12 +151,12 @@ $pageTitle = 'Squadron Homepage Settings';
                                    value="<?= e($currentFeatures['squadron_homepage_text'] ?? 'Squadron') ?>"
                                    placeholder="Squadron"
                                    maxlength="50">
-                            <small class="text-muted">Text displayed for the navigation link (maximum 50 characters)</small>
+                            <small class="text-muted"><?= e(dcs_t('admin.squadron_settings.link_text_help')) ?></small>
                         </div>
                         
                         <div class="form-actions">
-                            <button type="submit" class="btn btn-primary">Save Squadron Settings</button>
-                            <a href="settings.php" class="btn btn-secondary">Back to Site Features</a>
+                            <button type="submit" class="btn btn-primary"><?= e(dcs_t('admin.squadron_settings.save_button')) ?></button>
+                            <a href="settings.php" class="btn btn-secondary"><?= e(dcs_t('admin.discord.back_to_features')) ?></a>
                         </div>
                     </form>
                 </div>
@@ -159,16 +164,16 @@ $pageTitle = 'Squadron Homepage Settings';
                 <!-- Preview Section -->
                 <div class="card">
                     <div class="card-header">
-                        <h3 class="card-title">Navigation Preview</h3>
+                        <h3 class="card-title"><?= e(dcs_t('admin.squadron_settings.preview_title')) ?></h3>
                     </div>
                     
-                    <p class="text-muted">Here's how your navigation menu will look with these settings:</p>
+                    <p class="text-muted"><?= e(dcs_t('admin.squadron_settings.preview_help')) ?></p>
                     
                     <div style="background: #2a2a2a; padding: 15px; border-radius: 5px; margin: 15px 0;">
                         <nav style="display: flex; gap: 20px; flex-wrap: wrap;">
-                            <span style="color: #4CAF50;">Home</span>
-                            <span style="color: #4CAF50;">Leaderboard</span>
-                            <span style="color: #4CAF50;">Pilot Statistics</span>
+                            <span style="color: #4CAF50;"><?= e(dcs_t('nav.home')) ?></span>
+                            <span style="color: #4CAF50;"><?= e(dcs_t('nav.leaderboard')) ?></span>
+                            <span style="color: #4CAF50;"><?= e(dcs_t('nav.pilot_statistics')) ?></span>
                             <?php if (getFeatureValue('show_discord_link', true)): ?>
                             <span style="color: #4CAF50;">Discord</span>
                             <?php endif; ?>
@@ -177,9 +182,9 @@ $pageTitle = 'Squadron Homepage Settings';
                                 <?= e($currentFeatures['squadron_homepage_text'] ?? 'Squadron') ?>
                             </span>
                             <?php else: ?>
-                            <span style="color: #666; font-style: italic;">[Squadron Link - Disabled]</span>
+                            <span style="color: #666; font-style: italic;"><?= e(dcs_t('admin.squadron_settings.preview_disabled')) ?></span>
                             <?php endif; ?>
-                            <span style="color: #4CAF50;">Servers</span>
+                            <span style="color: #4CAF50;"><?= e(dcs_t('nav.servers')) ?></span>
                         </nav>
                     </div>
                 </div>
@@ -187,26 +192,26 @@ $pageTitle = 'Squadron Homepage Settings';
                 <!-- Help Section -->
                 <div class="card">
                     <div class="card-header">
-                        <h3 class="card-title">Squadron Homepage Ideas</h3>
+                        <h3 class="card-title"><?= e(dcs_t('admin.squadron_settings.ideas_title')) ?></h3>
                     </div>
                     
                     <div class="help-content">
-                        <h4>Common Squadron Links</h4>
+                        <h4><?= e(dcs_t('admin.squadron_settings.common_links')) ?></h4>
                         <ul>
-                            <li><strong>Official Website:</strong> Your squadron's main website</li>
-                            <li><strong>Forum:</strong> Discussion board or community forum</li>
-                            <li><strong>Training Portal:</strong> Training schedules and materials</li>
-                            <li><strong>Operations Board:</strong> Mission briefings and schedules</li>
-                            <li><strong>Squadron Tools:</strong> Custom applications or utilities</li>
+                            <li><strong><?= e(dcs_t('admin.squadron_settings.official_website')) ?></strong> <?= e(dcs_t('admin.squadron_settings.official_website_desc')) ?></li>
+                            <li><strong><?= e(dcs_t('admin.squadron_settings.forum')) ?></strong> <?= e(dcs_t('admin.squadron_settings.forum_desc')) ?></li>
+                            <li><strong><?= e(dcs_t('admin.squadron_settings.training_portal')) ?></strong> <?= e(dcs_t('admin.squadron_settings.training_portal_desc')) ?></li>
+                            <li><strong><?= e(dcs_t('admin.squadron_settings.operations_board')) ?></strong> <?= e(dcs_t('admin.squadron_settings.operations_board_desc')) ?></li>
+                            <li><strong><?= e(dcs_t('admin.squadron_settings.squadron_tools')) ?></strong> <?= e(dcs_t('admin.squadron_settings.squadron_tools_desc')) ?></li>
                         </ul>
                         
-                        <h4>Link Text Suggestions</h4>
+                        <h4><?= e(dcs_t('admin.squadron_settings.link_text_suggestions')) ?></h4>
                         <ul>
-                            <li>"Squadron" (generic)</li>
-                            <li>"VFA-103" (squadron designation)</li>
-                            <li>"Jolly Rogers" (squadron name)</li>
-                            <li>"Operations" (for ops boards)</li>
-                            <li>"Training" (for training sites)</li>
+                            <li><?= e(dcs_t('admin.squadron_settings.suggestion_generic')) ?></li>
+                            <li><?= e(dcs_t('admin.squadron_settings.suggestion_designation')) ?></li>
+                            <li><?= e(dcs_t('admin.squadron_settings.suggestion_name')) ?></li>
+                            <li><?= e(dcs_t('admin.squadron_settings.suggestion_operations')) ?></li>
+                            <li><?= e(dcs_t('admin.squadron_settings.suggestion_training')) ?></li>
                         </ul>
                     </div>
                 </div>

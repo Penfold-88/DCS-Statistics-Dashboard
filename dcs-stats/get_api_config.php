@@ -1,6 +1,7 @@
 <?php
 header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');
+header('X-Content-Type-Options: nosniff');
+header('Cache-Control: no-store');
 
 // Include config helper
 require_once __DIR__ . '/api_config_helper.php';
@@ -9,20 +10,25 @@ require_once __DIR__ . '/api_config_helper.php';
 $configResult = loadApiConfigWithFix();
 $config = $configResult['config'];
 
-// Extract API host for client
-$apiHost = $config['api_host'] ?? '';
-if (!$apiHost && !empty($config['api_base_url'])) {
-    $apiHost = preg_replace('#^https?://#', '', $config['api_base_url']);
+function safePublicConfigInt($value, int $default, int $min, int $max): int {
+    $validated = filter_var($value, FILTER_VALIDATE_INT);
+    if ($validated === false) {
+        return $default;
+    }
+
+    return max($min, min($max, $validated));
 }
 
-// Store the config path if needed for debugging
-$configPath = isset($configResult['config_path']) ? $configResult['config_path'] : 'default';
+$proxyAvailable = !empty($config['api_base_url']);
+$timeout = safePublicConfigInt($config['timeout'] ?? 30, 30, 5, 300);
+$refreshInterval = safePublicConfigInt($config['refresh_interval'] ?? 300, 300, 60, 3600);
 
-// Return configuration for client
+// Return only the minimal browser-safe settings needed by the public frontend.
+// The private DCSServerBot host, base URL, cache settings, and API key stay
+// server-side behind api_proxy.php and the admin-only API settings pages.
 echo json_encode([
-    'api_host' => $apiHost,
-    'api_base_url' => $config['api_base_url'] ?? '',
-    'use_api' => true, // Always true
-    'timeout' => $config['timeout'] ?? 30,
-    'cache_ttl' => $config['cache_ttl'] ?? 300
+    'use_api' => !empty($config['use_api']) && $proxyAvailable,
+    'proxy_available' => $proxyAvailable,
+    'timeout' => $timeout,
+    'refresh_interval' => $refreshInterval
 ]);

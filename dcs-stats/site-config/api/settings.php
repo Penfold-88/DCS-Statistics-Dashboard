@@ -6,6 +6,7 @@
 
 require_once dirname(__DIR__) . '/auth.php';
 require_once dirname(__DIR__) . '/admin_functions.php';
+require_once dirname(__DIR__) . '/demo_helpers.php';
 require_once dirname(dirname(__DIR__)) . '/site_features.php';
 require_once dirname(dirname(__DIR__)) . '/security_functions.php';
 
@@ -28,6 +29,11 @@ if (!hasPermission('manage_features')) {
 
 // Handle request based on method
 $method = $_SERVER['REQUEST_METHOD'];
+$currentAdmin = getCurrentAdmin();
+
+if (in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'], true)) {
+    blockDemoWriteRequest($currentAdmin, true);
+}
 
 switch ($method) {
     case 'GET':
@@ -48,6 +54,7 @@ switch ($method) {
     case 'PUT':
         // Update settings
         $input = json_decode(file_get_contents('php://input'), true);
+        requireCSRFToken($input);
         
         if (!isset($input['features']) || !is_array($input['features'])) {
             http_response_code(400);
@@ -112,6 +119,7 @@ switch ($method) {
     case 'PATCH':
         // Toggle single feature
         $input = json_decode(file_get_contents('php://input'), true);
+        requireCSRFToken($input);
         
         if (!isset($input['feature']) || !isset($input['enabled'])) {
             http_response_code(400);

@@ -1,17 +1,23 @@
-# Multi-stage build for smaller image
+# Multi-stage build for the DCS Statistics Dashboard image
 ARG PHP_VERSION=8.2
 FROM php:${PHP_VERSION}-fpm-alpine AS base
 
 # Install required PHP extensions and tools
 RUN apk add --no-cache \
+    ca-certificates \
     nginx \
     supervisor \
     curl \
+    curl-dev \
+    git \
+    openssl \
     zip \
     unzip \
     libzip-dev \
     oniguruma-dev \
+    && update-ca-certificates \
     && docker-php-ext-install -j$(nproc) \
+        curl \
         zip \
         bcmath \
         mbstring \
@@ -24,9 +30,9 @@ RUN apk add --no-cache \
 RUN addgroup -g 1000 -S www && \
     adduser -u 1000 -S www -G www && \
     mkdir -p /var/www/html /run/nginx /var/log/supervisor /etc/supervisor/conf.d && \
-    mkdir -p /var/lib/nginx/tmp /var/lib/nginx/logs && \
-    touch /var/log/php-fpm.log && \
-    chown -R www:www /var/www /run/nginx /var/log/supervisor /var/lib/nginx /var/log/php-fpm.log
+    mkdir -p /var/lib/nginx/tmp /var/lib/nginx/logs /var/log/nginx && \
+    touch /var/log/php-fpm.log /var/log/php-fpm.access.log /var/log/nginx/error.log /var/log/nginx/access.log && \
+    chown -R www:www /var/www /run/nginx /var/log/supervisor /var/lib/nginx /var/log/nginx /var/log/php-fpm.log /var/log/php-fpm.access.log
 
 # Set the working directory
 WORKDIR /var/www/html
@@ -40,7 +46,7 @@ RUN mkdir -p /var/www/html/site-config/data \
     /var/www/html/backups \
     && chmod 700 /var/www/html/site-config/data \
     && chmod 755 /var/www/html/data \
-    && chmod 755 /var/www/html/backups \
+    && chmod 700 /var/www/html/backups \
     && chown -R www:www /var/www/html/site-config/data \
     && chown -R www:www /var/www/html/data \
     && chown -R www:www /var/www/html/backups
@@ -85,9 +91,14 @@ http {
         location ~ /\. {
             deny all;
         }
+
+        # Explicitly deny Git metadata even if hidden-file handling changes.
+        location ~ (^|/)\.git(/|$) {
+            deny all;
+        }
         
-        # Deny access to data directories
-        location ~ ^/(data|site-config/data)/ {
+        # Deny access to sensitive runtime directories
+        location ~ ^/(data|backups|site-config/data|site-config/theme_backups)/ {
             deny all;
         }
 
@@ -124,6 +135,12 @@ http {
 EOF
 
 # PHP-FPM configuration
+RUN sed -i 's|^;\?error_log.*|error_log = /var/log/php-fpm.log|' /usr/local/etc/php-fpm.conf && \
+    if [ -f /usr/local/etc/php-fpm.d/docker.conf ]; then \
+        sed -i 's|^error_log = .*|error_log = /var/log/php-fpm.log|' /usr/local/etc/php-fpm.d/docker.conf; \
+        sed -i 's|^access.log = .*|access.log = /var/log/php-fpm.access.log|' /usr/local/etc/php-fpm.d/docker.conf; \
+    fi
+
 RUN { \
         echo '[www]'; \
         echo 'user = www'; \
@@ -139,92 +156,9 @@ RUN { \
         echo 'php_admin_flag[log_errors] = on'; \
     } > /usr/local/etc/php-fpm.d/www.conf
 
-# Create startup script that handles user switching
-COPY --chown=root:root <<'EOF' /usr/local/bin/start.sh
-#!/bin/sh
-set -e
-
-# Determine which user to run as
-if [ "$RUN_AS_ROOT" = "true" ]; then
-    echo "WARNING: Running as root user (not recommended for production)"
-    RUNTIME_USER="root"
-    # Update nginx to run as root (remove existing user directive first)
-    sed -i '/^user /d' /etc/nginx/nginx.conf
-    sed -i '1s/^/user root;\n/' /etc/nginx/nginx.conf
-else
-    echo "Running as non-root user 'www' (recommended)"
-    RUNTIME_USER="www"
-    # Update nginx to run as www (remove existing user directive first)
-    sed -i '/^user /d' /etc/nginx/nginx.conf
-    sed -i '1s/^/user www;\n/' /etc/nginx/nginx.conf
-    # Ensure directories are writable by www user
-    chown -R www:www /var/www/html/site-config/data /var/www/html/data /run/nginx /var/log/supervisor 2>/dev/null || true
-    # Create pid directory
-    mkdir -p /var/run/supervisor && chown www:www /var/run/supervisor
-    # Fix nginx directories
-    mkdir -p /var/lib/nginx/tmp /var/lib/nginx/logs
-    chown -R www:www /var/lib/nginx
-    # Fix PHP-FPM log permissions
-    touch /proc/self/fd/2 2>/dev/null || true
-fi
-
-# Create supervisor config
-cat > /etc/supervisor/conf.d/supervisord.conf <<EOL
-[supervisord]
-nodaemon=true
-logfile=/var/log/supervisor/supervisord.log
-pidfile=/var/run/supervisord.pid
-
-[program:php-fpm]
-command=/usr/local/sbin/php-fpm -F
-autostart=true
-autorestart=true
-user=$RUNTIME_USER
-stdout_logfile=/dev/stdout
-stdout_logfile_maxbytes=0
-stderr_logfile=/dev/stderr
-stderr_logfile_maxbytes=0
-
-[program:nginx]
-command=/usr/sbin/nginx -g 'daemon off;'
-autostart=true
-autorestart=true
-user=$RUNTIME_USER
-stdout_logfile=/dev/stdout
-stdout_logfile_maxbytes=0
-stderr_logfile=/dev/stderr
-stderr_logfile_maxbytes=0
-EOL
-
-# Ensure directories exist (in case of bind mount)
-mkdir -p /var/www/html/site-config/data /var/www/html/data /var/www/html/backups
-chmod 700 /var/www/html/site-config/data
-chmod 755 /var/www/html/data /var/www/html/backups
-
-# Set ownership based on runtime user
-if [ "$RUNTIME_USER" = "www" ]; then
-    chown -R www:www /var/www/html/site-config/data /var/www/html/data /var/www/html/backups
-fi
-
-# Check if installation is needed
-if [ ! -f "/var/www/html/site-config/data/users.json" ]; then
-    echo ""
-    echo "========================================"
-    echo "🚀 FIRST TIME SETUP DETECTED!"
-    echo "========================================"
-    echo ""
-    echo "Please navigate to:"
-    echo "http://localhost:${WEB_PORT:-8080}/site-config/install.php"
-    echo ""
-    echo "========================================"
-    echo ""
-fi
-
-# Start supervisor
-exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
-EOF
-
-RUN chmod +x /usr/local/bin/start.sh
+# Copy startup script that handles user switching
+COPY --chown=root:root docker/start.sh /usr/local/bin/start.sh
+RUN sed -i 's/\r$//' /usr/local/bin/start.sh && chmod +x /usr/local/bin/start.sh
 
 # Expose port 80
 EXPOSE 80
@@ -251,13 +185,14 @@ RUN { \
         echo 'session.gc_maxlifetime = 1440'; \
     } > /usr/local/etc/php/conf.d/dcs-stats.ini
 
-# OPcache configuration for production
+# OPcache defaults are hardened at container startup by /usr/local/bin/start.sh.
 RUN { \
         echo 'opcache.enable=1'; \
         echo 'opcache.memory_consumption=128'; \
         echo 'opcache.interned_strings_buffer=8'; \
         echo 'opcache.max_accelerated_files=4000'; \
-        echo 'opcache.revalidate_freq=2'; \
+        echo 'opcache.validate_timestamps=0'; \
+        echo 'opcache.revalidate_freq=0'; \
         echo 'opcache.fast_shutdown=1'; \
     } > /usr/local/etc/php/conf.d/opcache-recommended.ini
 

@@ -6,14 +6,15 @@ if (session_status() === PHP_SESSION_NONE) {
 include 'header.php';
 require_once __DIR__ . '/site_features.php';
 require_once __DIR__ . '/table-responsive.php';
+require_once __DIR__ . '/language.php';
 include 'nav.php';
 
 if (!isFeatureEnabled('squadrons_enabled')):
 ?>
 <main>
     <div class="alert" style="text-align: center; padding: 50px;">
-        <h2>Squadron System Disabled</h2>
-        <p>The squadron system is currently disabled for this server.</p>
+        <h2><?php echo htmlspecialchars(dcs_t('squadrons.disabled_title')); ?></h2>
+        <p><?php echo htmlspecialchars(dcs_t('squadrons.disabled_message')); ?></p>
     </div>
 </main>
 <?php include 'footer.php'; exit; ?>
@@ -450,21 +451,21 @@ if (!isFeatureEnabled('squadrons_enabled')):
 
 <main>
     <div class="dashboard-header">
-        <h1>Squadrons</h1>
-        <p class="dashboard-subtitle">Squadron rankings and member information</p>
+        <h1><?php echo htmlspecialchars(dcs_t('squadrons.title')); ?></h1>
+        <p class="dashboard-subtitle"><?php echo htmlspecialchars(dcs_t('squadrons.subtitle')); ?></p>
     </div>
 
     <div class="search-container">
-        <input type="text" id="searchInput" placeholder="Search squadrons, members, or credits...">
+        <input type="text" id="searchInput" placeholder="<?php echo htmlspecialchars(dcs_t('squadrons.search_placeholder')); ?>">
     </div>
 
     <div class="table-wrapper">
         <table id="squadronsTable">
             <thead>
                 <tr>
-                    <th>Logo</th>
-                    <th>Name</th>
-                    <th>Description</th>
+                    <th><?php echo htmlspecialchars(dcs_t('squadrons.logo')); ?></th>
+                    <th><?php echo htmlspecialchars(dcs_t('squadrons.name')); ?></th>
+                    <th><?php echo htmlspecialchars(dcs_t('squadrons.description')); ?></th>
                 </tr>
             </thead>
             <tbody></tbody>
@@ -475,14 +476,14 @@ if (!isFeatureEnabled('squadrons_enabled')):
     <div class="mobile-cards" id="squadronsCards"></div>
 
     <?php if (isFeatureEnabled('squadron_management')): ?>
-    <h2>Squadron Members</h2>
+    <h2><?php echo htmlspecialchars(dcs_t('squadrons.members_title')); ?></h2>
     <div class="table-wrapper">
         <table id="membersTable">
             <thead>
                 <tr>
-                    <th>Logo</th>
-                    <th>Squadron Name</th>
-                    <th>Member</th>
+                    <th><?php echo htmlspecialchars(dcs_t('squadrons.logo')); ?></th>
+                    <th><?php echo htmlspecialchars(dcs_t('squadrons.squadron_name')); ?></th>
+                    <th><?php echo htmlspecialchars(dcs_t('squadrons.member')); ?></th>
                 </tr>
             </thead>
             <tbody></tbody>
@@ -494,14 +495,14 @@ if (!isFeatureEnabled('squadrons_enabled')):
     <?php endif; ?>
 
     <?php if (isFeatureEnabled('squadron_statistics') && isFeatureEnabled('credits_enabled')): ?>
-    <h2>Squadron Leaderboard</h2>
+    <h2><?php echo htmlspecialchars(dcs_t('squadrons.leaderboard_title')); ?></h2>
     <div class="table-wrapper">
         <table id="leaderboardTable">
             <thead>
                 <tr>
-                    <th>Logo</th>
-                    <th>Squadron Name</th>
-                    <th>Credits</th>
+                    <th><?php echo htmlspecialchars(dcs_t('squadrons.logo')); ?></th>
+                    <th><?php echo htmlspecialchars(dcs_t('squadrons.squadron_name')); ?></th>
+                    <th><?php echo htmlspecialchars(dcs_t('squadrons.credits')); ?></th>
                 </tr>
             </thead>
             <tbody></tbody>
@@ -517,11 +518,70 @@ if (!isFeatureEnabled('squadrons_enabled')):
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
+    const i18n = <?php echo json_encode([
+        'members' => dcs_t('squadrons.members'),
+        'clickToggle' => dcs_t('squadrons.click_toggle'),
+        'lastSeen' => dcs_t('squadrons.last_seen'),
+        'unknown' => dcs_t('squadrons.unknown'),
+        'credits' => dcs_t('squadrons.credits'),
+        'loadFailed' => dcs_t('squadrons.load_failed'),
+        'errorTitle' => dcs_t('squadrons.error_title'),
+        'configRetry' => dcs_t('squadrons.config_retry')
+    ], JSON_UNESCAPED_UNICODE); ?>;
     const searchInput = document.getElementById('searchInput');
 
     // Helper to build URLs
     const basePath = window.DCS_CONFIG ? window.DCS_CONFIG.basePath : '';
     const buildUrl = (path) => basePath ? `${basePath}/${path}` : path;
+
+    function toArray(value) {
+        if (Array.isArray(value)) return value;
+        if (!value || typeof value !== 'object') return [];
+
+        if (Array.isArray(value.data)) return value.data;
+        if (Array.isArray(value.members)) return value.members;
+        if (Array.isArray(value.items)) return value.items;
+
+        return Object.values(value).filter(item => item && typeof item === 'object');
+    }
+
+    function normalizeMember(member) {
+        if (typeof member === 'string') {
+            return { nick: member, name: member, date: null };
+        }
+
+        const nick = member?.nick || member?.name || member?.player_name || member?.display_name || '';
+        return {
+            ...member,
+            nick: String(nick),
+            name: String(member?.name || nick),
+            date: member?.date || member?.last_seen || member?.lastSeen || null
+        };
+    }
+
+    function normalizeSquadron(squadron) {
+        const rawMembers = toArray(squadron?.members);
+        const members = rawMembers.map(normalizeMember);
+        const memberCount = Number.isFinite(Number(squadron?.member_count))
+            ? Number(squadron.member_count)
+            : (members.length || Number(squadron?.members) || 0);
+
+        return {
+            ...squadron,
+            name: String(squadron?.name || ''),
+            description: String(squadron?.description || ''),
+            image_url: String(squadron?.image_url || ''),
+            members,
+            member_count: memberCount,
+            totalCredits: Number(squadron?.totalCredits || squadron?.total_credits || 0)
+        };
+    }
+
+    function formatMemberDate(dateValue) {
+        if (!dateValue) return i18n.unknown;
+        const date = new Date(dateValue);
+        return Number.isNaN(date.getTime()) ? i18n.unknown : date.toLocaleDateString();
+    }
     
     // Load squadron data from API
     async function loadSquadronData() {
@@ -529,10 +589,10 @@ document.addEventListener("DOMContentLoaded", () => {
             // First, get the list of squadrons
             const squadronsResponse = await fetch(buildUrl('get_squadrons.php'));
             if (!squadronsResponse.ok) {
-                throw new Error('Failed to load squadrons');
+                throw new Error(i18n.loadFailed);
             }
             const squadronsData = await squadronsResponse.json();
-            const squadrons = squadronsData.data || [];
+            const squadrons = toArray(squadronsData.data || squadronsData).map(normalizeSquadron);
             
             // No need to load players separately - member names come from API
             
@@ -542,8 +602,8 @@ document.addEventListener("DOMContentLoaded", () => {
             for (const squadron of squadrons) {
                 const squadronInfo = {
                     ...squadron,
-                    members: [],
-                    totalCredits: 0
+                    members: squadron.members || [],
+                    totalCredits: squadron.totalCredits || 0
                 };
                 
                 // Get squadron members
@@ -556,8 +616,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     if (membersResp.ok) {
                         const membersData = await membersResp.json();
                         if (membersData.data) {
-                            squadronInfo.members = membersData.data;
-                            squadronInfo.member_count = membersData.data.length;
+                            const members = toArray(membersData.data).map(normalizeMember);
+                            squadronInfo.members = members;
+                            squadronInfo.member_count = members.length;
                         }
                     } else {
                         console.error(`Failed to fetch members for ${squadron.name}: ${membersResp.status}`);
@@ -594,7 +655,7 @@ document.addEventListener("DOMContentLoaded", () => {
         } catch (error) {
             console.error('Error loading squadron data:', error);
             // Try to get more details about the error
-            if (error.message === 'Failed to load squadrons') {
+            if (error.message === i18n.loadFailed) {
                 // The squadrons endpoint failed, let's check the response
                 try {
                     const errorResp = await fetch(buildUrl('get_squadrons.php'));
@@ -645,7 +706,9 @@ document.addEventListener("DOMContentLoaded", () => {
             // === Squadrons Table ===
             if (squadronBody) {
                 squadrons.forEach(sq => {
-                    if (!sq.name.toLowerCase().includes(filter) && !sq.description.toLowerCase().includes(filter)) return;
+                    const squadronName = String(sq.name || '');
+                    const squadronDescription = String(sq.description || '');
+                    if (!squadronName.toLowerCase().includes(filter) && !squadronDescription.toLowerCase().includes(filter)) return;
 
                     const row = document.createElement('tr');
                     row.innerHTML = `
@@ -675,7 +738,7 @@ document.addEventListener("DOMContentLoaded", () => {
                                     <div class="squadron-card-description">${escapeHtml(sq.description || '')}</div>
                                 </div>
                             </div>
-                            <div class="squadron-card-members">${sq.member_count || 0} members</div>
+                            <div class="squadron-card-members">${sq.member_count || 0} ${escapeHtml(i18n.members)}</div>
                         `;
                         squadronsCards.appendChild(card);
                     }
@@ -688,8 +751,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (membersCards) membersCards.innerHTML = '';
                 squadrons.forEach((sq, index) => {
                 const groupId = "group-" + index;
-                const lowerName = sq.name.toLowerCase();
-                const matchFound = lowerName.includes(filter) || sq.members.some(m => m.nick.toLowerCase().includes(filter));
+                const members = Array.isArray(sq.members) ? sq.members : [];
+                const lowerName = String(sq.name || '').toLowerCase();
+                const matchFound = lowerName.includes(filter) || members.some(m => String(m.nick || '').toLowerCase().includes(filter));
                 if (!matchFound) return;
 
                 const headerRow = document.createElement('tr');
@@ -702,13 +766,13 @@ document.addEventListener("DOMContentLoaded", () => {
                             `<div class="squadron-placeholder" style="width: 60px; height: 60px;">⚡</div>`
                         }
                     </td>
-                    <td>${escapeHtml(sq.name || '')} (${sq.member_count || 0} members)</td>
-                    <td><em>Click to show/hide members</em></td>
+                    <td>${escapeHtml(sq.name || '')} (${sq.member_count || 0} ${escapeHtml(i18n.members)})</td>
+                    <td><em>${escapeHtml(i18n.clickToggle)}</em></td>
                 `;
                 membersBody.appendChild(headerRow);
 
-                sq.members.forEach(member => {
-                    if (!member.nick.toLowerCase().includes(filter) && !lowerName.includes(filter)) return;
+                members.forEach(member => {
+                    if (!String(member.nick || '').toLowerCase().includes(filter) && !lowerName.includes(filter)) return;
 
                     const row = document.createElement('tr');
                     row.classList.add(groupId);
@@ -719,7 +783,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         <td></td>
                         <td class="member-name" data-pilot="${escapeHtml(member.name || '')}">
                             <a href="pilot_statistics.php?search=${encodeURIComponent(member.nick || '')}" style="color: inherit; text-decoration: none;">
-                                ${escapeHtml(member.nick || '')} <small>(Last seen: ${new Date(member.date).toLocaleDateString()})</small>
+                                ${escapeHtml(member.nick || '')} <small>(${escapeHtml(i18n.lastSeen)}: ${formatMemberDate(member.date)})</small>
                             </a>
                         </td>
                     `;
@@ -761,15 +825,15 @@ document.addEventListener("DOMContentLoaded", () => {
                             <img src="${escapeHtml(sq.image_url || '')}" alt="${escapeHtml(sq.name || '')}" class="squadron-card-logo">
                             <div class="squadron-members-info">
                                 <div class="squadron-card-name">${escapeHtml(sq.name || '')}</div>
-                                <div class="squadron-members-count">${sq.member_count || 0} members</div>
+                                <div class="squadron-members-count">${sq.member_count || 0} ${escapeHtml(i18n.members)}</div>
                             </div>
                             <div class="expand-indicator" id="expand-${groupId}">▼</div>
                         </div>
                         <div class="squadron-members-list" id="members-${groupId}" style="display: none;">
-                            ${sq.members.map(member => `
+                            ${members.map(member => `
                                 <div class="member-item" onclick="window.location.href='pilot_statistics.php?search=${encodeURIComponent(member.nick || '')}'">
                                     <div class="member-name">${escapeHtml(member.nick || '')}</div>
-                                    <div class="member-date">Last seen: ${new Date(member.date).toLocaleDateString()}</div>
+                                    <div class="member-date">${escapeHtml(i18n.lastSeen)}: ${formatMemberDate(member.date)}</div>
                                 </div>
                             `).join('')}
                         </div>
@@ -784,7 +848,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 // Clear mobile cards for leaderboard
                 if (leaderboardCards) leaderboardCards.innerHTML = '';
                 squadrons
-                    .filter(sq => sq.name.toLowerCase().includes(filter))
+                    .filter(sq => String(sq.name || '').toLowerCase().includes(filter))
                     .sort((a, b) => b.totalCredits - a.totalCredits)
                     .forEach((squadron, index) => {
                         const medal = medals[index] || '';
@@ -814,7 +878,7 @@ document.addEventListener("DOMContentLoaded", () => {
                                     }
                                     <div class="leaderboard-card-info">
                                         <div class="squadron-card-name">${escapeHtml(squadron.name || '')}</div>
-                                        <div class="squadron-credits">${escapeHtml(String(squadron.totalCredits || 0))} credits</div>
+                                        <div class="squadron-credits">${escapeHtml(String(squadron.totalCredits || 0))} ${escapeHtml(i18n.credits)}</div>
                                     </div>
                                 </div>
                             `;
@@ -847,9 +911,9 @@ document.addEventListener("DOMContentLoaded", () => {
         console.error('Error loading squadron data:', err);
         document.querySelector('main').innerHTML = `
             <div class="alert" style="text-align: center; padding: 50px;">
-                <h2>Error Loading Squadron Data</h2>
+                <h2>${escapeHtml(i18n.errorTitle)}</h2>
                 <p>${err.message}</p>
-                <p>Please check your configuration and try again.</p>
+                <p>${escapeHtml(i18n.configRetry)}</p>
             </div>
         `;
     });

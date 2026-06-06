@@ -5,6 +5,7 @@
 
 require_once __DIR__ . '/auth.php';
 require_once __DIR__ . '/admin_functions.php';
+require_once dirname(__DIR__) . '/language.php';
 
 // Require admin login and permission
 requireAdmin();
@@ -12,6 +13,34 @@ requirePermission('manage_admins');
 
 // Get current admin
 $currentAdmin = getCurrentAdmin();
+$demoRestricted = isDemoRestricted($currentAdmin);
+
+function isProtectedAdminAccount($admin) {
+    return isDemoMode() && isDemoOwner($admin);
+}
+
+function protectedAdminMessage($action) {
+    $username = getDemoProtectedUsername();
+    $label = $username !== '' ? $username : 'The configured demo owner';
+    return $label . ' admin account is protected and cannot be ' . $action . '.';
+}
+
+function generateAdminId($users) {
+    $existingIds = [];
+    foreach ($users as $user) {
+        $existingIds[(int)($user['id'] ?? 0)] = true;
+    }
+
+    for ($attempt = 0; $attempt < 20; $attempt++) {
+        $id = random_int(100000, 2147483647);
+        if (!isset($existingIds[$id])) {
+            return $id;
+        }
+    }
+
+    $maxId = empty($existingIds) ? 0 : max(array_keys($existingIds));
+    return $maxId + random_int(1, 1000);
+}
 
 // Handle form submissions
 $message = '';
@@ -21,6 +50,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Verify CSRF token
     if (!isset($_POST['csrf_token']) || !verifyCSRFToken($_POST['csrf_token'])) {
         $message = ERROR_MESSAGES['csrf_invalid'];
+        $messageType = 'error';
+    } elseif ($demoRestricted) {
+        $message = demoWriteLockMessage();
         $messageType = 'error';
     } else {
         $action = $_POST['action'] ?? '';
@@ -34,13 +66,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $role = intval($_POST['role'] ?? ROLE_LSO);
                 
                 if (empty($username) || empty($email) || empty($password)) {
-                    $message = 'All fields are required';
+                    $message = dcs_t('admin.admins.error_all_fields');
                     $messageType = 'error';
                 } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                    $message = 'Invalid email address';
+                    $message = dcs_t('admin.admins.error_invalid_email');
                     $messageType = 'error';
                 } elseif (strlen($password) < 8) {
-                    $message = 'Password must be at least 8 characters';
+                    $message = dcs_t('admin.admins.error_password_length');
                     $messageType = 'error';
                 } else {
                     // Check if username or email already exists
@@ -55,12 +87,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
                     
                     if ($exists) {
-                        $message = 'Username or email already exists';
+                        $message = dcs_t('admin.admins.error_exists');
                         $messageType = 'error';
                     } else {
                         // Create new admin
                         $newAdmin = [
-                            'id' => count($users) + 1,
+                            'id' => generateAdminId($users),
                             'username' => $username,
                             'email' => $email,
                             'password_hash' => password_hash($password, PASSWORD_BCRYPT),
@@ -88,28 +120,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
                 // Can't remove yourself
                 if ($adminId == $_SESSION['admin_id']) {
-                    $message = 'You cannot remove your own account';
+                    $message = dcs_t('admin.admins.error_remove_self');
                     $messageType = 'error';
                 } else {
                     $users = getAdminUsers();
                     $newUsers = [];
                     $removed = false;
+                    $protected = false;
                     
                     foreach ($users as $user) {
                         if ($user['id'] == $adminId) {
-                            $removed = true;
-                            logAdminActivity('ADMIN_DELETE', $_SESSION['admin_id'], 'admin', $user['username']);
+                            if (isProtectedAdminAccount($user)) {
+                                $protected = true;
+                                $newUsers[] = $user;
+                            } else {
+                                $removed = true;
+                                logAdminActivity('ADMIN_DELETE', $_SESSION['admin_id'], 'admin', $user['username']);
+                            }
                         } else {
                             $newUsers[] = $user;
                         }
                     }
                     
-                    if ($removed) {
+                    if ($protected) {
+                        $message = protectedAdminMessage('deleted');
+                        $messageType = 'error';
+                    } elseif ($removed) {
                         saveAdminUsers($newUsers);
-                        $message = 'Admin removed successfully';
+                        $message = dcs_t('admin.admins.removed_success');
                         $messageType = 'success';
                     } else {
-                        $message = 'Admin not found';
+                        $message = dcs_t('admin.admins.not_found');
                         $messageType = 'error';
                     }
                 }
@@ -120,21 +161,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
                 // Can't deactivate yourself
                 if ($adminId == $_SESSION['admin_id']) {
-                    $message = 'You cannot deactivate your own account';
+                    $message = dcs_t('admin.admins.error_deactivate_self');
                     $messageType = 'error';
                 } else {
                     $users = getAdminUsers();
                     
                     foreach ($users as &$user) {
                         if ($user['id'] == $adminId) {
-                            $user['is_active'] = !$user['is_active'];
-                            saveAdminUsers($users);
-                            
-                            $action = $user['is_active'] ? 'activated' : 'deactivated';
-                            logAdminActivity('ADMIN_EDIT', $_SESSION['admin_id'], 'admin', $user['username'], ['action' => $action]);
-                            
-                            $message = "Admin {$action} successfully";
-                            $messageType = 'success';
+                            if (isProtectedAdminAccount($user)) {
+                                $message = protectedAdminMessage('deactivated');
+                                $messageType = 'error';
+                            } else {
+                                $user['is_active'] = !$user['is_active'];
+                                saveAdminUsers($users);
+                                
+                                $action = $user['is_active'] ? 'activated' : 'deactivated';
+                                logAdminActivity('ADMIN_EDIT', $_SESSION['admin_id'], 'admin', $user['username'], ['action' => $action]);
+                                
+                                $message = dcs_t($user['is_active'] ? 'admin.admins.activated_success' : 'admin.admins.deactivated_success');
+                                $messageType = 'success';
+                            }
                             break;
                         }
                     }
@@ -146,20 +192,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $newPassword = $_POST['new_password'] ?? '';
                 
                 if (strlen($newPassword) < 8) {
-                    $message = 'Password must be at least 8 characters';
+                    $message = dcs_t('admin.admins.error_password_length');
                     $messageType = 'error';
                 } else {
                     $users = getAdminUsers();
                     
                     foreach ($users as &$user) {
                         if ($user['id'] == $adminId) {
-                            $user['password_hash'] = password_hash($newPassword, PASSWORD_BCRYPT);
-                            saveAdminUsers($users);
-                            
-                            logAdminActivity('ADMIN_EDIT', $_SESSION['admin_id'], 'admin', $user['username'], ['action' => 'password_reset']);
-                            
-                            $message = 'Password reset successfully';
-                            $messageType = 'success';
+                            if (isProtectedAdminAccount($user)) {
+                                $message = protectedAdminMessage('password reset');
+                                $messageType = 'error';
+                            } else {
+                                $user['password_hash'] = password_hash($newPassword, PASSWORD_BCRYPT);
+                                saveAdminUsers($users);
+                                
+                                logAdminActivity('ADMIN_EDIT', $_SESSION['admin_id'], 'admin', $user['username'], ['action' => 'password_reset']);
+                                
+                                $message = dcs_t('admin.admins.password_reset_success');
+                                $messageType = 'success';
+                            }
                             break;
                         }
                     }
@@ -173,7 +224,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $admins = getAdminUsers();
 
 // Page title
-$pageTitle = 'Admin Management';
+$pageTitle = dcs_t('admin.admins.title');
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -235,7 +286,7 @@ $pageTitle = 'Admin Management';
                         <div class="admin-username"><?= e($currentAdmin['username']) ?></div>
                         <div class="admin-role"><?= getRoleBadge($currentAdmin['role']) ?></div>
                     </div>
-                    <a href="logout.php" class="btn btn-secondary btn-small">Logout</a>
+                    <a href="logout.php" class="btn btn-secondary btn-small"><?= e(dcs_t('admin.common.logout')) ?></a>
                 </div>
             </header>
             
@@ -250,103 +301,111 @@ $pageTitle = 'Admin Management';
                 <!-- Add New Admin -->
                 <div class="card">
                     <div class="card-header">
-                        <h2 class="card-title">Add New Admin</h2>
+                        <h2 class="card-title"><?= e(dcs_t('admin.admins.add_new')) ?></h2>
                     </div>
                     
-                    <form method="POST" action="">
+                    <form method="POST" action="" autocomplete="off">
                         <?= csrfField() ?>
                         <input type="hidden" name="action" value="add_admin">
+                        <input type="text" name="browser_autofill_username" autocomplete="username" style="position:absolute; left:-9999px; width:1px; height:1px;" tabindex="-1" aria-hidden="true">
+                        <input type="password" name="browser_autofill_password" autocomplete="current-password" style="position:absolute; left:-9999px; width:1px; height:1px;" tabindex="-1" aria-hidden="true">
                         
                         <div class="form-group">
-                            <label for="username">Username</label>
+                            <label for="username"><?= e(dcs_t('admin.admins.username')) ?></label>
                             <input type="text" 
                                    id="username" 
                                    name="username" 
                                    class="form-control" 
                                    required 
                                    pattern="[a-zA-Z0-9_]{3,50}"
+                                   value=""
+                                   autocomplete="new-password"
                                    title="3-50 characters, letters, numbers and underscore only">
                         </div>
                         
                         <div class="form-group">
-                            <label for="email">Email</label>
+                            <label for="email"><?= e(dcs_t('admin.admins.email')) ?></label>
                             <input type="email" 
                                    id="email" 
                                    name="email" 
                                    class="form-control" 
+                                   value=""
+                                   autocomplete="off"
                                    required>
                         </div>
                         
                         <div class="form-group">
-                            <label for="password">Password</label>
+                            <label for="password"><?= e(dcs_t('admin.admins.password')) ?></label>
                             <input type="password" 
                                    id="password" 
                                    name="password" 
                                    class="form-control" 
                                    required 
-                                   minlength="8">
-                            <small class="text-muted">Minimum 8 characters</small>
+                                   minlength="8"
+                                   value=""
+                                   autocomplete="new-password">
+                            <small class="text-muted"><?= e(dcs_t('admin.admins.minimum_8')) ?></small>
                         </div>
                         
                         <div class="form-group">
-                            <label for="role">Role</label>
+                            <label for="role"><?= e(dcs_t('admin.admins.role')) ?></label>
                             <select id="role" name="role" class="form-control">
-                                <option value="<?= ROLE_LSO ?>">LSO (Landing Signal Officer)</option>
+                                <option value="<?= ROLE_LSO ?>"><?= e(dcs_t('admin.admins.role_lso')) ?></option>
                                 <?php if ($currentAdmin['role'] == ROLE_AIR_BOSS): ?>
-                                    <option value="<?= ROLE_AIR_BOSS ?>">Air Boss (Air Officer)</option>
+                                    <option value="<?= ROLE_AIR_BOSS ?>"><?= e(dcs_t('admin.admins.role_air_boss')) ?></option>
                                 <?php endif; ?>
                             </select>
                         </div>
                         
-                        <button type="submit" class="btn btn-primary">Add Admin</button>
+                        <button type="submit" class="btn btn-primary"><?= e(dcs_t('admin.admins.add_admin')) ?></button>
                     </form>
                 </div>
                 
                 <!-- Admin List -->
                 <div class="card">
                     <div class="card-header">
-                        <h2 class="card-title">Admin Users (<?= count($admins) ?>)</h2>
+                        <h2 class="card-title"><?= e(dcs_t('admin.admins.users', ['count' => count($admins)])) ?></h2>
                     </div>
                     
                     <?php foreach ($admins as $admin): ?>
+                        <?php $isProtectedAdmin = isProtectedAdminAccount($admin); ?>
                         <div class="admin-card">
                             <div class="admin-info">
                                 <h3>
                                     <?= e($admin['username']) ?>
                                     <?= getRoleBadge($admin['role']) ?>
                                     <span class="admin-status <?= $admin['is_active'] ? 'status-active' : 'status-inactive' ?>">
-                                        <?= $admin['is_active'] ? 'Active' : 'Inactive' ?>
+                                        <?= e($admin['is_active'] ? dcs_t('admin.admins.active') : dcs_t('admin.admins.inactive')) ?>
                                     </span>
                                 </h3>
                                 <div class="admin-meta">
-                                    Email: <?= e($admin['email']) ?><br>
-                                    Created: <?= formatDate($admin['created_at']) ?><br>
-                                    Last Login: <?= formatDate($admin['last_login']) ?>
+                                    <?= e(dcs_t('admin.admins.email')) ?>: <?= e($admin['email']) ?><br>
+                                    <?= e(dcs_t('admin.admins.created')) ?>: <?= formatDate($admin['created_at']) ?><br>
+                                    <?= e(dcs_t('admin.admins.last_login')) ?>: <?= formatDate($admin['last_login']) ?>
                                     <?php if ($admin['failed_attempts'] > 0): ?>
-                                        <br><span class="text-warning">Failed attempts: <?= $admin['failed_attempts'] ?></span>
+                                        <br><span class="text-warning"><?= e(dcs_t('admin.admins.failed_attempts')) ?>: <?= $admin['failed_attempts'] ?></span>
                                     <?php endif; ?>
                                 </div>
                             </div>
                             
                             <div class="btn-group">
-                                <?php if ($admin['id'] != $_SESSION['admin_id']): ?>
+                                <?php if ($admin['id'] != $_SESSION['admin_id'] && !$isProtectedAdmin): ?>
                                     <!-- Toggle Active Status -->
                                     <form method="POST" action="" style="display: inline;">
                                         <?= csrfField() ?>
                                         <input type="hidden" name="action" value="toggle_active">
                                         <input type="hidden" name="admin_id" value="<?= $admin['id'] ?>">
                                         <button type="submit" class="btn btn-secondary btn-small">
-                                            <?= $admin['is_active'] ? 'Deactivate' : 'Activate' ?>
+                                            <?= e($admin['is_active'] ? dcs_t('admin.admins.deactivate') : dcs_t('admin.admins.activate')) ?>
                                         </button>
                                     </form>
                                     
                                     <!-- Reset Password -->
                                     <button type="button" 
                                             class="btn btn-secondary btn-small"
-                                            onclick="showResetPasswordModal(<?= $admin['id'] ?>, '<?= e($admin['username']) ?>')">
-                                        Reset Password
+                                            onclick='showResetPasswordModal(<?= $admin['id'] ?>, <?= json_encode($admin['username']) ?>)'>
+                                        <?= e(dcs_t('admin.admins.reset_password')) ?>
                                     </button>
-                                    
                                     <!-- Remove Admin -->
                                     <form method="POST" action="" style="display: inline;">
                                         <?= csrfField() ?>
@@ -354,12 +413,14 @@ $pageTitle = 'Admin Management';
                                         <input type="hidden" name="admin_id" value="<?= $admin['id'] ?>">
                                         <button type="submit" 
                                                 class="btn btn-danger btn-small"
-                                                onclick="return confirm('Remove admin <?= e($admin['username']) ?>? This cannot be undone.')">
-                                            Remove
+                                                onclick='return confirm(<?= json_encode(dcs_t('admin.admins.confirm_remove') . ' ' . $admin['username'] . '? ' . dcs_t('admin.admins.cannot_undone')) ?>)'>
+                                            <?= e(dcs_t('admin.admins.remove')) ?>
                                         </button>
                                     </form>
+                                <?php elseif ($isProtectedAdmin): ?>
+                                    <span class="text-muted">Protected account</span>
                                 <?php else: ?>
-                                    <span class="text-muted">Current User</span>
+                                    <span class="text-muted"><?= e(dcs_t('admin.admins.current_user')) ?></span>
                                 <?php endif; ?>
                             </div>
                         </div>
@@ -373,7 +434,7 @@ $pageTitle = 'Admin Management';
     <div id="resetPasswordModal" class="modal">
         <div class="modal-content" style="max-width: 400px;">
             <div class="modal-header">
-                <h2>Reset Password</h2>
+                <h2><?= e(dcs_t('admin.admins.reset_password')) ?></h2>
                 <button type="button" class="modal-close" onclick="closeResetPasswordModal()">&times;</button>
             </div>
             <form method="POST" action="">
@@ -382,24 +443,24 @@ $pageTitle = 'Admin Management';
                 <input type="hidden" name="admin_id" id="resetAdminId">
                 
                 <div class="form-group">
-                    <label>Admin</label>
+                    <label><?= e(dcs_t('admin.nav.admins')) ?></label>
                     <p id="resetAdminName"></p>
                 </div>
                 
                 <div class="form-group">
-                    <label for="new_password">New Password</label>
+                    <label for="new_password"><?= e(dcs_t('admin.admins.new_password')) ?></label>
                     <input type="password" 
                            name="new_password" 
                            id="new_password" 
                            class="form-control" 
                            required 
                            minlength="8">
-                    <small class="text-muted">Minimum 8 characters</small>
+                    <small class="text-muted"><?= e(dcs_t('admin.admins.minimum_8')) ?></small>
                 </div>
                 
                 <div class="btn-group">
-                    <button type="submit" class="btn btn-primary">Reset Password</button>
-                    <button type="button" class="btn btn-secondary" onclick="closeResetPasswordModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary"><?= e(dcs_t('admin.admins.reset_password')) ?></button>
+                    <button type="button" class="btn btn-secondary" onclick="closeResetPasswordModal()"><?= e(dcs_t('admin.common.cancel')) ?></button>
                 </div>
             </form>
         </div>

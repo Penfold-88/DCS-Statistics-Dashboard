@@ -5,10 +5,16 @@
 
 require_once dirname(__DIR__) . '/auth.php';
 require_once dirname(__DIR__) . '/admin_functions.php';
+require_once dirname(__DIR__) . '/demo_helpers.php';
 
 // Require admin login and permission
 requireAdmin();
 requirePermission('export_data');
+
+if (isDemoRestricted(getCurrentAdmin())) {
+    http_response_code(403);
+    die('Demo mode is enabled. Data exports are locked on the public demo.');
+}
 
 // Verify CSRF token
 if (!isset($_GET['csrf_token']) || !verifyCSRFToken($_GET['csrf_token'])) {
@@ -22,10 +28,53 @@ $format = $_GET['format'] ?? 'csv';
 $dateFrom = $_GET['date_from'] ?? '';
 $dateTo = $_GET['date_to'] ?? '';
 
+if ($dateFrom !== '' && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $dateFrom)) {
+    http_response_code(400);
+    die('Invalid start date');
+}
+
+if ($dateTo !== '' && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $dateTo)) {
+    http_response_code(400);
+    die('Invalid end date');
+}
+
 // Validate format
 if (!in_array($format, EXPORT_FORMATS)) {
     http_response_code(400);
     die('Invalid export format');
+}
+
+function redactExportSensitiveData($value) {
+    $sensitiveKeys = [
+        'api_key',
+        'password',
+        'password_hash',
+        'token',
+        'token_hash',
+        'csrf_token',
+        'session_id',
+        'secret'
+    ];
+
+    if (!is_array($value)) {
+        return $value;
+    }
+
+    $redacted = [];
+    foreach ($value as $key => $item) {
+        $keyString = strtolower((string)$key);
+        $isSensitive = false;
+        foreach ($sensitiveKeys as $sensitiveKey) {
+            if ($keyString === $sensitiveKey || strpos($keyString, $sensitiveKey) !== false) {
+                $isSensitive = true;
+                break;
+            }
+        }
+
+        $redacted[$key] = $isSensitive ? '[REDACTED]' : redactExportSensitiveData($item);
+    }
+
+    return $redacted;
 }
 
 // Prepare data based on export type
@@ -71,7 +120,8 @@ switch ($exportType) {
             die('Date range required for logs export');
         }
         
-        $logs = json_decode(file_get_contents(ADMIN_LOGS_FILE), true) ?: [];
+        $logs = json_decode(@file_get_contents(ADMIN_LOGS_FILE), true) ?: [];
+        $logs = array_map('normalizeAdminLog', $logs);
         $users = getAdminUsers();
         $userMap = [];
         foreach ($users as $user) {
@@ -79,23 +129,23 @@ switch ($exportType) {
         }
         
         foreach ($logs as $log) {
-            $logDate = substr($log['created_at'], 0, 10);
+            $logDate = $log['created_at'] ? substr($log['created_at'], 0, 10) : '';
             if ($logDate >= $dateFrom && $logDate <= $dateTo) {
                 $data[] = [
-                    'date' => $log['created_at'],
+                    'date' => $log['created_at'] ?? '',
                     'admin' => $userMap[$log['admin_id']] ?? 'Unknown',
                     'action' => LOG_ACTIONS[$log['action']] ?? $log['action'],
                     'target_type' => $log['target_type'] ?? '',
                     'target_id' => $log['target_id'] ?? '',
                     'ip_address' => $log['ip_address'] ?? '',
-                    'details' => is_array($log['details']) ? json_encode($log['details']) : $log['details']
+                    'details' => is_array($log['details'] ?? null) ? json_encode($log['details']) : ($log['details'] ?? '')
                 ];
             }
         }
         break;
         
     case 'full':
-        if (getCurrentAdmin()['role'] != ROLE_SUPER_ADMIN) {
+        if ((int)(getCurrentAdmin()['role'] ?? 0) !== ROLE_AIR_BOSS) {
             http_response_code(403);
             die('Permission denied');
         }
@@ -135,6 +185,15 @@ if (empty($data) && $exportType !== 'full') {
     http_response_code(404);
     die('No data found for the specified criteria');
 }
+
+$data = redactExportSensitiveData($data);
+logAdminActivity('DATA_EXPORT_DOWNLOAD', $_SESSION['admin_id'], 'export', $exportType, [
+    'format' => $format,
+    'date_from' => $dateFrom,
+    'date_to' => $dateTo,
+    'filename' => $filename,
+    'record_count' => is_array($data) ? count($data) : 0
+]);
 
 // Export based on format
 if ($format === 'csv') {

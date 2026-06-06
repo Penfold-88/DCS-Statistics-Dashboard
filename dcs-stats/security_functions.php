@@ -165,6 +165,51 @@ function logSecurityEvent($event, $details, $ip = null) {
         substr($user_agent, 0, 100)
     );
     
-    error_log($log_entry, 3, __DIR__ . '/security.log');
+    $logPath = getSecurityLogPath();
+    rotateSecurityLog($logPath);
+    error_log($log_entry, 3, $logPath);
+    @chmod($logPath, 0600);
+}
+
+function getSecurityLogPath() {
+    $customPath = getenv('DCS_STATS_SECURITY_LOG');
+    if ($customPath) {
+        $dir = dirname($customPath);
+        if (!is_dir($dir)) {
+            @mkdir($dir, 0700, true);
+        }
+        if (is_dir($dir) && is_writable($dir)) {
+            return $customPath;
+        }
+    }
+
+    $dataDir = __DIR__ . '/site-config/data';
+    if (!is_dir($dataDir)) {
+        @mkdir($dataDir, 0700, true);
+    }
+    if (is_dir($dataDir) && is_writable($dataDir)) {
+        return $dataDir . '/security.log';
+    }
+
+    $tempDir = sys_get_temp_dir() . '/dcs_stats';
+    if (!is_dir($tempDir)) {
+        @mkdir($tempDir, 0700, true);
+    }
+
+    return $tempDir . '/security.log';
+}
+
+function rotateSecurityLog($logPath) {
+    $maxBytes = 1024 * 1024;
+    if (!file_exists($logPath) || filesize($logPath) < $maxBytes) {
+        return;
+    }
+
+    $rotatedPath = $logPath . '.1';
+    if (file_exists($rotatedPath)) {
+        @unlink($rotatedPath);
+    }
+    @rename($logPath, $rotatedPath);
+    @chmod($rotatedPath, 0600);
 }
 ?>

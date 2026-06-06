@@ -217,12 +217,36 @@ html, body {
     .nav-menu li {
         border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     }
+
+    .public-nav-dropdown {
+        position: static;
+    }
     
     .nav-link {
         display: block;
         padding: 15px 20px;
         font-size: 1.1rem;
         transition: background 0.3s ease;
+    }
+
+    .nav-dropdown-button {
+        text-align: left;
+        width: 100%;
+    }
+
+    .public-nav-dropdown-menu {
+        background: rgba(0, 0, 0, 0.28);
+        border: 0;
+        box-shadow: none;
+        min-width: 0;
+        position: static;
+        width: 100%;
+    }
+
+    .public-nav-dropdown-link {
+        font-size: 0.98rem;
+        padding-left: 34px;
+        white-space: normal;
     }
     
     .nav-link:hover {

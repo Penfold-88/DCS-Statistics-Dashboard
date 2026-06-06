@@ -5,17 +5,28 @@ error_reporting(0);
 
 // Include security functions
 require_once __DIR__ . '/security_functions.php';
+require_once __DIR__ . '/api_client_enhanced.php';
 
 // Rate limiting
 if (!checkRateLimit(60, 60)) {
     exit;
 }
 
-// The DCSServerBot REST API doesn't provide server/instance data
-// Return empty array for now
-echo json_encode([
-    'error' => 'Server data not available through API',
-    'servers' => [],
-    'source' => 'api',
-    'message' => 'The DCSServerBot REST API does not currently provide server/instance data'
-]);
+try {
+    $client = createEnhancedAPIClient();
+    $servers = $client->request('/servers', null, 'GET');
+
+    echo json_encode([
+        'data' => is_array($servers) ? $servers : [],
+        'servers' => is_array($servers) ? $servers : [],
+        'source' => 'api',
+        'generated' => date('c')
+    ]);
+} catch (Exception $e) {
+    echo json_encode([
+        'error' => 'Service temporarily unavailable',
+        'servers' => [],
+        'data' => [],
+        'source' => 'api'
+    ]);
+}

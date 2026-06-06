@@ -5,6 +5,7 @@
 
 require_once __DIR__ . '/auth.php';
 require_once __DIR__ . '/admin_functions.php';
+require_once dirname(__DIR__) . '/language.php';
 require_once dirname(__DIR__) . '/site_features.php';
 
 // Require admin login and permission
@@ -13,6 +14,7 @@ requirePermission('manage_discord');
 
 // Get current admin
 $currentAdmin = getCurrentAdmin();
+$demoRestricted = isDemoRestricted($currentAdmin);
 
 // Handle form submission
 $message = '';
@@ -21,7 +23,10 @@ $messageType = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Verify CSRF token
     if (!isset($_POST['csrf_token']) || !verifyCSRFToken($_POST['csrf_token'])) {
-        $message = ERROR_MESSAGES['csrf_invalid'];
+        $message = dcs_t('admin.discord.csrf_invalid');
+        $messageType = 'error';
+    } elseif ($demoRestricted) {
+        $message = demoWriteLockMessage();
         $messageType = 'error';
     } else {
         // Load current features
@@ -34,7 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Validate URL
         if ($currentFeatures['show_discord_link'] && !empty($currentFeatures['discord_link_url'])) {
             if (!filter_var($currentFeatures['discord_link_url'], FILTER_VALIDATE_URL)) {
-                $message = 'Please enter a valid Discord invite URL';
+                $message = dcs_t('admin.discord.invalid_url');
                 $messageType = 'error';
             }
         }
@@ -43,10 +48,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Save settings
             if (saveSiteFeatures($currentFeatures)) {
                 logAdminActivity('SETTINGS_CHANGE', $_SESSION['admin_id'], 'settings', 'discord_link', $currentFeatures);
-                $message = 'Discord settings saved successfully';
+                $message = dcs_t('admin.discord.save_success');
                 $messageType = 'success';
             } else {
-                $message = 'Failed to save settings';
+                $message = dcs_t('admin.discord.save_failed');
                 $messageType = 'error';
             }
         }
@@ -57,14 +62,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $currentFeatures = loadSiteFeatures();
 
 // Page title
-$pageTitle = 'Discord Link Settings';
+$pageTitle = dcs_t('admin.discord.title');
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?= e(dcs_default_language()) ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= $pageTitle ?> - Carrier Air Wing Command</title>
+    <title><?= e($pageTitle) ?> - Carrier Air Wing Command</title>
     <link rel="stylesheet" href="css/admin.css">
 </head>
 <body>
@@ -75,13 +80,13 @@ $pageTitle = 'Discord Link Settings';
         <main class="admin-main">
             <!-- Header -->
             <header class="admin-header">
-                <h1><?= $pageTitle ?></h1>
+                <h1><?= e($pageTitle) ?></h1>
                 <div class="admin-user-menu">
                     <div class="admin-user-info">
                         <div class="admin-username"><?= e($currentAdmin['username']) ?></div>
                         <div class="admin-role"><?= getRoleBadge($currentAdmin['role']) ?></div>
                     </div>
-                    <a href="logout.php" class="btn btn-secondary btn-small">Logout</a>
+                    <a href="logout.php" class="btn btn-secondary btn-small"><?= e(dcs_t('admin.common.logout')) ?></a>
                 </div>
             </header>
             
@@ -96,7 +101,7 @@ $pageTitle = 'Discord Link Settings';
                 <!-- Discord Settings Form -->
                 <div class="card">
                     <div class="card-header">
-                        <h2 class="card-title">Discord Link Configuration</h2>
+                        <h2 class="card-title"><?= e(dcs_t('admin.discord.configuration')) ?></h2>
                     </div>
                     
                     <form method="POST" action="">
@@ -109,13 +114,13 @@ $pageTitle = 'Discord Link Settings';
                                        name="show_discord_link" 
                                        value="1"
                                        <?= ($currentFeatures['show_discord_link'] ?? false) ? 'checked' : '' ?>>
-                                <label for="show_discord_link">Show Discord Link in Navigation</label>
+                                <label for="show_discord_link"><?= e(dcs_t('admin.discord.show_in_navigation')) ?></label>
                             </div>
-                            <small class="text-muted">Enable or disable the Discord link in the main site navigation</small>
+                            <small class="text-muted"><?= e(dcs_t('admin.discord.show_help')) ?></small>
                         </div>
                         
                         <div class="form-group">
-                            <label for="discord_link_url">Discord Invite URL</label>
+                            <label for="discord_link_url"><?= e(dcs_t('admin.discord.invite_url')) ?></label>
                             <input type="url" 
                                    id="discord_link_url" 
                                    name="discord_link_url" 
@@ -124,14 +129,14 @@ $pageTitle = 'Discord Link Settings';
                                    placeholder="https://discord.gg/YourInvite"
                                    required>
                             <small class="text-muted">
-                                The Discord invite link that users will click on. 
-                                <strong>Tip:</strong> Use a permanent invite link that doesn't expire.
+                                <?= e(dcs_t('admin.discord.invite_help')) ?>
+                                <strong><?= e(dcs_t('admin.discord.tip_label')) ?></strong> <?= e(dcs_t('admin.discord.tip_text')) ?>
                             </small>
                         </div>
                         
                         <div class="form-actions">
-                            <button type="submit" class="btn btn-primary">Save Discord Settings</button>
-                            <a href="settings.php" class="btn btn-secondary">Back to Site Features</a>
+                            <button type="submit" class="btn btn-primary"><?= e(dcs_t('admin.discord.save_button')) ?></button>
+                            <a href="settings.php" class="btn btn-secondary"><?= e(dcs_t('admin.discord.back_to_features')) ?></a>
                         </div>
                     </form>
                 </div>
@@ -139,26 +144,26 @@ $pageTitle = 'Discord Link Settings';
                 <!-- Help Section -->
                 <div class="card">
                     <div class="card-header">
-                        <h3 class="card-title">Discord Integration Help</h3>
+                        <h3 class="card-title"><?= e(dcs_t('admin.discord.help_title')) ?></h3>
                     </div>
                     
                     <div class="help-content">
-                        <h4>Creating a Discord Invite Link</h4>
+                        <h4><?= e(dcs_t('admin.discord.create_invite_title')) ?></h4>
                         <ol>
-                            <li>Open your Discord server</li>
-                            <li>Right-click on a channel (preferably general or welcome)</li>
-                            <li>Select "Invite People"</li>
-                            <li>Click "Edit invite link"</li>
-                            <li>Set expiration to "Never" and max uses to "No limit"</li>
-                            <li>Copy the invite link and paste it above</li>
+                            <li><?= e(dcs_t('admin.discord.step_open_server')) ?></li>
+                            <li><?= e(dcs_t('admin.discord.step_right_click_channel')) ?></li>
+                            <li><?= e(dcs_t('admin.discord.step_invite_people')) ?></li>
+                            <li><?= e(dcs_t('admin.discord.step_edit_invite')) ?></li>
+                            <li><?= e(dcs_t('admin.discord.step_never_expire')) ?></li>
+                            <li><?= e(dcs_t('admin.discord.step_copy_link')) ?></li>
                         </ol>
                         
-                        <h4>Best Practices</h4>
+                        <h4><?= e(dcs_t('admin.discord.best_practices')) ?></h4>
                         <ul>
-                            <li>Use a permanent invite that doesn't expire</li>
-                            <li>Set the invite to point to a welcome or general channel</li>
-                            <li>Test the link regularly to ensure it still works</li>
-                            <li>Consider using Discord's vanity URL if your server has one</li>
+                            <li><?= e(dcs_t('admin.discord.practice_permanent')) ?></li>
+                            <li><?= e(dcs_t('admin.discord.practice_welcome_channel')) ?></li>
+                            <li><?= e(dcs_t('admin.discord.practice_test_regularly')) ?></li>
+                            <li><?= e(dcs_t('admin.discord.practice_vanity_url')) ?></li>
                         </ul>
                     </div>
                 </div>

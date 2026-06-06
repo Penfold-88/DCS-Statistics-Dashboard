@@ -2,8 +2,8 @@
 header('Content-Type: application/json');
 
 // Load configuration
-$configFile = __DIR__ . '/api_config.json';
-$config = file_exists($configFile) ? json_decode(file_get_contents($configFile), true) : [];
+require_once __DIR__ . '/api_config_helper.php';
+$config = loadApiConfigWithFix()['config'];
 
 // Return configuration for client-side API calls
 echo json_encode([

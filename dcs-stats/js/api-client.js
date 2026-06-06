@@ -19,21 +19,30 @@ class DCSStatsAPI {
 
     async loadConfig() {
         if (this.configLoaded) return this.config;
+        if (this.configPromise) return this.configPromise;
         
-        try {
+        this.configPromise = (async () => {
             const response = await fetch(this.buildUrl('get_api_config.php'));
             this.config = await response.json();
             this.configLoaded = true;
             return this.config;
+        })();
+
+        try {
+            return await this.configPromise;
         } catch (error) {
             // Failed to load API config
             this.config = { use_api: true };
+            this.configLoaded = true;
             return this.config;
+        } finally {
+            this.configPromise = null;
         }
     }
 
     async makeDirectAPICall(endpoint, options = {}) {
         const config = await this.loadConfig();
+        endpoint = this.prepareScopedEndpoint(endpoint, options);
         
         // Determine API base URL
         let apiUrl = config.api_base_url;
@@ -79,7 +88,7 @@ class DCSStatsAPI {
             // Add data for POST requests
             if (method === 'POST' && options.data) {
                 fetchOptions.headers['Content-Type'] = 'application/x-www-form-urlencoded';
-                fetchOptions.body = new URLSearchParams(options.data).toString();
+                fetchOptions.body = new URLSearchParams(this.prepareScopedData(options.data, options)).toString();
             }
             
             const response = await fetch(url, fetchOptions);
@@ -100,13 +109,14 @@ class DCSStatsAPI {
     async makeAPICall(endpoint, options = {}) {
         const config = await this.loadConfig();
         
-        if (!config.use_api || (!config.api_base_url && !config.api_host)) {
+        if (!config.use_api) {
             // API not enabled or no base URL configured
             throw new Error('API not enabled');
         }
 
         // First try proxy endpoint
         const method = options.method || 'GET';
+        endpoint = this.prepareScopedEndpoint(endpoint, options);
         const proxyUrl = this.buildUrl(`api_proxy.php?endpoint=${encodeURIComponent(endpoint)}&method=${method}`);
         
         // Making API call via proxy
@@ -125,7 +135,7 @@ class DCSStatsAPI {
 
             // For POST requests, send data as JSON in body
             if (method === 'POST' && (options.body || options.data)) {
-                const data = options.body || options.data || {};
+                const data = this.prepareScopedData(options.body || options.data || {}, options);
                 
                 // If body is FormData, convert to object
                 if (data instanceof FormData) {
@@ -167,110 +177,303 @@ class DCSStatsAPI {
         }
     }
 
-    async getLeaderboard() {
+    async request(endpoint, options = {}) {
+        return this.makeAPICall(endpoint, options);
+    }
+
+    getSelectedServerScope(options = {}) {
+        if (options.ignoreScope) return '';
+        if (options.serverScope !== undefined) return String(options.serverScope || '').trim();
+        if (typeof window.getDcsSelectedServer === 'function') {
+            return String(window.getDcsSelectedServer() || '').trim();
+        }
+        return String(window.DCS_SELECTED_SERVER || '').trim();
+    }
+
+    prepareScopedEndpoint(endpoint, options = {}) {
+        const method = options.method || 'GET';
+        const serverScope = this.getSelectedServerScope(options);
+        if (!serverScope || method !== 'GET') {
+            return endpoint;
+        }
+
+        const existingQuery = endpoint.includes('?') ? endpoint.split('?').slice(1).join('?') : '';
+        const existingParams = new URLSearchParams(existingQuery);
+        if (existingParams.has('server') || existingParams.has('server_name')) {
+            return endpoint;
+        }
+
+        const separator = endpoint.includes('?') ? '&' : '?';
+        const params = new URLSearchParams({
+            server: serverScope,
+            server_name: serverScope
+        });
+        return `${endpoint}${separator}${params.toString()}`;
+    }
+
+    prepareScopedData(data, options = {}) {
+        const serverScope = this.getSelectedServerScope(options);
+        if (!serverScope) {
+            return data;
+        }
+
+        if (data instanceof FormData) {
+            if (!data.has('server')) data.append('server', serverScope);
+            if (!data.has('server_name')) data.append('server_name', serverScope);
+            return data;
+        }
+
+        const scopedData = { ...(data || {}) };
+        if (!scopedData.server) scopedData.server = serverScope;
+        if (!scopedData.server_name) scopedData.server_name = serverScope;
+        return scopedData;
+    }
+
+    getCacheKey(name, options = {}) {
+        const serverScope = this.getSelectedServerScope(options) || 'all';
+        return `dcs_stats_cache_${name}_${serverScope}`;
+    }
+
+    getCachedValue(name, maxAgeMs, options = {}) {
+        try {
+            const raw = localStorage.getItem(this.getCacheKey(name, options));
+            if (!raw) return null;
+
+            const cached = JSON.parse(raw);
+            if (!cached || !cached.savedAt || !Object.prototype.hasOwnProperty.call(cached, 'data')) {
+                return null;
+            }
+
+            if (Date.now() - Number(cached.savedAt) > maxAgeMs) {
+                localStorage.removeItem(this.getCacheKey(name, options));
+                return null;
+            }
+
+            return cached.data;
+        } catch (error) {
+            return null;
+        }
+    }
+
+    setCachedValue(name, data, options = {}) {
+        try {
+            localStorage.setItem(this.getCacheKey(name, options), JSON.stringify({
+                savedAt: Date.now(),
+                data
+            }));
+        } catch (error) {
+            // Some locked-down browsers can block localStorage.
+        }
+    }
+
+    async getServerAttendance(options = {}) {
+        const cacheName = 'server_attendance';
+        const cacheTtlMs = 15 * 60 * 1000;
+        const cached = this.getCachedValue(cacheName, cacheTtlMs, options);
+        if (cached) {
+            return cached;
+        }
+
+        const attendance = await this.makeAPICall('/server_attendance', options);
+        this.setCachedValue(cacheName, attendance, options);
+        return attendance;
+    }
+
+    async getSquadrons(options = {}) {
+        const cacheName = 'squadrons';
+        const cacheTtlMs = 15 * 60 * 1000;
+        const cached = this.getCachedValue(cacheName, cacheTtlMs, options);
+        if (cached) {
+            return cached;
+        }
+
+        const squadrons = await this.makeAPICall('/squadrons', options);
+        const safeSquadrons = Array.isArray(squadrons) ? squadrons : [];
+        this.setCachedValue(cacheName, safeSquadrons, options);
+        return safeSquadrons;
+    }
+
+    async getSquadronCredits(name, options = {}) {
+        const cacheName = `squadron_credits_${String(name || '').toLowerCase()}`;
+        const cacheTtlMs = 15 * 60 * 1000;
+        const cached = this.getCachedValue(cacheName, cacheTtlMs, options);
+        if (cached) {
+            return cached;
+        }
+
+        const credits = await this.makeAPICall('/squadron_credits', {
+            ...options,
+            method: 'POST',
+            data: { name }
+        });
+        const safeCredits = credits || {};
+        this.setCachedValue(cacheName, safeCredits, options);
+        return safeCredits;
+    }
+
+    async getPilotTraps(playerName, playerDate = null, options = {}) {
+        const cleanName = String(playerName || '').trim();
+        if (!cleanName) {
+            return [];
+        }
+
+        const cacheName = `pilot_traps_${cleanName.toLowerCase()}_${playerDate || 'latest'}_${options.limit || 10}_${options.offset || 0}`;
+        const cacheTtlMs = 15 * 60 * 1000;
+        const cached = this.getCachedValue(cacheName, cacheTtlMs, options);
+        if (cached !== null) {
+            return cached;
+        }
+
+        const requestData = {
+            nick: cleanName,
+            limit: options.limit || 10,
+            offset: options.offset || 0
+        };
+
+        if (playerDate) {
+            requestData.date = playerDate;
+        }
+
+        const response = await this.makeAPICall('/traps', {
+            ...options,
+            method: 'POST',
+            data: requestData
+        });
+
+        const traps = Array.isArray(response)
+            ? response
+            : (response?.data || response?.traps || response?.rows || []);
+        const safeTraps = Array.isArray(traps) ? traps : [];
+        this.setCachedValue(cacheName, safeTraps, options);
+        return safeTraps;
+    }
+
+    async getRefreshIntervalMs() {
+        const config = await this.loadConfig();
+        const seconds = Number(config.refresh_interval || 300);
+        return Math.max(seconds, 60) * 1000;
+    }
+
+    async getLeaderboard(options = {}) {
         const config = await this.loadConfig();
         
         if (!config.use_api) {
             throw new Error('API is not enabled');
         }
 
-        // API only - no fallback
-        const topKillsData = await this.makeAPICall('/topkills');
-        
-        // For each player in top 10, fetch their detailed stats
-        const detailedPlayers = await Promise.all(
-            topKillsData.slice(0, 10).map(async (player, index) => {
+        const leaderboard = await this.makeAPICall('/leaderboard?what=kills&limit=10');
+        const items = Array.isArray(leaderboard) ? leaderboard : (leaderboard.items || []);
+        const needsPlayerDetails = options.loadPlayerDetails !== false;
+        const detailedPlayers = await Promise.all(items.map(async (player, index) => {
+            let overall = {};
+            let mostUsedAircraft = null;
+
+            if (needsPlayerDetails) {
                 try {
-
-                    // Now get their detailed stats
-                    const stats = await this.makeAPICall('/stats', {
+                    const playerInfo = await this.makeAPICall('/player_info', {
                         method: 'POST',
-                        data: {
-                            nick: player.nick,
-                            date: player.date
-                        }
+                        data: { nick: player.nick }
                     });
-
-
-                    // Find most used aircraft from killsByModule
-                    let mostUsedAircraft = 'N/A';
-                    if (stats.killsByModule && stats.killsByModule.length > 0) {
-                        // Sort by kills to find most used
-                        const sorted = [...stats.killsByModule].sort((a, b) => b.kills - a.kills);
-                        mostUsedAircraft = sorted[0].module || 'N/A';
-                    }
-
-                    return {
-                        rank: index + 1,
-                        nick: player.nick,
-                        kills: stats.kills || 0,
-                        deaths: stats.deaths || 0,
-                        kd_ratio: stats.AAKDR || 0,
-                        sorties: stats.takeoffs || 0, // Use takeoffs as sorties
-                        takeoffs: stats.takeoffs || 0,
-                        landings: stats.landings || 0,
-                        crashes: stats.crashes || 0,
-                        ejections: stats.ejections || 0,
-                        most_used_aircraft: mostUsedAircraft
-                    };
-                } catch (e) {
-                    console.error(`Failed to get detailed stats for ${player.nick}:`, e);
+                    overall = playerInfo.overall || {};
+                    const moduleKills = Array.isArray(overall.killsByModule) ? overall.killsByModule : [];
+                    mostUsedAircraft = moduleKills.length ? moduleKills[0].module : null;
+                } catch (error) {
+                    overall = {};
                 }
-                
-                // Fallback to basic data if detailed stats fail
-                return {
-                    rank: index + 1,
-                    name: player.nick,
-                    kills: player.AAkills || 0,
-                    deaths: player.deaths || 0,
-                    kd_ratio: player.AAKDR || 0,
-                    sorties: 0,
-                    takeoffs: 0,
-                    landings: 0,
-                    crashes: 0,
-                    ejections: 0,
-                    most_used_aircraft: 'N/A'
-                };
-            })
-        );
+            }
+
+            return {
+                rank: player.row_num || index + 1,
+                nick: player.nick,
+                name: player.nick,
+                date: player.date,
+                kills: player.kills ?? overall.kills ?? 0,
+                deaths: player.deaths ?? overall.deaths ?? 0,
+                kd_ratio: Number(player.kdr ?? overall.kdr ?? 0),
+                kdr: Number(player.kdr ?? overall.kdr ?? 0),
+                kills_pvp: player.kills_pvp ?? overall.kills_pvp ?? 0,
+                deaths_pvp: player.deaths_pvp ?? overall.deaths_pvp ?? 0,
+                kdr_pvp: Number(player.kdr_pvp ?? overall.kdr_pvp ?? 0),
+                credits: player.credits ?? 0,
+                playtime: player.playtime ?? overall.playtime ?? 0,
+                sorties: overall.sorties ?? null,
+                takeoffs: overall.takeoffs ?? null,
+                landings: overall.landings ?? null,
+                crashes: overall.crashes ?? null,
+                ejections: overall.ejections ?? null,
+                most_used_aircraft: mostUsedAircraft
+            };
+        }));
         
         return {
             data: detailedPlayers,
             source: 'api-client',
             count: detailedPlayers.length,
+            total_count: leaderboard.total_count || detailedPlayers.length,
             generated: new Date().toISOString()
         };
     }
 
-    async getServerStats() {
+    async getTopPilots(metric = 'kills', limit = 5) {
         const config = await this.loadConfig();
-        
+
         if (!config.use_api) {
             throw new Error('API is not enabled');
         }
 
-        // get /serverstats data
-        const stats = await this.makeAPICall('/serverstats', {
-            data: {}
+        const metricMap = {
+            kills: 'kills',
+            kdr: 'kdr',
+            kdr_pvp: 'kdr_pvp'
+        };
+        const what = metricMap[metric] || 'kills';
+        const normalize = (player, index) => ({
+            rank: player.row_num || index + 1,
+            nick: player.nick,
+            name: player.nick,
+            date: player.date,
+            kills: Number(player.kills || 0),
+            deaths: Number(player.deaths || 0),
+            kd_ratio: Number(player.kd_ratio ?? player.kdr ?? 0),
+            kdr: Number(player.kdr ?? player.kd_ratio ?? 0),
+            kills_pvp: Number(player.kills_pvp || 0),
+            deaths_pvp: Number(player.deaths_pvp || 0),
+            kdr_pvp: Number(player.kdr_pvp || 0),
+            credits: Number(player.credits || 0),
+            playtime: Number(player.playtime || 0)
         });
+        const valueForMetric = (player) => {
+            if (what === 'kdr') return Number(player.kdr ?? player.kd_ratio ?? 0);
+            if (what === 'kdr_pvp') return Number(player.kdr_pvp || 0);
+            return Number(player.kills || 0);
+        };
 
-        // get /topkills data
-        const topkills = await this.makeAPICall('/topkills?limit=5');
+        try {
+            const leaderboard = await this.makeAPICall(`/leaderboard?what=${encodeURIComponent(what)}&limit=${Number(limit) || 5}`);
+            const items = Array.isArray(leaderboard) ? leaderboard : (leaderboard.items || []);
+            return items.map(normalize);
+        } catch (error) {
+            if (what === 'kills') throw error;
+            const fallback = await this.makeAPICall('/leaderboard?what=kills&limit=100');
+            const items = Array.isArray(fallback) ? fallback : (fallback.items || []);
+            return items.map(normalize)
+                .sort((a, b) => valueForMetric(b) - valueForMetric(a))
+                .slice(0, Number(limit) || 5);
+        }
+    }
 
-        // Get squadron list
-        const squadrons = await this.makeAPICall('/squadrons');
+    async getTopSquadrons(limit = 3, options = {}) {
+        const squadrons = await this.getSquadrons(options);
+        const safeLimit = Math.max(1, Number(limit) || 3);
+        const candidates = squadrons.slice(0, Math.max(safeLimit, 10));
 
-        // Fetch credits for each squadron
         const squadronsWithCredits = await Promise.all(
-            squadrons.map(async (squadron) => {
+            candidates.map(async (squadron) => {
                 try {
-                    const credits = await this.makeAPICall('/squadron_credits', {
-                        method: 'POST',
-                        data: { name: squadron.name }
-                    });
+                    const credits = await this.getSquadronCredits(squadron.name, options);
                     return {
                         name: squadron.name,
-                        credits: credits.credits || 0
+                        credits: Number(credits.credits || 0)
                     };
                 } catch (error) {
                     return {
@@ -281,29 +484,45 @@ class DCSStatsAPI {
             })
         );
 
-        // Sort by credits and get top 3
-        const top3Squadrons = squadronsWithCredits
+        return squadronsWithCredits
             .sort((a, b) => b.credits - a.credits)
-            .slice(0, 3);
+            .slice(0, safeLimit);
+    }
 
-
-        // If stats has overall server statistics, use them
-        if (stats.totalPlayers !== undefined) {
-            return {
-                totalPlayers: stats.totalPlayers || 0,
-                totalPlaytime: stats.totalPlaytime || 0,
-                avgPlaytime: stats.avgPlaytime || 0,
-                activePlayers: stats.activePlayers || 0,
-                totalSorties: stats.totalSorties || 0,
-                totalKills: stats.totalKills || 0,
-                totalDeaths: stats.totalDeaths || 0,
-                totalPvPKills: stats.totalPvPKills || 0,
-                totalPvPDeaths: stats.totalPvPDeaths || 0,
-                top5Pilots: topkills,
-                top3Squadrons: top3Squadrons,
-                activityLastWeek: stats.daily_players
-            };
+    async getServerStats(options = {}) {
+        const config = await this.loadConfig();
+        
+        if (!config.use_api) {
+            throw new Error('API is not enabled');
         }
+
+        const [stats, attendance, topkills] = await Promise.all([
+            options.loadServerStats !== false
+                ? this.makeAPICall('/serverstats', { data: {} }).catch(() => ({}))
+                : Promise.resolve({}),
+            options.loadAttendance !== false
+                ? this.getServerAttendance(options).catch(() => ({}))
+                : Promise.resolve({}),
+            options.loadTopPilots !== false
+                ? this.getTopPilots('kills', 5).catch(() => [])
+                : Promise.resolve([])
+        ]);
+
+        return {
+            totalPlayers: stats.totalPlayers || 0,
+            totalPlaytime: stats.totalPlaytime || 0,
+            avgPlaytime: stats.avgPlaytime || 0,
+            activePlayers: stats.activePlayers || attendance.current_players || 0,
+            totalSorties: stats.totalSorties || 0,
+            totalKills: stats.totalKills || 0,
+            totalDeaths: stats.totalDeaths || 0,
+            totalPvPKills: stats.totalPvPKills || 0,
+            totalPvPDeaths: stats.totalPvPDeaths || 0,
+            top5Pilots: topkills,
+            top3Squadrons: [],
+            activityLastWeek: stats.daily_players || attendance.daily_trend || [],
+            attendance: attendance
+        };
     }
 
     async searchPlayers(searchTerm) {
@@ -347,34 +566,32 @@ class DCSStatsAPI {
         return differences <= 2;
     }
 
-    async getPlayerStats(playerName) {
+    async getPlayerStats(playerName, playerDate = null) {
         const config = await this.loadConfig();
         
         if (!config.use_api) {
             throw new Error('API is not enabled');
         }
 
-        
-        // Get user data first using proxy
         const users = await this.makeAPICall('/getuser', {
             method: "POST",
             data: { nick: playerName }
         });
-        
-        
+
         if (users && users.length > 0) {
             const user = users[0];
 
-            // Get stats using proxy
-            const stats = await this.makeAPICall('/stats', {
+            const info = await this.makeAPICall('/player_info', {
                 method: 'POST',
                 data: {
                     nick: user.nick,
-                    date: user.date
+                    date: playerDate || user.date
                 }
             });
-            
-            
+            const stats = info.overall || {};
+            const lastSession = info.last_session || {};
+            const moduleStats = info.module_stats || stats.killsByModule || [];
+
             // Check if stats is empty object
             if (!stats || Object.keys(stats).length === 0) {
                 throw new Error(`No statistics found for player "${user.nick}". They may not have any recorded combat data.`);
@@ -390,6 +607,11 @@ class DCSStatsAPI {
                     mostUsedAircraft = sorted[0].module;
                 }
             }
+
+            if (Array.isArray(moduleStats) && moduleStats.length > 0) {
+                const sorted = [...moduleStats].sort((a, b) => (b.kills || 0) - (a.kills || 0));
+                mostUsedAircraft = sorted[0].module || mostUsedAircraft;
+            }
             
             return {
                 source: 'api-client',
@@ -398,27 +620,38 @@ class DCSStatsAPI {
                     kills: stats.kills || 0,
                     deaths: stats.deaths || 0,
                     kdr: stats.kdr || 0,
+                    kd_ratio: Number(stats.kdr || 0),
                     kills_pvp: stats.kills_pvp || 0,
                     deaths_pvp: stats.deaths_pvp || 0,
                     kdr_pvp: stats.kdr_pvp || 0,
-                    kills_by_module: stats.killsByModule ?
-                        stats.killsByModule.reduce((acc, item) => {
+                    kills_by_module: moduleStats && Array.isArray(moduleStats) ?
+                        moduleStats.reduce((acc, item) => {
                             acc[item.module] = item.kills;
                             return acc;
                         }, {}) : 
                         (stats.killsByModule || {}),
-                    last_session_kills: stats.lastSessionKills || 0,
-                    last_session_deaths: stats.lastSessionDeaths || 0,
+                    last_session_kills: lastSession.kills || stats.lastSessionKills || 0,
+                    last_session_deaths: lastSession.deaths || stats.lastSessionDeaths || 0,
                     takeoffs: stats.takeoffs || 0,
                     landings: stats.landings || 0,
                     crashes: stats.crashes || 0,
                     ejections: stats.ejections || 0,
                     sorties: stats.sorties || 0,
+                    playtime: stats.playtime || 0,
+                    current_server: info.current_server || null,
+                    credits: info.credits ? (info.credits.credits || 0) : 0,
+                    rank: info.credits ? info.credits.rank : null,
+                    campaign: info.credits ? info.credits.name : null,
+                    squadrons: info.squadrons || [],
+                    squadron: info.squadrons && info.squadrons.length ? info.squadrons[0].name : null,
                     carrier_traps: stats.carrier_traps || stats.carrierTraps || 0,
                     avgTrapScore: stats.avgTrapScore || stats.avg_trap_score || 0,
                     trapScores: stats.trapScores || [],
                     most_used_aircraft: mostUsedAircraft,
-                    aircraftUsage: stats.aircraftUsage || []
+                    aircraftUsage: Array.isArray(moduleStats) ? moduleStats.map(item => ({
+                        name: item.module,
+                        count: item.kills || 0
+                    })) : (stats.aircraftUsage || [])
                 }
             };
         }
@@ -438,20 +671,21 @@ class DCSStatsAPI {
             throw new Error('API is not enabled');
         }
 
-        // Use new /credits endpoint with POST via proxy
-        const credits = await this.makeAPICall('/credits', {
-            method: 'POST',
-            data: {}
-        });
+        const leaderboard = await this.makeAPICall('/leaderboard?what=credits&limit=100');
+        const credits = leaderboard.items || [];
         
         // Transform to expected format
-        return Object.entries(credits).map(([name, points]) => ({
-            name: name,
-            credits: points
+        return credits.map(player => ({
+            name: player.nick,
+            nick: player.nick,
+            credits: player.credits || 0,
+            kills: player.kills || 0,
+            deaths: player.deaths || 0,
+            kdr: player.kdr || 0
         })).sort((a, b) => b.credits - a.credits);
     }
 
-    async getServers() {
+    async getServers(options = {}) {
         const config = await this.loadConfig();
         
         if (!config.use_api) {
@@ -459,7 +693,7 @@ class DCSStatsAPI {
         }
 
         // Use new /servers endpoint
-        const data = await this.makeAPICall('/servers');
+        const data = await this.makeAPICall('/servers', { ignoreScope: options.ignoreScope === true });
         return {
             data: data,
             source: 'api-client',

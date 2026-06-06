@@ -8,6 +8,7 @@ class SettingsManager {
         this.apiUrl = 'api/settings.php';
         this.features = {};
         this.dependencies = {};
+        this.csrfToken = window.adminCsrfToken || document.querySelector('meta[name="csrf-token"]')?.content || '';
     }
     
     /**
@@ -39,9 +40,10 @@ class SettingsManager {
             const response = await fetch(this.apiUrl, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': this.csrfToken
                 },
-                body: JSON.stringify({ features })
+                body: JSON.stringify({ features, csrf_token: this.csrfToken })
             });
             
             if (!response.ok) {
@@ -66,9 +68,10 @@ class SettingsManager {
             const response = await fetch(this.apiUrl, {
                 method: 'PATCH',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': this.csrfToken
                 },
-                body: JSON.stringify({ feature, enabled })
+                body: JSON.stringify({ feature, enabled, csrf_token: this.csrfToken })
             });
             
             if (!response.ok) {

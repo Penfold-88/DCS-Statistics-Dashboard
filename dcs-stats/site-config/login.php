@@ -7,6 +7,17 @@
 ob_start();
 
 require_once __DIR__ . '/auth.php';
+require_once dirname(__DIR__) . '/language.php';
+if (!function_exists('e')) {
+    function e($value) {
+        return htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8');
+    }
+}
+
+if (!file_exists(getDataFilePath('users'))) {
+    header('Location: install.php');
+    exit;
+}
 
 // Redirect if already logged in
 if (isAdminLoggedIn()) {
@@ -46,11 +57,11 @@ if (isset($_GET['logout']) && $_GET['logout'] === 'success') {
 }
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?= e(dcs_default_language()) ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Login - DCS Statistics</title>
+    <title><?= e(dcs_t('admin.login.title')) ?> - DCS Statistics</title>
     <style>
         * {
             margin: 0;
@@ -212,8 +223,8 @@ if (isset($_GET['logout']) && $_GET['logout'] === 'success') {
 <body>
     <div class="login-container">
         <div class="login-header">
-            <h1>Admin Login</h1>
-            <p>DCS Statistics Management Panel</p>
+            <h1><?= e(dcs_t('admin.login.title')) ?></h1>
+            <p><?= e(dcs_t('admin.login.subtitle')) ?></p>
         </div>
         
         <?php if ($error): ?>
@@ -232,31 +243,31 @@ if (isset($_GET['logout']) && $_GET['logout'] === 'success') {
             <?= csrfField() ?>
             
             <div class="form-group">
-                <label for="username">Username or Email</label>
+                <label for="username"><?= e(dcs_t('admin.login.username_email')) ?></label>
                 <input type="text" id="username" name="username" required autofocus 
                        value="<?= htmlspecialchars($_POST['username'] ?? '') ?>">
             </div>
             
             <div class="form-group">
-                <label for="password">Password</label>
+                <label for="password"><?= e(dcs_t('admin.login.password')) ?></label>
                 <input type="password" id="password" name="password" required>
             </div>
             
             <div class="checkbox-group">
                 <input type="checkbox" id="remember" name="remember" value="1">
-                <label for="remember">Remember me for 30 days</label>
+                <label for="remember"><?= e(dcs_t('admin.login.remember')) ?></label>
             </div>
             
-            <button type="submit" class="btn-login">Login</button>
+            <button type="submit" class="btn-login"><?= e(dcs_t('admin.login.login_button')) ?></button>
         </form>
         
         <div class="footer-links">
-            <a href="<?php echo dirname(dirname($_SERVER['SCRIPT_NAME'])) . '/index.php'; ?>">← Back to Statistics</a>
+            <a href="<?php echo dirname(dirname($_SERVER['SCRIPT_NAME'])) . '/index.php'; ?>"><?= e(dcs_t('admin.login.back_to_statistics')) ?></a>
         </div>
         
         <div class="security-notice">
             <span class="lock-icon">🔒</span>
-            This is a secure area. All activities are logged.
+            <?= e(dcs_t('admin.login.security_notice')) ?>
         </div>
     </div>
     

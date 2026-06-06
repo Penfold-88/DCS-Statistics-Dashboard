@@ -7,13 +7,14 @@ include 'header.php';
 ?>
 <?php require_once __DIR__ . '/site_features.php'; ?>
 <?php require_once __DIR__ . '/table-responsive.php'; ?>
+<?php require_once __DIR__ . '/language.php'; ?>
 <?php include 'nav.php'; ?>
 
 <?php if (!isFeatureEnabled('credits_enabled')): ?>
 <main>
     <div class="alert" style="text-align: center; padding: 50px;">
-        <h2>Credits System Disabled</h2>
-        <p>The credits system is currently disabled for this server.</p>
+        <h2><?php echo htmlspecialchars(dcs_t('credits.disabled_title')); ?></h2>
+        <p><?php echo htmlspecialchars(dcs_t('credits.disabled_message')); ?></p>
     </div>
 </main>
 <?php include 'footer.php'; exit; ?>
@@ -21,34 +22,34 @@ include 'header.php';
 
 <main>
     <div class="dashboard-header">
-        <h1>Pilot Credits Search</h1>
-        <p class="dashboard-subtitle">Search for a pilot to view their current credits balance</p>
+        <h1><?php echo htmlspecialchars(dcs_t('credits.title')); ?></h1>
+        <p class="dashboard-subtitle"><?php echo htmlspecialchars(dcs_t('credits.subtitle')); ?></p>
     </div>
 
     <?php if (isFeatureEnabled('pilot_search')): ?>
     <div class="search-container">
-        <input type="text" id="playerSearchInput" placeholder="Search for a pilot..." />
-        <button onclick="searchForPlayers()">Search</button>
+        <input type="text" id="playerSearchInput" placeholder="<?php echo htmlspecialchars(dcs_t('pilot.search_placeholder')); ?>" />
+        <button onclick="searchForPlayers()"><?php echo htmlspecialchars(dcs_t('pilot.search_button')); ?></button>
     </div>
     <?php else: ?>
     <div class="alert" style="text-align: center; padding: 20px;">
-        <p>Pilot search functionality is currently disabled.</p>
+        <p><?php echo htmlspecialchars(dcs_t('pilot.search_disabled')); ?></p>
     </div>
     <?php endif; ?>
 
     <div id="multiple-results" style="display: none;">
-        <h3 style="text-align: center; color: #ccc;">Multiple pilots found. Please select one:</h3>
+        <h3 style="text-align: center; color: #ccc;"><?php echo htmlspecialchars(dcs_t('pilot.multiple_found')); ?></h3>
         <div id="results-list" class="results-list"></div>
     </div>
 
     <div id="search-results" style="display: none;">
-        <h3 style="text-align: center; color: #ccc; margin-bottom: 20px;">Search Results</h3>
+        <h3 style="text-align: center; color: #ccc; margin-bottom: 20px;"><?php echo htmlspecialchars(dcs_t('credits.search_results')); ?></h3>
         <div id="results-list" class="results-list"></div>
     </div>
 
     <!-- Loading indicator -->
     <div id="loading" class="loading-spinner" style="display: none;">
-        <p>Searching for pilot credits...</p>
+        <p><?php echo htmlspecialchars(dcs_t('credits.searching')); ?></p>
     </div>
     
     <!-- Credits display -->
@@ -57,10 +58,10 @@ include 'header.php';
             <h3 id="pilot-display-name"></h3>
             <div class="pilot-stats">
                 <div class="stat-group">
-                    <h4>Credits Information</h4>
+                    <h4><?php echo htmlspecialchars(dcs_t('credits.information')); ?></h4>
                     <div class="stats-grid">
                         <div class="stat-item credits-stat-item">
-                            <span class="stat-label">Current Balance:</span>
+                            <span class="stat-label"><?php echo htmlspecialchars(dcs_t('credits.current_balance')); ?>:</span>
                             <span class="stat-value credits-value" id="credits-value">0</span>
                         </div>
                     </div>
@@ -68,15 +69,15 @@ include 'header.php';
             </div>
             
             <div class="search-again">
-                <button onclick="searchAgain()" class="search-container button">Search Another Pilot</button>
+                <button onclick="searchAgain()" class="search-container button"><?php echo htmlspecialchars(dcs_t('credits.search_another')); ?></button>
             </div>
         </div>
     </div>
     
     <!-- No results message -->
     <div id="no-results" class="no-results" style="display: none;">
-        <p id="no-results-message">No credits data found for this pilot.</p>
-        <button onclick="searchAgain()" class="btn-secondary">Try Another Search</button>
+        <p id="no-results-message"><?php echo htmlspecialchars(dcs_t('credits.no_data')); ?></p>
+        <button onclick="searchAgain()" class="btn-secondary"><?php echo htmlspecialchars(dcs_t('credits.try_another')); ?></button>
     </div>
 </main>
 
@@ -128,7 +129,7 @@ include 'header.php';
         gap: 10px;
     }
     
-    #pilot-name {
+    #playerSearchInput {
         width: 100%;
         padding: 12px 15px;
         font-size: 16px; /* Prevents zoom on iOS */
@@ -266,6 +267,19 @@ include 'header.php';
 <?php tableResponsiveStyles(); ?>
 
 <script>
+const i18n = <?php echo json_encode([
+    'enterName' => dcs_t('pilot.enter_name'),
+    'noMatches' => dcs_t('pilot.no_matches'),
+    'checkSpelling' => dcs_t('pilot.check_spelling'),
+    'usePartial' => dcs_t('pilot.use_partial'),
+    'searchStart' => dcs_t('pilot.search_start'),
+    'searchError' => dcs_t('pilot.search_error'),
+    'noPilotData' => dcs_t('credits.no_pilot_data'),
+    'noTransactions' => dcs_t('credits.no_transactions'),
+    'loadError' => dcs_t('credits.load_error'),
+    'tryLater' => dcs_t('credits.try_later')
+], JSON_UNESCAPED_UNICODE); ?>;
+
 // Allow Enter key to trigger search
 document.getElementById('playerSearchInput').addEventListener('keypress', function(e) {
     if (e.key === 'Enter') {
@@ -294,7 +308,7 @@ async function searchForPlayers() {
     const searchTerm = searchInput.value.trim();
 
     if (!searchTerm) {
-        alert('Please enter a pilot name to search.');
+        alert(i18n.enterName);
         return;
     }
 
@@ -312,7 +326,7 @@ async function searchForPlayers() {
         document.getElementById('loading').style.display = 'none';
 
         if (searchData.error || searchData.count === 0) {
-            let errorMessage = searchData.error || `No pilots found matching "${searchTerm}". Try:\n• Checking the spelling\n• Using a partial name\n• Searching for the beginning of the name`;
+            let errorMessage = searchData.error || `${i18n.noMatches.replace('{search}', searchTerm)}\n• ${i18n.checkSpelling}\n• ${i18n.usePartial}\n• ${i18n.searchStart}`;
             if (searchData.message) {
                 errorMessage += '\n\n' + searchData.message;
             }
@@ -332,7 +346,7 @@ async function searchForPlayers() {
     } catch (error) {
         console.error('Error searching for pilots:', error);
         document.getElementById('loading').style.display = 'none';
-        document.getElementById('no-results-message').textContent = 'Error searching for pilots: ' + error.message;
+        document.getElementById('no-results-message').textContent = i18n.searchError.replace('{error}', error.message);
         document.getElementById('no-results').style.display = 'block';
     }
 }
@@ -368,14 +382,14 @@ async function loadPilotCredits(pilot) {
             document.getElementById('credits-display').style.display = 'block';
         } else {
             // No credits found
-            document.getElementById('no-results-message').innerHTML = `No credits data found for pilot "${pilot.nick}".<br><br>This pilot may not have any recorded transactions yet.`;
+            document.getElementById('no-results-message').innerHTML = `${escapeHtml(i18n.noPilotData.replace('{pilot}', pilot.nick))}<br><br>${escapeHtml(i18n.noTransactions)}`;
             document.getElementById('no-results').style.display = 'block';
         }
         
     } catch (error) {
         console.error('Error searching for pilot credits:', error);
         document.getElementById('loading').style.display = 'none';
-        document.getElementById('no-results-message').innerHTML = `Error searching for pilot credits.<br><br>Please try again later.`;
+        document.getElementById('no-results-message').innerHTML = `${escapeHtml(i18n.loadError)}<br><br>${escapeHtml(i18n.tryLater)}`;
         document.getElementById('no-results').style.display = 'block';
     }
 }
@@ -400,28 +414,21 @@ function showMultipleResults(results) {
     document.getElementById('multiple-results').style.display = 'block';
 }
 
-// Add function to handle pilot selection
-function selectPilot(pilotName) {
-    document.getElementById('search-results').style.display = 'none';
-    document.getElementById('loading').style.display = 'block';
-    searchPilotCredits(pilotName);
-}
-
 function searchAgain() {
     // Reset the input
-    document.getElementById('pilot-name').value = '';
+    document.getElementById('playerSearchInput').value = '';
     document.getElementById('credits-display').style.display = 'none';
     document.getElementById('no-results').style.display = 'none';
     document.getElementById('search-results').style.display = 'none';
-    document.getElementById('pilot-name').focus();
+    document.getElementById('playerSearchInput').focus();
 }
 
 // Check if there's a pilot parameter in the URL
 const urlParams = new URLSearchParams(window.location.search);
 const pilotParam = urlParams.get('pilot');
 if (pilotParam) {
-    document.getElementById('pilot-name').value = pilotParam;
-    searchPilotCredits();
+    document.getElementById('playerSearchInput').value = pilotParam;
+    searchForPlayers();
 }
 </script>
 

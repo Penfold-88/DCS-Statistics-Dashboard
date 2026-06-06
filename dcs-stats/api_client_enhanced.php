@@ -14,6 +14,7 @@ class EnhancedDCSServerBotAPIClient extends DCSServerBotAPIClient {
     private $apiHost;
     private $detectedProtocol;
     private $protocolTested = false;
+    private $verifySsl = true;
     
     public function __construct($config = []) {
         // Extract host without protocol
@@ -25,6 +26,10 @@ class EnhancedDCSServerBotAPIClient extends DCSServerBotAPIClient {
             $this->apiHost = 'localhost:8080';
         }
         
+        $this->verifySsl = isset($config['verify_ssl'])
+            ? filter_var($config['verify_ssl'], FILTER_VALIDATE_BOOLEAN)
+            : true;
+
         // Don't set base URL yet - we'll detect it
         $config['api_base_url'] = 'http://' . $this->apiHost; // Default to HTTP
         parent::__construct($config);
@@ -55,10 +60,9 @@ class EnhancedDCSServerBotAPIClient extends DCSServerBotAPIClient {
             curl_setopt($ch, CURLOPT_NOBODY, true); // HEAD request
             curl_setopt($ch, CURLOPT_HEADER, false);
             
-            // Disable SSL verification for HTTPS
             if ($protocol === 'https') {
-                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-                curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, $this->verifySsl);
+                curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, $this->verifySsl ? 2 : 0);
             }
             
             // Execute request

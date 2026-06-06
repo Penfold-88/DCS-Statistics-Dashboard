@@ -3,6 +3,8 @@
  * Admin Panel Helper Functions
  */
 
+require_once __DIR__ . '/demo_helpers.php';
+
 // Ensure admin panel constant is defined
 if (!defined('ADMIN_PANEL')) {
     die('Direct access not permitted');
@@ -32,14 +34,45 @@ function getCurrentAdmin() {
 function formatDate($date, $format = null) {
     if (!$date) return 'Never';
     if (!$format) $format = 'M d, Y H:i';
-    return date($format, strtotime($date));
+    $timestamp = strtotime($date);
+    if (!$timestamp) return 'Never';
+    return date($format, $timestamp);
+}
+
+/**
+ * Normalize older and newer admin log formats into one shape.
+ */
+function normalizeAdminLog($log) {
+    $log = is_array($log) ? $log : [];
+    $createdAt = $log['created_at'] ?? $log['timestamp'] ?? null;
+
+    return array_merge([
+        'id' => null,
+        'admin_id' => 0,
+        'action' => 'UNKNOWN',
+        'target_type' => null,
+        'target_id' => null,
+        'details' => null,
+        'ip_address' => $log['ip'] ?? 'unknown',
+        'user_agent' => 'unknown',
+        'created_at' => $createdAt
+    ], $log, [
+        'created_at' => $createdAt,
+        'ip_address' => $log['ip_address'] ?? $log['ip'] ?? 'unknown'
+    ]);
+}
+
+function adminLogTimestamp($log) {
+    $createdAt = $log['created_at'] ?? $log['timestamp'] ?? null;
+    $timestamp = $createdAt ? strtotime($createdAt) : 0;
+    return $timestamp ?: 0;
 }
 
 /**
  * Log admin action
  */
 function logAdminAction($action, $details = []) {
-    $logFile = __DIR__ . '/data/logs.json';
+    $logFile = ADMIN_LOGS_FILE;
     $logs = [];
     
     if (file_exists($logFile)) {
@@ -51,16 +84,17 @@ function logAdminAction($action, $details = []) {
         'admin_id' => $_SESSION['admin_id'] ?? 0,
         'admin_username' => getCurrentAdmin()['username'] ?? 'System',
         'details' => $details,
-        'ip' => $_SERVER['REMOTE_ADDR'] ?? '',
-        'timestamp' => date('Y-m-d H:i:s')
+        'ip_address' => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
+        'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? 'unknown',
+        'created_at' => date(DATE_FORMAT)
     ];
     
-    // Keep only last 1000 logs
-    if (count($logs) > 1000) {
-        $logs = array_slice($logs, -1000);
-    }
+    $logs = function_exists('pruneAdminLogs')
+        ? pruneAdminLogs($logs)
+        : array_slice($logs, -(defined('MAX_ADMIN_LOGS') ? MAX_ADMIN_LOGS : 1000));
     
-    file_put_contents($logFile, json_encode($logs, JSON_PRETTY_PRINT));
+    file_put_contents($logFile, json_encode($logs, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES), LOCK_EX);
+    @chmod($logFile, 0600);
 }
 
 /**
@@ -182,11 +216,12 @@ function isPlayerBanned($ucid) {
  * Get recent admin activity
  */
 function getRecentActivity($limit = 10) {
-    $logs = json_decode(file_get_contents(ADMIN_LOGS_FILE), true) ?: [];
+    $logs = json_decode(@file_get_contents(ADMIN_LOGS_FILE), true) ?: [];
+    $logs = array_map('normalizeAdminLog', $logs);
     
     // Sort by date descending
     usort($logs, function($a, $b) {
-        return strtotime($b['created_at']) - strtotime($a['created_at']);
+        return adminLogTimestamp($b) - adminLogTimestamp($a);
     });
     
     // Get admin usernames
@@ -216,27 +251,8 @@ function getDashboardStats() {
         'total_admins' => 0,
         'recent_activity' => []
     ];
-    
-    // Count players
-    $players = getPlayers();
-    $stats['total_players'] = count($players);
-    
-    // Count active players (would need to check mission stats)
-    $now = time();
-    $day_ago = $now - 86400;
-    $week_ago = $now - 604800;
-    
-    // Count bans
-    $bans = getPlayerBans(true);
-    $stats['total_bans'] = count($bans);
-    
-    // Count admins
-    $users = getAdminUsers();
-    $stats['total_admins'] = count(array_filter($users, function($u) {
-        return $u['is_active'];
-    }));
-    
-    // Get recent activity
+
+    // Keep the admin dashboard quick: avoid large DCSServerBot calls here.
     $stats['recent_activity'] = getRecentActivity(5);
     
     return $stats;
