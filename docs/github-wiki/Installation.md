@@ -92,3 +92,5 @@ For Docker installs, see [Docker Deployment](Docker-Deployment).
 On a fresh install, frontend features should be enabled by default.
 
 User choices should then be preserved during updates.
+
+Admin-managed customisations are preserved during normal updates, including uploaded branding under `uploads/`, generated theme files, menu settings, API settings, and local data. Manual edits made directly to core dashboard/template files may be replaced by the updater, so keep custom work in the admin theme tools, `uploads/`, or `custom/` where possible.

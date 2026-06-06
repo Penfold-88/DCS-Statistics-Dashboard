@@ -9,7 +9,7 @@
 function getUpdateChannelConfig() {
     $rootPath = dirname(__DIR__);
     $isDev = file_exists($rootPath . '/.dev') || file_exists(dirname($rootPath) . '/.dev') || getenv('DEV_BRANCH') === 'true';
-    $stableBranch = getenv('DCS_STATS_STABLE_BRANCH') ?: 'master';
+    $stableBranch = getenv('DCS_STATS_STABLE_BRANCH') ?: 'main';
     $devBranch = getenv('DCS_STATS_DEV_BRANCH') ?: 'Dev-20-05-26';
 
     return [

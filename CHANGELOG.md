@@ -360,6 +360,8 @@ V1.2 is a major dashboard, admin, theme, update, language, security, and perform
 - 🔐 Added optional `DCSBOT_API_KEY` environment override so Docker/server installs can keep the DCSServerBot API key out of saved JSON config.
 - 🔐 Locked the web installer behind admin authentication once the dashboard is already installed.
 - 🧹 Installer now attempts to remove `site-config/install.php` automatically after a successful install.
+- 🧭 Fresh installs now use the selected update channel branch and record the latest GitHub commit metadata when available.
+- 🧭 Stable update channel now defaults to `main` instead of the old `master` branch name.
 - 🧭 Missing configuration now redirects to installer properly.
 - 🧹 Removed fragile `goto` flow from installer logic.
 - 🧰 Installer-generated local data stays out of Git distribution.

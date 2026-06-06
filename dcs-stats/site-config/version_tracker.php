@@ -75,6 +75,43 @@ function getInstalledBuildLabel($versionInfo = null) {
     return $version;
 }
 
+function getGitHubBranchVersionInfo($repo, $branch, $timeoutSeconds = 5) {
+    if (!function_exists('curl_init') || empty($repo) || empty($branch)) {
+        return null;
+    }
+
+    $repoPath = str_replace('%2F', '/', rawurlencode($repo));
+    $branchUrl = 'https://api.github.com/repos/' . $repoPath . '/branches/' . rawurlencode($branch);
+    $ch = curl_init($branchUrl);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_USERAGENT, 'DCS-Stats-Version-Tracker');
+    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, $timeoutSeconds);
+    curl_setopt($ch, CURLOPT_TIMEOUT, $timeoutSeconds);
+    $branchData = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    if ($httpCode !== 200 || !$branchData) {
+        return null;
+    }
+
+    $branchInfo = json_decode($branchData, true);
+    if (!is_array($branchInfo)) {
+        return null;
+    }
+
+    $sha = $branchInfo['commit']['sha'] ?? null;
+    if (!$sha) {
+        return null;
+    }
+
+    return [
+        'branch' => $branch,
+        'commit_sha' => $sha,
+        'commit_date' => $branchInfo['commit']['commit']['committer']['date'] ?? null
+    ];
+}
+
 function updateVersionMetadata($version = null, $branch = null, $username = null, $commitSha = null, $commitDate = null) {
     $rootPath = dirname(__DIR__);
     $metaFile = $rootPath . '/.version_meta.json';

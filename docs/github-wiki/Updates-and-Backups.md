@@ -46,6 +46,8 @@ If a `.dev` file exists, the updater can use the configured development branch.
 
 Do not commit `.dev` to Git.
 
+Admin-managed customisations are preserved during normal updates, including uploaded branding under `uploads/`, generated theme files, menu settings, API settings, and local data. Manual edits made directly to core dashboard/template files may be replaced by the updater, so keep custom work in the admin theme tools, `uploads/`, or `custom/` where possible.
+
 ---
 
 ## 💾 Backups

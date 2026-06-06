@@ -565,12 +565,22 @@ if ($is_cli) {
 
 // Create version metadata
 require_once __DIR__ . '/version_tracker.php';
+require_once __DIR__ . '/update_channel.php';
 // Define ADMIN_PANEL constant if not already defined
 if (!defined('ADMIN_PANEL')) {
     define('ADMIN_PANEL', true);
 }
 require_once __DIR__ . '/config.php';
-updateVersionMetadata(ADMIN_PANEL_VERSION, 'main', 'installer');
+$channelConfig = getUpdateChannelConfig();
+$installBranch = $channelConfig['branch'] ?? 'main';
+$githubVersionInfo = getGitHubBranchVersionInfo($channelConfig['repo'] ?? '', $installBranch);
+updateVersionMetadata(
+    ADMIN_PANEL_VERSION,
+    $installBranch,
+    'installer',
+    $githubVersionInfo['commit_sha'] ?? null,
+    $githubVersionInfo['commit_date'] ?? null
+);
 
 if ($is_cli) {
     echo "✓ Version tracking initialized\n";

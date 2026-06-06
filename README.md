@@ -270,7 +270,7 @@ The updater supports:
 
 Stable is the default update channel. A hidden `.dev` file enables the configured development branch.
 
-Runtime settings and local customisations should be kept out of Git and preserved during normal updates.
+Runtime settings and admin-managed customisations are preserved during normal updates, including uploaded branding under `uploads/`, generated theme files, menu settings, API settings, and local data. Manual edits made directly to core dashboard/template files may be replaced by the updater, so keep custom work in the admin theme tools, `uploads/`, or `custom/` where possible.
 
 ---
 
