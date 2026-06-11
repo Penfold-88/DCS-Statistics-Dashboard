@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><?= e($pageTitle) ?> - Carrier Air Wing Command</title>
+    <link rel="stylesheet" href="css/admin.css">
+    <style>
+        * { box-sizing: border-box; }
+        body { margin: 0; padding: 0; overflow-x: hidden; }
+        .admin-wrapper { display: flex; min-height: 100vh; width: 100%; overflow-x: hidden; }
+        .admin-sidebar { width: 250px; flex-shrink: 0; background: #2a2a2a; }
+        .admin-main { flex: 1; min-width: 0; overflow-x: hidden; }
+        .admin-content { padding: 30px; max-width: 100%; overflow-x: hidden; }
+        .health-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px; }
+        .health-card { background: var(--bg-tertiary); border: 1px solid var(--border-primary); border-radius: 8px; padding: 18px; }
+        .health-label { color: var(--text-secondary); font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+        .health-value { color: var(--text-primary); font-size: 1.1rem; font-weight: 700; overflow-wrap: anywhere; }
+        .health-note { color: var(--text-secondary); font-size: 0.86rem; margin-top: 6px; }
+        .table-wrap { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; min-width: 760px; }
+        th, td { padding: 12px; border-bottom: 1px solid var(--border-primary); text-align: left; vertical-align: top; }
+        th { color: var(--accent-primary); background: var(--bg-tertiary); }
+        code { color: var(--accent-primary); }
+        .status-pill { display: inline-flex; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--border-primary); font-weight: 700; }
+        .status-pill.ok { color: var(--accent-success); border-color: var(--accent-success); }
+        .status-pill.fail { color: var(--accent-danger); border-color: var(--accent-danger); }
+        .actions { display: flex; gap: 10px; flex-wrap: wrap; margin: 18px 0 24px; }
+    </style>
+</head>
+<body class="admin-body">
+    <div class="admin-wrapper">
+        <?php require DCS_ROOT_PATH . '/app/Views/Admin/partials/nav.php'; ?>
+
+        <main class="admin-main">
+            <div class="admin-content">
+                <?php require DCS_ROOT_PATH . '/app/Views/Admin/api_health/summary.php'; ?>
+                <?php require DCS_ROOT_PATH . '/app/Views/Admin/api_health/endpoint_map.php'; ?>
+            </div>
+        </main>
+    </div>
+</body>
+</html>
