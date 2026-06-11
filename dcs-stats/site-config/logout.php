@@ -1,14 +1,8 @@
 <?php
-/**
- * Admin Logout Handler
- */
 
-require_once __DIR__ . '/auth.php';
-require_once __DIR__ . '/../config_path.php';
+define('DCS_SKIP_SESSION', true);
 
-// Perform logout
-logout();
+require_once dirname(__DIR__) . '/app/bootstrap.php';
 
-// Redirect to main site index instead of login page
-header('Location: ' . url('index.php'));
-exit;
+(new \DcsStats\Controllers\Admin\LogoutController())->handle();
+

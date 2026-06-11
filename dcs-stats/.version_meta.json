@@ -1,8 +1,8 @@
 {
-    "version": "V1.2",
-    "branch": "main",
+    "version": "V1.3",
+    "branch": "V1.3-Dev",
     "commit_sha": null,
     "commit_date": null,
-    "updated_at": "2026-05-31 00:00:00",
-    "updated_by": "manual-download"
+    "updated_at": "2026-06-07 16:43:38",
+    "updated_by": "v1.3-framework"
 }

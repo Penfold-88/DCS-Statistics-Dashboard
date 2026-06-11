@@ -10,7 +10,7 @@ if (!defined('ADMIN_PANEL')) {
 }
 
 // Admin panel settings
-define('ADMIN_PANEL_VERSION', 'V1.2');
+define('ADMIN_PANEL_VERSION', 'V1.3');
 define('ADMIN_SESSION_NAME', 'dcs_admin_session');
 define('ADMIN_COOKIE_NAME', 'dcs_admin_remember');
 define('ADMIN_COOKIE_LIFETIME', 30 * 24 * 60 * 60); // 30 days
