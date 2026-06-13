@@ -6,10 +6,10 @@ final class UpdatePageService
 {
     public function state(array $currentAdmin): array
     {
-        require_once DCS_ROOT_PATH . '/site-config/update_channel.php';
-        require_once DCS_ROOT_PATH . '/site-config/version_tracker.php';
-        require_once DCS_ROOT_PATH . '/dev_mode.php';
-        require_once DCS_ROOT_PATH . '/language.php';
+        \DcsStats\Core\SupportBootstrap::updateChannel();
+        \DcsStats\Core\SupportBootstrap::versionTracker();
+        \DcsStats\Core\SupportBootstrap::devMode();
+        \DcsStats\Core\SupportBootstrap::language();
 
         $demoRestricted = \isDemoRestricted($currentAdmin);
         $updateChannel = \getUpdateChannelConfig();

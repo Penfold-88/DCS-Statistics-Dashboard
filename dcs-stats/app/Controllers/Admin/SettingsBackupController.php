@@ -9,7 +9,6 @@ final class SettingsBackupController extends AdminPageController
     public function show(): void
     {
         $this->boot([
-            'site-config/demo_helpers.php',
             'language.php',
             'site_features.php',
             'site_metadata.php',

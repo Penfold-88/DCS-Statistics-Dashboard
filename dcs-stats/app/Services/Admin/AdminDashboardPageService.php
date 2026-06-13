@@ -6,12 +6,12 @@ final class AdminDashboardPageService
 {
     public function state(): array
     {
-        require_once DCS_ROOT_PATH . '/site-config/update_channel.php';
-        require_once DCS_ROOT_PATH . '/site-config/version_tracker.php';
-        require_once DCS_ROOT_PATH . '/site_features.php';
-        require_once DCS_ROOT_PATH . '/install_checkin.php';
-        require_once DCS_ROOT_PATH . '/api_config_helper.php';
-        require_once DCS_ROOT_PATH . '/language.php';
+        \DcsStats\Core\SupportBootstrap::updateChannel();
+        \DcsStats\Core\SupportBootstrap::versionTracker();
+        \DcsStats\Core\SupportBootstrap::siteFeatures();
+        \DcsStats\Core\SupportBootstrap::installCheckin();
+        \DcsStats\Core\SupportBootstrap::apiConfig();
+        \DcsStats\Core\SupportBootstrap::language();
 
         [$installDeleteMessage, $installDeleteMessageType] = $this->handleInstallerDelete();
         $stats = \getDashboardStats();

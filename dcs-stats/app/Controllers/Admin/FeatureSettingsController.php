@@ -11,7 +11,6 @@ final class FeatureSettingsController extends AdminPageController
         $this->boot([
             'language.php',
             'site_features.php',
-            'api_client_enhanced.php',
         ]);
 
         $currentAdmin = $this->requirePermission('manage_features');

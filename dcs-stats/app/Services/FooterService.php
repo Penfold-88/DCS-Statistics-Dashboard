@@ -6,10 +6,10 @@ final class FooterService
 {
     public function state(): array
     {
-        require_once DCS_ROOT_PATH . '/site_metadata.php';
-        require_once DCS_ROOT_PATH . '/language.php';
-        require_once DCS_ROOT_PATH . '/site_features.php';
-        require_once DCS_ROOT_PATH . '/api_cache.php';
+        \DcsStats\Core\SupportBootstrap::siteMetadata();
+        \DcsStats\Core\SupportBootstrap::language();
+        \DcsStats\Core\SupportBootstrap::siteFeatures();
+        \DcsStats\Core\SupportBootstrap::apiCache();
 
         $metadata = loadSiteMetadata();
         $showLastUpdate = isFeatureEnabled('show_last_update');

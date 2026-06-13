@@ -6,8 +6,8 @@ final class VersionTrackingService
 {
     public function initialize(): array
     {
-        require_once DCS_ROOT_PATH . '/site-config/admin_functions.php';
-        require_once DCS_ROOT_PATH . '/site-config/version_tracker.php';
+        \DcsStats\Core\AdminBootstrap::panel();
+        \DcsStats\Core\SupportBootstrap::versionTracker();
 
         $versionInfo = initializeVersionTracking();
         $currentAdmin = getCurrentAdmin();

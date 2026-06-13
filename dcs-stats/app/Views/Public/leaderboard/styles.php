@@ -1,0 +1,180 @@
+<style>
+  /* Professional Leaderboard Styling */
+  #leaderboardTable {
+    background: rgba(0, 0, 0, 0.6);
+    border: 1px solid rgba(76, 175, 80, 0.3);
+  }
+  
+  #leaderboardTable tbody tr {
+    background: rgba(0, 0, 0, 0.3);
+    border-left: 3px solid transparent;
+    transition: all 0.2s ease;
+  }
+  
+  #leaderboardTable tbody tr:hover {
+    background: rgba(76, 175, 80, 0.05);
+    border-left-color: #4CAF50;
+    transform: translateX(3px);
+  }
+  
+  .player-name a {
+    display: inline-block;
+    color: #e0e0e0;
+    text-decoration: none;
+    transition: color 0.2s ease;
+    font-weight: 500;
+  }
+  
+  .player-name a:hover {
+    color: #4CAF50;
+  }
+  
+  /* Rank styling */
+  #leaderboardTable tbody tr td:first-child {
+    font-weight: 600;
+    color: #4CAF50;
+  }
+  
+  /* Top 3 trophy boxes professional styling */
+  .trophy-box {
+    background: linear-gradient(135deg, rgba(76, 175, 80, 0.1) 0%, rgba(0, 0, 0, 0.3) 100%);
+    border: 1px solid rgba(76, 175, 80, 0.3);
+    padding: 20px;
+    text-align: center;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+  }
+  
+  .trophy-box:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.2);
+    border-color: #4CAF50;
+  }
+  
+  .trophy {
+    font-size: 2rem;
+    display: block;
+    margin-bottom: 10px;
+  }
+  
+  .trophy-box strong {
+    color: #4CAF50;
+    font-size: 1.1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .leaderboard-chart-panel {
+    background: linear-gradient(135deg, #2c2c2c 0%, #1e1e1e 100%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    padding: 24px;
+    margin: 30px 0;
+    overflow: hidden;
+  }
+
+  .leaderboard-chart-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+
+  .leaderboard-chart-header h2 {
+    color: #4CAF50;
+    margin: 0;
+    text-shadow: 0 0 10px rgba(76, 175, 80, 0.3);
+  }
+
+  .leaderboard-chart-controls {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .leaderboard-chart-controls label {
+    color: #ccc;
+    display: grid;
+    gap: 6px;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .leaderboard-chart-controls select {
+    background: rgba(0, 0, 0, 0.45);
+    border: 1px solid rgba(76, 175, 80, 0.35);
+    border-radius: 8px;
+    color: #fff;
+    padding: 9px 12px;
+    min-width: 150px;
+  }
+
+  .leaderboard-chart-frame {
+    position: relative;
+    min-height: 360px;
+    overflow: hidden;
+    width: 100%;
+  }
+
+  .leaderboard-chart-frame canvas {
+    display: block;
+    max-width: 100%;
+  }
+
+  .leaderboard-page {
+    width: min(98vw, 1680px);
+    max-width: 1680px;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .leaderboard-page .table-responsive {
+    border: 1px solid rgba(76, 175, 80, 0.25);
+  }
+
+  #leaderboardTable {
+    table-layout: auto;
+    min-width: 1180px;
+  }
+
+  #leaderboardTable th,
+  #leaderboardTable td {
+    padding: 12px 14px;
+    white-space: nowrap;
+  }
+
+  #leaderboardTable th:nth-child(2),
+  #leaderboardTable td:nth-child(2) {
+    min-width: 190px;
+  }
+
+  #leaderboardTable th:last-child,
+  #leaderboardTable td:last-child {
+    min-width: 160px;
+  }
+
+  @media (min-width: 1300px) {
+    #leaderboardTable {
+      min-width: 0;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .leaderboard-chart-panel {
+      padding: 16px;
+    }
+
+    .leaderboard-chart-header {
+      align-items: stretch;
+      flex-direction: column;
+    }
+
+    .leaderboard-chart-controls select {
+      width: 100%;
+    }
+  }
+</style>

@@ -1,8 +1,7 @@
 <?php
-/**
- * Squadron Members Endpoint
- * API-only implementation
- */
 
-// Always use API version
-include __DIR__ . '/get_squadron_members_api.php';
+define('DCS_SKIP_SESSION', true);
+
+require_once __DIR__ . '/app/bootstrap.php';
+
+(new \DcsStats\Controllers\Api\PublicStatsController())->squadronMembers();

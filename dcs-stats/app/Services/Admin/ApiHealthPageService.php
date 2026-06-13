@@ -6,8 +6,8 @@ final class ApiHealthPageService
 {
     public function state(): array
     {
-        require_once DCS_ROOT_PATH . '/api_config_helper.php';
-        require_once DCS_ROOT_PATH . '/language.php';
+        \DcsStats\Core\SupportBootstrap::apiConfig();
+        \DcsStats\Core\SupportBootstrap::language();
 
         $configResult = \loadApiConfigWithFix();
         $apiConfig = $configResult['config'];

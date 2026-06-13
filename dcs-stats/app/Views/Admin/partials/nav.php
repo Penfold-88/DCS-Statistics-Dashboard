@@ -4,8 +4,8 @@ if (!defined('ADMIN_PANEL')) {
     die('Direct access not permitted');
 }
 
-require_once DCS_ROOT_PATH . '/language.php';
-require_once DCS_ROOT_PATH . '/app/bootstrap.php';
+\DcsStats\Core\SupportBootstrap::language();
+require_once DCS_APP_PATH . '/bootstrap.php';
 
 if (!isset($currentAdmin)) {
     $currentAdmin = getCurrentAdmin();
@@ -19,4 +19,4 @@ $demoRestricted = $adminNavState['demoRestricted'];
 $isSettingsPage = $adminNavState['isSettingsPage'];
 $navPermissions = $adminNavState['permissions'];
 
-require DCS_ROOT_PATH . '/app/Views/Admin/nav.php';
+require DCS_APP_PATH . '/Views/Admin/nav.php';

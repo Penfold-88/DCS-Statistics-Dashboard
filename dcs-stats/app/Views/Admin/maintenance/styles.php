@@ -1,0 +1,19 @@
+<style>
+.maintenance-whitelist {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.maintenance-whitelist-item {
+    align-items: center;
+    display: flex;
+    gap: 1rem;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+}
+
+.maintenance-whitelist-remove {
+    margin: 0;
+}
+</style>

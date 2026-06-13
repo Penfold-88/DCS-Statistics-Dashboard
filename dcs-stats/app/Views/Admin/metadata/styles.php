@@ -1,0 +1,30 @@
+<style>
+        .metadata-help {
+            background-color: rgba(76, 175, 80, 0.08);
+            border: 1px solid rgba(76, 175, 80, 0.28);
+            border-radius: 6px;
+            color: var(--text-muted);
+            line-height: 1.55;
+            margin-bottom: 20px;
+            padding: 15px;
+        }
+
+        .character-count {
+            color: var(--text-muted);
+            display: block;
+            font-size: 12px;
+            margin-top: 6px;
+        }
+
+        textarea.form-control {
+            min-height: 110px;
+            resize: vertical;
+        }
+
+        .usage-data-disclaimer {
+            color: var(--text-muted);
+            font-size: 12px;
+            line-height: 1.5;
+            margin: 18px 0 0;
+        }
+    </style>

@@ -6,8 +6,8 @@ final class UpdateCheckService
 {
     public function buildReport(): string
     {
-        require_once DCS_ROOT_PATH . '/site-config/update_channel.php';
-        require_once DCS_ROOT_PATH . '/site-config/version_tracker.php';
+        \DcsStats\Core\SupportBootstrap::updateChannel();
+        \DcsStats\Core\SupportBootstrap::versionTracker();
 
         $channelConfig = getUpdateChannelConfig();
         $repo = $channelConfig['repo'];

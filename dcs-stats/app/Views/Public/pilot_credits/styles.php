@@ -1,0 +1,182 @@
+<style>
+/* Credits-specific styles using unified pilot card design */
+
+.loading-spinner {
+    text-align: center;
+    padding: 50px;
+    color: #4CAF50;
+    font-size: 1.2rem;
+}
+
+.credits-stat-item .stat-value {
+    font-size: 2rem;
+    color: #4CAF50;
+    text-shadow: 0 0 10px rgba(76, 175, 80, 0.3);
+}
+
+.search-again {
+    text-align: center;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #444;
+}
+
+.no-results {
+    text-align: center;
+    padding: 50px;
+    color: #ccc;
+    background-color: #2c2c2c;
+    border-radius: 12px;
+    margin: 20px auto;
+    max-width: 600px;
+}
+
+#no-results-message {
+    margin-bottom: 20px;
+}
+
+/* Mobile Responsive Styles */
+@media screen and (max-width: 768px) {
+    /* Search container mobile optimization */
+    .search-container {
+        padding: 0 15px;
+        margin-bottom: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    #playerSearchInput {
+        width: 100%;
+        padding: 12px 15px;
+        font-size: 16px; /* Prevents zoom on iOS */
+        border-radius: 25px;
+    }
+    
+    .search-container button {
+        width: 100%;
+        padding: 12px 20px;
+        font-size: 1rem;
+        border-radius: 25px;
+        min-height: 44px;
+    }
+    
+    /* Results list mobile optimization */
+    .results-list {
+        padding: 0 10px;
+        max-height: 300px;
+        overflow-y: auto;
+    }
+    
+    /* Pilot card mobile optimization */
+    .pilot-card {
+        padding: 15px;
+        margin: 15px;
+    }
+    
+    .pilot-card h3 {
+        font-size: 1.5rem;
+        margin-bottom: 15px;
+    }
+    
+    /* Stats grid mobile layout */
+    .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    
+    .stat-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 12px;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 5px;
+    }
+    
+    .stat-label {
+        font-weight: 600;
+        color: #4CAF50;
+    }
+    
+    .stat-value {
+        font-weight: bold;
+    }
+    
+    /* Credits value stays large on mobile */
+    .credits-stat-item .stat-value {
+        font-size: 1.8rem;
+    }
+    
+    /* Search again button */
+    .search-again {
+        padding: 15px;
+    }
+    
+    .search-again button {
+        width: 100%;
+        padding: 12px;
+        min-height: 44px;
+    }
+    
+    /* No results section */
+    .no-results {
+        padding: 20px;
+    }
+    
+    .no-results button {
+        width: 100%;
+        margin-top: 15px;
+        padding: 12px;
+        min-height: 44px;
+    }
+    
+    /* Dashboard header mobile */
+    .dashboard-header h1 {
+        font-size: 1.8rem;
+    }
+    
+    .dashboard-subtitle {
+        font-size: 0.9rem;
+        padding: 0 10px;
+    }
+    
+    /* Loading spinner */
+    .loading-spinner {
+        padding: 30px;
+        font-size: 1rem;
+    }
+}
+
+/* Very small devices */
+@media screen and (max-width: 480px) {
+    .pilot-card {
+        margin: 10px;
+        padding: 10px;
+    }
+    
+    .pilot-card h3 {
+        font-size: 1.2rem;
+    }
+    
+    .stat-item {
+        font-size: 0.9rem;
+        padding: 10px;
+    }
+    
+    .credits-stat-item .stat-value {
+        font-size: 1.5rem;
+    }
+}
+
+/* Touch-friendly hover states */
+@media (hover: none) and (pointer: coarse) {
+    button:hover {
+        transform: none;
+    }
+    
+    button:active {
+        transform: scale(0.95);
+    }
+}
+
+</style>

@@ -61,7 +61,7 @@ final class BackupService
             return ['success' => false, 'error' => 'Failed to delete backup'];
         }
 
-        require_once DCS_ROOT_PATH . '/site-config/admin_functions.php';
+        \DcsStats\Core\AdminBootstrap::panel();
         $currentAdmin = getCurrentAdmin();
         logAdminAction('BACKUP_DELETE', [
             'backup' => $filename,
@@ -73,8 +73,8 @@ final class BackupService
 
     public function createBackup(callable $log): void
     {
-        require_once DCS_ROOT_PATH . '/site-config/admin_functions.php';
-        require_once DCS_ROOT_PATH . '/site-config/version_tracker.php';
+        \DcsStats\Core\AdminBootstrap::panel();
+        \DcsStats\Core\SupportBootstrap::versionTracker();
 
         $backupDir = DCS_ROOT_PATH . '/backups';
         if (!is_dir($backupDir)) {

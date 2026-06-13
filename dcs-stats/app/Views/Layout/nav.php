@@ -1,12 +1,8 @@
 <?php
 // Include site features configuration
-require_once DCS_ROOT_PATH . '/site_features.php';
-require_once DCS_ROOT_PATH . '/language.php';
-require_once DCS_ROOT_PATH . '/site-config/demo_helpers.php';
-// Include path configuration if not already included
-if (!defined('BASE_PATH')) {
-    require_once DCS_ROOT_PATH . '/config_path.php';
-}
+\DcsStats\Core\SupportBootstrap::siteFeatures();
+\DcsStats\Core\SupportBootstrap::language();
+\DcsStats\Core\AdminBootstrap::demo();
 
 if (!isset($frontendDemoBannerShown)) {
     $frontendDemoBannerShown = false;

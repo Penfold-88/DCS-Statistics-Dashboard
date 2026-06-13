@@ -9,7 +9,7 @@ final class PrivacyController
 {
     public function index(): void
     {
-        require_once DCS_ROOT_PATH . '/site_metadata.php';
+        \DcsStats\Core\SupportBootstrap::siteMetadata();
 
         if (!Installation::isConfigured()) {
             Installation::redirectToInstaller();

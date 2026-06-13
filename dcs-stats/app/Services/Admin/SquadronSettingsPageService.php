@@ -6,8 +6,8 @@ final class SquadronSettingsPageService
 {
     public function state(array $currentAdmin): array
     {
-        require_once DCS_ROOT_PATH . '/language.php';
-        require_once DCS_ROOT_PATH . '/site_features.php';
+        \DcsStats\Core\SupportBootstrap::language();
+        \DcsStats\Core\SupportBootstrap::siteFeatures();
 
         $demoRestricted = \isDemoRestricted($currentAdmin);
         $message = '';

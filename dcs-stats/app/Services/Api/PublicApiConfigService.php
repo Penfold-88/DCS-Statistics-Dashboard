@@ -6,7 +6,7 @@ final class PublicApiConfigService
 {
     public function getBrowserConfig(): array
     {
-        require_once DCS_ROOT_PATH . '/api_config_helper.php';
+        \DcsStats\Core\SupportBootstrap::apiConfig();
 
         $configResult = loadApiConfigWithFix();
         $config = $configResult['config'];
@@ -23,7 +23,7 @@ final class PublicApiConfigService
 
     public function getLeaderboardClientConfig(): array
     {
-        require_once DCS_ROOT_PATH . '/api_config_helper.php';
+        \DcsStats\Core\SupportBootstrap::apiConfig();
 
         $configResult = loadApiConfigWithFix();
         $config = $configResult['config'];

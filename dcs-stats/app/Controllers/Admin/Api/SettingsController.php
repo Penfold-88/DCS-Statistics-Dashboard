@@ -25,7 +25,7 @@ final class SettingsController
         $currentAdmin = getCurrentAdmin();
 
         if (in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'], true)) {
-            require_once DCS_ROOT_PATH . '/site-config/demo_helpers.php';
+            \DcsStats\Core\AdminBootstrap::demo();
             blockDemoWriteRequest($currentAdmin, true);
         }
 

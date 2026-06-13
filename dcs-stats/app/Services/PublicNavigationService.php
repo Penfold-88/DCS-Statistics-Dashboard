@@ -6,8 +6,8 @@ final class PublicNavigationService
 {
     public function state(): array
     {
-        require_once DCS_ROOT_PATH . '/site_features.php';
-        require_once DCS_ROOT_PATH . '/language.php';
+        \DcsStats\Core\SupportBootstrap::siteFeatures();
+        \DcsStats\Core\SupportBootstrap::language();
 
         $menuItems = $this->menuItems();
         $this->appendLegacyFeatureLinks($menuItems);

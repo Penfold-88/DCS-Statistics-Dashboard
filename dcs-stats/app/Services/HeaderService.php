@@ -6,11 +6,11 @@ final class HeaderService
 {
     public function state(): array
     {
-        require_once DCS_ROOT_PATH . '/config_path.php';
-        require_once DCS_ROOT_PATH . '/api_config_helper.php';
-        require_once DCS_ROOT_PATH . '/site_metadata.php';
-        require_once DCS_ROOT_PATH . '/language.php';
-        require_once DCS_ROOT_PATH . '/site-config/demo_helpers.php';
+        
+        \DcsStats\Core\SupportBootstrap::apiConfig();
+        \DcsStats\Core\SupportBootstrap::siteMetadata();
+        \DcsStats\Core\SupportBootstrap::language();
+        \DcsStats\Core\AdminBootstrap::demo();
 
         $this->sendSecurityHeaders();
         $this->exitForMaintenanceIfNeeded();
@@ -153,7 +153,7 @@ final class HeaderService
         if (!defined('MAINTENANCE_OVERRIDE')) {
             define('MAINTENANCE_OVERRIDE', true);
         }
-        require DCS_ROOT_PATH . '/maintenance.php';
+        (new \DcsStats\Controllers\Public\MaintenanceController())->show();
         exit;
     }
 

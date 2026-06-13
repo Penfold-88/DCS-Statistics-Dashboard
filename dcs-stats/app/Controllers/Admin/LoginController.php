@@ -2,14 +2,16 @@
 
 namespace DcsStats\Controllers\Admin;
 
+use DcsStats\Core\AdminBootstrap;
+
 final class LoginController
 {
     public function show(): void
     {
         ob_start();
 
-        require_once DCS_ROOT_PATH . '/site-config/auth.php';
-        require_once DCS_ROOT_PATH . '/language.php';
+        AdminBootstrap::auth();
+        \DcsStats\Core\SupportBootstrap::language();
 
         if (!file_exists(\getDataFilePath('users'))) {
             header('Location: install.php');
@@ -39,6 +41,6 @@ final class LoginController
             $success = SUCCESS_MESSAGES['logout_success'];
         }
 
-        require DCS_ROOT_PATH . '/app/Views/Admin/login.php';
+        require DCS_APP_PATH . '/Views/Admin/login.php';
     }
 }

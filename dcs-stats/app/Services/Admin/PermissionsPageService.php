@@ -6,7 +6,7 @@ final class PermissionsPageService
 {
     public function state(array $currentAdmin): array
     {
-        require_once DCS_ROOT_PATH . '/language.php';
+        \DcsStats\Core\SupportBootstrap::language();
 
         $demoRestricted = \isDemoRestricted($currentAdmin);
         $message = '';

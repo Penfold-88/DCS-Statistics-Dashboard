@@ -6,7 +6,7 @@ final class AdminAuth
 {
     public static function loadLegacyAuth(): void
     {
-        require_once DCS_ROOT_PATH . '/site-config/auth.php';
+        AdminBootstrap::auth();
     }
 
     public static function check(): bool
@@ -41,4 +41,3 @@ final class AdminAuth
         logout();
     }
 }
-

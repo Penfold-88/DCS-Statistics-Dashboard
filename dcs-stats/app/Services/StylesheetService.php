@@ -6,7 +6,7 @@ final class StylesheetService
 {
     public function render(): string
     {
-        require_once DCS_ROOT_PATH . '/config_path.php';
+        
 
         $cssPath = DCS_ROOT_PATH . '/styles.css';
         $css = is_file($cssPath) ? file_get_contents($cssPath) : '';

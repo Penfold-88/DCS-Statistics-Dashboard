@@ -12,7 +12,7 @@ final class GitStatusController
     {
         AdminAuth::requirePermission('manage_updates');
 
-        require_once DCS_ROOT_PATH . '/dev_mode.php';
+        \DcsStats\Core\SupportBootstrap::devMode();
         if (!isDevMode()) {
             ApiResponse::json([
                 'success' => false,

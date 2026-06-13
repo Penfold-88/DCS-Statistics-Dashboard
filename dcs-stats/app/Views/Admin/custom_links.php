@@ -5,52 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= e($pageTitle) ?> - Carrier Air Wing Command</title>
     <link rel="stylesheet" href="css/admin.css">
-    <style>
-        .custom-links-editor {
-            display: grid;
-            gap: 14px;
-            margin-top: 16px;
-        }
-
-        .custom-link-row {
-            align-items: end;
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            display: grid;
-            gap: 12px;
-            grid-template-columns: minmax(150px, 1fr) minmax(220px, 1.4fr) auto auto auto;
-            padding: 14px;
-        }
-
-        .custom-link-row .form-group {
-            margin: 0;
-        }
-
-        .custom-link-check {
-            align-items: center;
-            display: flex;
-            gap: 8px;
-            min-height: 38px;
-            white-space: nowrap;
-        }
-
-        .custom-links-note {
-            background-color: rgba(76, 175, 80, 0.08);
-            border: 1px solid rgba(76, 175, 80, 0.28);
-            border-radius: 6px;
-            color: var(--text-muted);
-            line-height: 1.5;
-            margin-bottom: 20px;
-            padding: 15px;
-        }
-
-        @media screen and (max-width: 900px) {
-            .custom-link-row {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
+    <?php require DCS_ROOT_PATH . '/app/Views/Admin/custom_links/styles.php'; ?>
 </head>
 <body>
     <div class="admin-wrapper">

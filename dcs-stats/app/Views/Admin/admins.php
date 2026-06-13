@@ -5,44 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= $pageTitle ?> - Carrier Air Wing Command</title>
     <link rel="stylesheet" href="css/admin.css">
-    <style>
-        .admin-card {
-            background-color: var(--bg-tertiary);
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .admin-info h3 {
-            margin-bottom: 5px;
-        }
-
-        .admin-meta {
-            font-size: 14px;
-            color: var(--text-muted);
-        }
-
-        .admin-status {
-            display: inline-block;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            margin-left: 10px;
-        }
-
-        .status-active {
-            background-color: rgba(76, 175, 80, 0.2);
-            color: #4CAF50;
-        }
-
-        .status-inactive {
-            background-color: rgba(244, 67, 54, 0.2);
-            color: #f44336;
-        }
-    </style>
+    <?php require DCS_ROOT_PATH . '/app/Views/Admin/admins/styles.php'; ?>
 </head>
 <body>
     <div class="admin-wrapper">

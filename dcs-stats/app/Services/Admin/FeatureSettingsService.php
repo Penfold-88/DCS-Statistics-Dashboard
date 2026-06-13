@@ -109,9 +109,9 @@ final class FeatureSettingsService
 
     private function loadDependencies(): void
     {
-        require_once DCS_ROOT_PATH . '/site-config/auth.php';
-        require_once DCS_ROOT_PATH . '/site_features.php';
-        require_once DCS_ROOT_PATH . '/site-config/admin_functions.php';
+        \DcsStats\Core\AdminBootstrap::auth();
+        \DcsStats\Core\SupportBootstrap::siteFeatures();
+        \DcsStats\Core\AdminBootstrap::panel();
     }
 
     private function applyDependencies(array $features): array

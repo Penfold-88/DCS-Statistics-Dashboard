@@ -11,7 +11,7 @@ $apiConfigFile = $dataDir . '/api_config.json';
 $legacyApiConfigFile = DCS_ROOT_PATH . '/api_config.json';
 $siteConfigFile = DCS_ROOT_PATH . '/site_config.json';
 $is_cli = (php_sapi_name() === 'cli');
-require_once DCS_ROOT_PATH . '/language.php';
+\DcsStats\Core\SupportBootstrap::language();
 if (!function_exists('e')) {
     function e($value) {
         return htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8');
@@ -21,7 +21,7 @@ $installerSupport = new \DcsStats\Services\Admin\InstallerSupportService();
 
 function showInstallerLockedPage() {
     http_response_code(403);
-    require DCS_ROOT_PATH . '/app/Views/Admin/installer/locked.php';
+    require DCS_APP_PATH . '/Views/Admin/installer/locked.php';
     exit;
 }
 $installerLanguage = dcs_language_code($_POST['install_language'] ?? $_GET['lang'] ?? 'en');
@@ -48,7 +48,7 @@ if (!$isDefaultInstall && file_exists($usersFile) && (file_exists($apiConfigFile
         die("System appears to be already installed. Delete site-config/data/users.json and api_config.json to reinstall.\n");
     }
 
-    require_once DCS_ROOT_PATH . '/site-config/auth.php';
+    \DcsStats\Core\AdminBootstrap::auth();
     requireAdmin();
     showInstallerLockedPage();
 }
@@ -93,7 +93,7 @@ if ($is_cli) {
 }
 
 // Include dev mode detection
-require_once DCS_ROOT_PATH . '/dev_mode.php';
+\DcsStats\Core\SupportBootstrap::devMode();
 $isDev = isDevMode();
 
 // For web installation, provide a form interface
@@ -153,7 +153,7 @@ if (!$is_cli) {
         $permissionFolderStatuses = $installerSupport->permissionStatuses($permissionFolders, 'dir');
         $permissionFileStatuses = $installerSupport->permissionStatuses($permissionFiles, 'file');
         $showInstallerForm = ($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST' || !empty($errors);
-        require DCS_ROOT_PATH . '/app/Views/Admin/installer/form.php';
+        require DCS_APP_PATH . '/Views/Admin/installer/form.php';
         exit;
     }
 }
@@ -338,13 +338,13 @@ if ($is_cli) {
 }
 
 // Create version metadata
-require_once DCS_ROOT_PATH . '/site-config/version_tracker.php';
-require_once DCS_ROOT_PATH . '/site-config/update_channel.php';
+\DcsStats\Core\SupportBootstrap::versionTracker();
+\DcsStats\Core\SupportBootstrap::updateChannel();
 // Define ADMIN_PANEL constant if not already defined
 if (!defined('ADMIN_PANEL')) {
     define('ADMIN_PANEL', true);
 }
-require_once DCS_ROOT_PATH . '/site-config/config.php';
+\DcsStats\Core\AdminConfig::load();
 $channelConfig = getUpdateChannelConfig();
 $installBranch = $channelConfig['branch'] ?? 'main';
 $githubVersionInfo = getGitHubBranchVersionInfo($channelConfig['repo'] ?? '', $installBranch);
@@ -392,5 +392,5 @@ if ($is_cli) {
     }
 } else {
     // Web installation success page
-    require DCS_ROOT_PATH . '/app/Views/Admin/installer/complete.php';
+    require DCS_APP_PATH . '/Views/Admin/installer/complete.php';
 }

@@ -6,7 +6,7 @@ final class AdminDataService
 {
     public function players($search = null, $limit = null, int $offset = 0): array
     {
-        require_once DCS_ROOT_PATH . '/api_client_enhanced.php';
+        \DcsStats\Core\SupportBootstrap::apiClient();
 
         try {
             $client = \createEnhancedAPIClient();
@@ -42,7 +42,7 @@ final class AdminDataService
 
     public function playerStats($ucid): array
     {
-        require_once DCS_ROOT_PATH . '/api_client_enhanced.php';
+        \DcsStats\Core\SupportBootstrap::apiClient();
 
         $stats = [
             'ucid' => $ucid,

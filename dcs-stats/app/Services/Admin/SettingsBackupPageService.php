@@ -6,9 +6,9 @@ final class SettingsBackupPageService
 {
     public function state(array $currentAdmin): array
     {
-        require_once DCS_ROOT_PATH . '/language.php';
-        require_once DCS_ROOT_PATH . '/site_features.php';
-        require_once DCS_ROOT_PATH . '/site_metadata.php';
+        \DcsStats\Core\SupportBootstrap::language();
+        \DcsStats\Core\SupportBootstrap::siteFeatures();
+        \DcsStats\Core\SupportBootstrap::siteMetadata();
 
         $demoRestricted = \isDemoRestricted($currentAdmin);
         $message = '';

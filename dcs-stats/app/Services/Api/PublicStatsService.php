@@ -6,8 +6,8 @@ final class PublicStatsService
 {
     public function getPlayerStats(string $rawPlayerName, ?string $playerDate): array
     {
-        require_once DCS_ROOT_PATH . '/security_functions.php';
-        require_once DCS_ROOT_PATH . '/api_client_enhanced.php';
+        \DcsStats\Core\SupportBootstrap::security();
+        \DcsStats\Core\SupportBootstrap::apiClient();
 
         $playerName = validateInput($rawPlayerName, [
             'type' => 'player_name',
@@ -65,8 +65,8 @@ final class PublicStatsService
 
     public function getLeaderboard(string $sortBy, int $limit): array
     {
-        require_once DCS_ROOT_PATH . '/api_client_enhanced.php';
-        require_once DCS_ROOT_PATH . '/api_config_helper.php';
+        \DcsStats\Core\SupportBootstrap::apiClient();
+        \DcsStats\Core\SupportBootstrap::apiConfig();
 
         try {
             $config = loadApiConfigWithFix()['config'];
@@ -99,8 +99,8 @@ final class PublicStatsService
 
     public function getSquadrons(): array
     {
-        require_once DCS_ROOT_PATH . '/api_client_enhanced.php';
-        require_once DCS_ROOT_PATH . '/api_config_helper.php';
+        \DcsStats\Core\SupportBootstrap::apiClient();
+        \DcsStats\Core\SupportBootstrap::apiConfig();
 
         $response = ['data' => [], 'error' => null];
 
@@ -137,7 +137,7 @@ final class PublicStatsService
 
     public function getMissionStats(): array
     {
-        require_once DCS_ROOT_PATH . '/api_client_enhanced.php';
+        \DcsStats\Core\SupportBootstrap::apiClient();
 
         try {
             $client = createEnhancedAPIClient();
@@ -171,7 +171,7 @@ final class PublicStatsService
 
     public function getCredits(): array
     {
-        require_once DCS_ROOT_PATH . '/api_client_enhanced.php';
+        \DcsStats\Core\SupportBootstrap::apiClient();
 
         $response = ['data' => [], 'error' => null];
 
@@ -205,7 +205,7 @@ final class PublicStatsService
 
     public function getSquadronMembers(array $input): array
     {
-        require_once DCS_ROOT_PATH . '/api_client_enhanced.php';
+        \DcsStats\Core\SupportBootstrap::apiClient();
 
         $response = ['data' => [], 'error' => null];
 
@@ -232,7 +232,7 @@ final class PublicStatsService
 
     public function getSquadronCredits(array $input): array
     {
-        require_once DCS_ROOT_PATH . '/api_client_enhanced.php';
+        \DcsStats\Core\SupportBootstrap::apiClient();
 
         $response = ['data' => [], 'error' => null];
 
@@ -259,9 +259,9 @@ final class PublicStatsService
 
     public function searchPlayers(string $rawQuery): array
     {
-        require_once DCS_ROOT_PATH . '/security_functions.php';
-        require_once DCS_ROOT_PATH . '/api_client_enhanced.php';
-        require_once DCS_ROOT_PATH . '/api_config_helper.php';
+        \DcsStats\Core\SupportBootstrap::security();
+        \DcsStats\Core\SupportBootstrap::apiClient();
+        \DcsStats\Core\SupportBootstrap::apiConfig();
 
         $query = validateInput($rawQuery, [
             'type' => 'search_query',
@@ -308,8 +308,8 @@ final class PublicStatsService
 
     public function getServerStats(): array
     {
-        require_once DCS_ROOT_PATH . '/api_client_enhanced.php';
-        require_once DCS_ROOT_PATH . '/api_config_helper.php';
+        \DcsStats\Core\SupportBootstrap::apiClient();
+        \DcsStats\Core\SupportBootstrap::apiConfig();
 
         $config = loadApiConfigWithFix()['config'];
         if (!$config || !$config['use_api']) {

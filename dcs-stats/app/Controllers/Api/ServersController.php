@@ -12,7 +12,7 @@ final class ServersController
         ini_set('display_errors', 0);
         error_reporting(0);
 
-        require_once DCS_ROOT_PATH . '/security_functions.php';
+        \DcsStats\Core\SupportBootstrap::security();
 
         if (!checkRateLimit(60, 60)) {
             return;

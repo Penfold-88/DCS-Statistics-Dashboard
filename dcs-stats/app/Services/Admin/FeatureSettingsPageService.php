@@ -8,9 +8,9 @@ final class FeatureSettingsPageService
 
     public function state(array $currentAdmin): array
     {
-        require_once DCS_ROOT_PATH . '/language.php';
-        require_once DCS_ROOT_PATH . '/site_features.php';
-        require_once DCS_ROOT_PATH . '/api_client_enhanced.php';
+        \DcsStats\Core\SupportBootstrap::language();
+        \DcsStats\Core\SupportBootstrap::siteFeatures();
+        \DcsStats\Core\SupportBootstrap::apiClient();
 
         $this->lockedFeatures = [
             'leaderboard_sorties' => \dcs_t('admin.settings.locked_sorties_reason'),

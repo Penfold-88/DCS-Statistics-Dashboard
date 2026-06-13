@@ -119,7 +119,7 @@ final class PublicStatsController
 
     private function loadSecurity(): void
     {
-        require_once DCS_ROOT_PATH . '/security_functions.php';
+        \DcsStats\Core\SupportBootstrap::security();
     }
 
     private function requestInput(): array

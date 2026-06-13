@@ -9,8 +9,6 @@ final class UpdateController extends AdminPageController
     public function show(): void
     {
         $this->boot([
-            'site-config/demo_helpers.php',
-            'site-config/update_channel.php',
             'language.php',
         ]);
 

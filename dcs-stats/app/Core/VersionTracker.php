@@ -6,10 +6,8 @@ final class VersionTracker
 {
     public static function currentInfo(): array
     {
-        require_once DCS_ROOT_PATH . '/site-config/update_channel.php';
-
         $metaFile = DCS_ROOT_PATH . '/.version_meta.json';
-        $channelConfig = \getUpdateChannelConfig();
+        $channelConfig = UpdateChannel::config();
         $info = [
             'version' => defined('ADMIN_PANEL_VERSION') ? ADMIN_PANEL_VERSION : 'V1.2',
             'branch' => 'main',

@@ -6,7 +6,7 @@ final class BackupRestoreService
 {
     public function restoreBackup(string $filename, callable $log): void
     {
-        require_once DCS_ROOT_PATH . '/site-config/admin_functions.php';
+        \DcsStats\Core\AdminBootstrap::panel();
 
         if ($filename === '') {
             $log('Error: No backup specified');

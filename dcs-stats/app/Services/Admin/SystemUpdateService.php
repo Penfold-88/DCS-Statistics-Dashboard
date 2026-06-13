@@ -38,9 +38,9 @@ final class SystemUpdateService
 
     public function run(?string $specificVersion, callable $log): void
     {
-        require_once DCS_ROOT_PATH . '/site-config/admin_functions.php';
-        require_once DCS_ROOT_PATH . '/site-config/update_channel.php';
-        require_once DCS_ROOT_PATH . '/site-config/version_tracker.php';
+        \DcsStats\Core\AdminBootstrap::panel();
+        \DcsStats\Core\SupportBootstrap::updateChannel();
+        \DcsStats\Core\SupportBootstrap::versionTracker();
 
         if (!class_exists('ZipArchive')) {
             $log('Update cancelled: PHP ZipArchive is not available.');
@@ -451,12 +451,7 @@ final class SystemUpdateService
 
     private function runInstallCheckin(callable $log): void
     {
-        $checkinFile = DCS_ROOT_PATH . '/install_checkin.php';
-        if (!file_exists($checkinFile)) {
-            return;
-        }
-
-        require_once $checkinFile;
+        \DcsStats\Core\SupportBootstrap::installCheckin();
         $checkinResult = runInstallCheckinIfDue(
             getCurrentVersionInfo(),
             getUpdateChannelConfig(),
@@ -471,7 +466,7 @@ final class SystemUpdateService
             return;
         }
 
-        $configFile = DCS_ROOT_PATH . '/site-config/config.php';
+        $configFile = DCS_ROOT_PATH . '/app/Core/AdminConfig.php';
         if (!file_exists($configFile)) {
             return;
         }

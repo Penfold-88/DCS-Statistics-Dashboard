@@ -6,7 +6,7 @@ final class ThemePageService
 {
     public function state(array $currentAdmin): array
     {
-        require_once DCS_ROOT_PATH . '/site_features.php';
+        \DcsStats\Core\SupportBootstrap::siteFeatures();
 
         $demoRestricted = \isDemoRestricted($currentAdmin);
         $isAirBoss = ($currentAdmin['role'] === ROLE_AIR_BOSS);

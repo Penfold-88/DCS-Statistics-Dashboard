@@ -6,7 +6,7 @@ final class ServerListService
 {
     public function getServers(): array
     {
-        require_once DCS_ROOT_PATH . '/api_client_enhanced.php';
+        \DcsStats\Core\SupportBootstrap::apiClient();
 
         $client = createEnhancedAPIClient();
         $servers = $client->request('/servers', null, 'GET');

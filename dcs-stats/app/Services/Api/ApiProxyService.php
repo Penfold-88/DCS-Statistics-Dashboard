@@ -73,8 +73,8 @@ final class ApiProxyService
 
     public function handle(string $endpoint, string $method, array $postData): void
     {
-        require_once DCS_ROOT_PATH . '/api_config_helper.php';
-        require_once DCS_ROOT_PATH . '/api_cache.php';
+        \DcsStats\Core\SupportBootstrap::apiConfig();
+        \DcsStats\Core\SupportBootstrap::apiCache();
 
         $apiConfig = loadApiConfigWithFix()['config'];
         if (!$apiConfig['use_api'] || empty($apiConfig['api_base_url'])) {

@@ -6,7 +6,7 @@ final class DataExportService
 {
     public function buildExport(string $exportType, string $format, string $dateFrom, string $dateTo, array $currentAdmin): array
     {
-        require_once DCS_ROOT_PATH . '/site-config/admin_functions.php';
+        \DcsStats\Core\AdminBootstrap::panel();
 
         $data = [];
         $filename = '';

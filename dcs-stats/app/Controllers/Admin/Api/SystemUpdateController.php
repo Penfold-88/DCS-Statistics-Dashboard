@@ -18,7 +18,7 @@ final class SystemUpdateController
         header('Cache-Control: no-cache');
         header('X-Accel-Buffering: no');
 
-        require_once DCS_ROOT_PATH . '/site-config/demo_helpers.php';
+        \DcsStats\Core\AdminBootstrap::demo();
         if (isDemoRestricted()) {
             $this->logMessage(demoRestrictionMessage());
             return;

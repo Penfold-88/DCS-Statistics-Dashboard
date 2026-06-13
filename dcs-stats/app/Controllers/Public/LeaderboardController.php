@@ -9,10 +9,10 @@ final class LeaderboardController
 {
     public function index(): void
     {
-        require_once DCS_ROOT_PATH . '/site_features.php';
-        require_once DCS_ROOT_PATH . '/table-responsive.php';
-        require_once DCS_ROOT_PATH . '/chart_theme.php';
-        require_once DCS_ROOT_PATH . '/language.php';
+        \DcsStats\Core\SupportBootstrap::siteFeatures();
+        \DcsStats\Core\SupportBootstrap::tableResponsive();
+        \DcsStats\Core\SupportBootstrap::chartTheme();
+        \DcsStats\Core\SupportBootstrap::language();
 
         if (!Installation::isConfigured()) {
             Installation::redirectToInstaller();

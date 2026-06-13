@@ -6,7 +6,7 @@ final class MaintenancePageService
 {
     public function state(): array
     {
-        require_once DCS_ROOT_PATH . '/language.php';
+        \DcsStats\Core\SupportBootstrap::language();
 
         $maintenance = $this->config();
 

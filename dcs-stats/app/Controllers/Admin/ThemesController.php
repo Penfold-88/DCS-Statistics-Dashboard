@@ -9,7 +9,6 @@ final class ThemesController extends AdminPageController
     public function show(): void
     {
         $this->boot([
-            'config_path.php',
             'chart_theme.php',
             'language.php',
         ]);

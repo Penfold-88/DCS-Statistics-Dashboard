@@ -6,9 +6,9 @@ final class ApiSettingsPageService
 {
     public function state(array $currentAdmin): array
     {
-        require_once DCS_ROOT_PATH . '/api_config_helper.php';
-        require_once DCS_ROOT_PATH . '/api_cache.php';
-        require_once DCS_ROOT_PATH . '/language.php';
+        \DcsStats\Core\SupportBootstrap::apiConfig();
+        \DcsStats\Core\SupportBootstrap::apiCache();
+        \DcsStats\Core\SupportBootstrap::language();
 
         $demoRestricted = \isDemoRestricted($currentAdmin);
         $configResult = \loadApiConfigWithFix();
@@ -126,7 +126,7 @@ final class ApiSettingsPageService
 
     private function testConnection(array &$apiConfig, string $configFile): array
     {
-        require_once DCS_ROOT_PATH . '/api_client_enhanced.php';
+        \DcsStats\Core\SupportBootstrap::apiClient();
 
         try {
             $client = \createEnhancedAPIClient();

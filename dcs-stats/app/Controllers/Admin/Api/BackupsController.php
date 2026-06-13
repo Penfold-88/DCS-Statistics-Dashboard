@@ -23,7 +23,7 @@ final class BackupsController
     {
         AdminAuth::requirePermission('manage_updates');
 
-        require_once DCS_ROOT_PATH . '/site-config/demo_helpers.php';
+        \DcsStats\Core\AdminBootstrap::demo();
         if (isDemoRestricted()) {
             ApiResponse::json([
                 'success' => false,
@@ -48,7 +48,7 @@ final class BackupsController
         header('Cache-Control: no-cache');
         header('X-Accel-Buffering: no');
 
-        require_once DCS_ROOT_PATH . '/site-config/demo_helpers.php';
+        \DcsStats\Core\AdminBootstrap::demo();
         if (isDemoRestricted()) {
             $this->logMessage(demoRestrictionMessage());
             return;
@@ -68,7 +68,7 @@ final class BackupsController
         header('Cache-Control: no-cache');
         header('X-Accel-Buffering: no');
 
-        require_once DCS_ROOT_PATH . '/site-config/demo_helpers.php';
+        \DcsStats\Core\AdminBootstrap::demo();
         if (isDemoRestricted()) {
             $this->logMessage(demoRestrictionMessage());
             return;

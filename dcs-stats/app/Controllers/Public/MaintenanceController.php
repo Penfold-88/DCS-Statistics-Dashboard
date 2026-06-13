@@ -9,8 +9,8 @@ final class MaintenanceController
 {
     public function show(): void
     {
-        require_once DCS_ROOT_PATH . '/config_path.php';
-        require_once DCS_ROOT_PATH . '/language.php';
+        
+        \DcsStats\Core\SupportBootstrap::language();
 
         $state = (new MaintenancePageService())->state();
 

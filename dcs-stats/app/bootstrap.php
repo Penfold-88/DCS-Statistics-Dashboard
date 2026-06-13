@@ -30,7 +30,7 @@ spl_autoload_register(function ($class) {
     }
 });
 
-require_once DCS_ROOT_PATH . '/config_path.php';
+\DcsStats\Core\SupportBootstrap::url();
 
 if (!function_exists('e')) {
     function e($value) {

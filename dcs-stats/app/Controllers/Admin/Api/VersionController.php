@@ -25,8 +25,8 @@ final class VersionController
 
         Csrf::requireValid();
 
-        require_once DCS_ROOT_PATH . '/site-config/admin_functions.php';
-        require_once DCS_ROOT_PATH . '/site-config/demo_helpers.php';
+        \DcsStats\Core\AdminBootstrap::panel();
+        \DcsStats\Core\AdminBootstrap::demo();
         blockDemoWriteRequest(getCurrentAdmin(), true);
 
         try {

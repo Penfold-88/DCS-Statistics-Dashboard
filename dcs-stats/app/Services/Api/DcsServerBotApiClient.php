@@ -10,9 +10,9 @@ if (!defined('DCS_ROOT_PATH')) {
     define('DCS_ROOT_PATH', dirname(__DIR__, 3));
 }
 
-require_once DCS_ROOT_PATH . '/dev_mode.php';
-require_once DCS_ROOT_PATH . '/api_config_helper.php';
-require_once DCS_ROOT_PATH . '/api_cache.php';
+\DcsStats\Core\SupportBootstrap::devMode();
+\DcsStats\Core\SupportBootstrap::apiConfig();
+\DcsStats\Core\SupportBootstrap::apiCache();
 
 class DCSServerBotAPIClient {
     protected $apiBaseUrl;
