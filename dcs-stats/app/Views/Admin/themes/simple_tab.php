@@ -42,7 +42,7 @@
 
                             <div style="margin-top: 20px; display: flex; gap: 10px;">
                                 <button type="submit" class="btn btn-primary"><?= e(dcs_t('admin.themes.update_colours')) ?></button>
-                                <button type="button" class="btn btn-secondary" onclick="restoreDefaultColors()"><?= e(dcs_t('admin.themes.restore_defaults')) ?></button>
+                                <button type="button" class="btn btn-secondary" data-theme-action="restore-default-colors"><?= e(dcs_t('admin.themes.restore_defaults')) ?></button>
                             </div>
                         </form>
                     </div>

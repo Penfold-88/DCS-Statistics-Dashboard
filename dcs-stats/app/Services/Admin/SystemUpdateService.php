@@ -36,6 +36,15 @@ final class SystemUpdateService
         '.gitattributes',
     ];
 
+    private AdminFilesystemService $filesystem;
+    private SystemUpdateGitHubClient $githubClient;
+
+    public function __construct(?AdminFilesystemService $filesystem = null, ?SystemUpdateGitHubClient $githubClient = null)
+    {
+        $this->filesystem = $filesystem ?? new AdminFilesystemService();
+        $this->githubClient = $githubClient ?? new SystemUpdateGitHubClient();
+    }
+
     public function run(?string $specificVersion, callable $log): void
     {
         \DcsStats\Core\AdminBootstrap::panel();
@@ -79,7 +88,7 @@ final class SystemUpdateService
         mkdir($upgradeDir, 0755, true);
         register_shutdown_function(function () use ($upgradeDir) {
             if (is_dir($upgradeDir)) {
-                $this->removeDirectory($upgradeDir);
+                $this->filesystem->removeDirectory($upgradeDir);
             }
         });
 
@@ -116,7 +125,7 @@ final class SystemUpdateService
         $this->applyNewCode($rootPath, $newCodeDir, $log);
 
         $log('Cleaning up...');
-        $this->removeDirectory($upgradeDir);
+        $this->filesystem->removeDirectory($upgradeDir);
 
         $versionLabel = $specificVersion ?? $this->buildVersionLabel($branch, $remoteCommitDate, $remoteCommitSha);
         $currentAdmin = getCurrentAdmin();
@@ -157,7 +166,7 @@ final class SystemUpdateService
         }
 
         $log('Checking GitHub branch...');
-        $branchResult = $this->fetchBranch($repo, $branch);
+        $branchResult = $this->githubClient->fetchBranch($repo, $branch);
 
         if ($branchResult['http_code'] !== 200 || !$branchResult['data']) {
             $log("Selected branch was not found: $branch");
@@ -165,7 +174,7 @@ final class SystemUpdateService
                 $log('Trying fallback branch: main');
                 $branch = 'main';
                 $apiUrl = "https://api.github.com/repos/$repo/zipball/$branch";
-                $branchResult = $this->fetchBranch($repo, $branch);
+                $branchResult = $this->githubClient->fetchBranch($repo, $branch);
             }
         }
 
@@ -198,24 +207,6 @@ final class SystemUpdateService
         ];
     }
 
-    private function fetchBranch(string $repo, string $branch): array
-    {
-        $branchUrl = "https://api.github.com/repos/$repo/branches/" . rawurlencode($branch);
-        $ch = curl_init($branchUrl);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_USERAGENT, 'DCS-Stats-Updater');
-        $data = curl_exec($ch);
-        $error = curl_error($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-
-        return [
-            'data' => $data,
-            'error' => $error,
-            'http_code' => $httpCode,
-        ];
-    }
-
     private function logLatestReleaseForSpecificVersion(string $repo, ?string $specificVersion, callable $log): void
     {
         if ($specificVersion === null) {
@@ -223,18 +214,9 @@ final class SystemUpdateService
         }
 
         $log('Checking release information...');
-        $releaseUrl = "https://api.github.com/repos/$repo/releases/latest";
-        $ch = curl_init($releaseUrl);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_USERAGENT, 'DCS-Stats-Updater');
-        $releaseData = curl_exec($ch);
-        curl_close($ch);
-
-        if ($releaseData) {
-            $release = json_decode($releaseData, true);
-            if (isset($release['tag_name'])) {
-                $log('Latest release: ' . $release['tag_name']);
-            }
+        $latestReleaseTag = $this->githubClient->latestReleaseTag($repo);
+        if ($latestReleaseTag !== null) {
+            $log('Latest release: ' . $latestReleaseTag);
         }
     }
 
@@ -246,43 +228,18 @@ final class SystemUpdateService
             mkdir($configBackupDir, 0755, true);
         }
 
-        $configFiles = [
-            '/api_config.json',
-            '/site_config.json',
-            '/.version_meta.json',
-            '/custom_theme.css',
-            '/header_custom.css',
-            '/menu_config.json',
-            '/site-config/data/api_config.json',
-            '/site-config/data/users.json',
-            '/site-config/data/logs.json',
-            '/site-config/data/bans.json',
-            '/site-config/data/sessions.json',
-            '/.env',
-            '/docker-compose.yml',
-            '/docker-compose.override.yml',
-            '/Dockerfile',
-            '/Dockerfile.simple',
-            '/.dockerignore',
-            '/docker/docker-compose.yml',
-            '/docker/docker-compose.override.yml',
-            '/docker/Dockerfile',
-            '/docker/Dockerfile.dockerignore',
-            '/docker/Dockerfile.simple',
-        ];
-
-        foreach ($configFiles as $file) {
-            $sourcePath = $rootPath . $file;
+        foreach (BackupFileCatalog::configurationFiles() as $file) {
+            $sourcePath = $rootPath . '/' . $file;
             if (file_exists($sourcePath)) {
-                $destPath = $configBackupDir . $file;
+                $destPath = $configBackupDir . '/' . $file;
                 $destDir = dirname($destPath);
                 if (!is_dir($destDir)) {
                     mkdir($destDir, 0755, true);
                 }
                 if (copy($sourcePath, $destPath)) {
-                    $log("Backed up: $file");
+                    $log("Backed up: /$file");
                 } else {
-                    $log("Failed to backup: $file");
+                    $log("Failed to backup: /$file");
                 }
             }
         }
@@ -292,21 +249,9 @@ final class SystemUpdateService
 
     private function downloadArchive(string $apiUrl, string $zipFile, callable $log): bool
     {
-        $ch = curl_init($apiUrl);
-        $fp = fopen($zipFile, 'w');
-        curl_setopt($ch, CURLOPT_FILE, $fp);
-        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-        curl_setopt($ch, CURLOPT_USERAGENT, 'DCS-Stats-Updater');
-        curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            'Accept: application/vnd.github.v3+json',
-        ]);
-        $download = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-        fclose($fp);
-
-        if ($download === false || $httpCode !== 200) {
-            $log('Download failed. HTTP Code: ' . $httpCode);
+        $download = $this->githubClient->downloadArchive($apiUrl, $zipFile);
+        if (!$download['success']) {
+            $log('Download failed. HTTP Code: ' . $download['http_code']);
             @unlink($zipFile);
             return false;
         }
@@ -323,7 +268,7 @@ final class SystemUpdateService
             return null;
         }
 
-        if (!$this->validateUpdateZip($zip)) {
+        if (!$this->filesystem->archiveHasSafePaths($zip)) {
             $zip->close();
             @unlink($zipFile);
             $log('Update cancelled: downloaded archive contains unsafe file paths.');
@@ -361,7 +306,7 @@ final class SystemUpdateService
             );
             foreach ($files as $file) {
                 $filePath = $file->getRealPath();
-                $relPath = $this->normalizePath(substr($filePath, strlen($rootPath) + 1));
+                $relPath = $this->filesystem->normalizePath(substr($filePath, strlen($rootPath) + 1));
                 if (strpos($relPath, 'backups') === 0 || strpos($relPath, 'UPGRADE') === 0) {
                     continue;
                 }
@@ -389,7 +334,7 @@ final class SystemUpdateService
 
         foreach ($files as $file) {
             $filePath = $file->getRealPath();
-            $relPath = $this->normalizePath(substr($filePath, strlen($newCodeDir) + 1));
+            $relPath = $this->filesystem->normalizePath(substr($filePath, strlen($newCodeDir) + 1));
             $targetPath = $rootPath . '/' . $relPath;
             $newFiles[] = $relPath;
 
@@ -431,7 +376,7 @@ final class SystemUpdateService
 
         foreach ($iterator as $file) {
             $filePath = $file->getRealPath();
-            $relPath = $this->normalizePath(substr($filePath, strlen($rootPath) + 1));
+            $relPath = $this->filesystem->normalizePath(substr($filePath, strlen($rootPath) + 1));
 
             if ($this->shouldPreserve($relPath)) {
                 continue;
@@ -481,29 +426,6 @@ final class SystemUpdateService
         $log("Updated version to: $newVersion");
     }
 
-    private function validateUpdateZip(\ZipArchive $zip): bool
-    {
-        for ($i = 0; $i < $zip->numFiles; $i++) {
-            $name = $zip->getNameIndex($i);
-            if (!$this->isSafeUpdateZipPath((string)$name)) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    private function isSafeUpdateZipPath(string $path): bool
-    {
-        $path = $this->normalizePath($path);
-
-        return $path !== '' &&
-            $path[0] !== '/' &&
-            strpos($path, '../') === false &&
-            strpos($path, '/..') === false &&
-            strpos($path, ':') === false;
-    }
-
     private function buildVersionLabel(string $branch, ?string $commitDate, ?string $commitSha): string
     {
         $date = $commitDate ? date('Y-m-d', strtotime($commitDate)) : date('Y-m-d');
@@ -514,13 +436,7 @@ final class SystemUpdateService
 
     private function shouldPreserve(string $relPath): bool
     {
-        foreach (self::PRESERVED_PATHS as $path) {
-            if ($relPath === $path || strpos($relPath, $path . '/') === 0) {
-                return true;
-            }
-        }
-
-        return false;
+        return $this->filesystem->shouldPreservePath($relPath, self::PRESERVED_PATHS);
     }
 
     private function cleanupOldBackups(string $backupDir, int $maxBackups, callable $log): void
@@ -551,31 +467,4 @@ final class SystemUpdateService
         }
     }
 
-    private function removeDirectory(string $dir): void
-    {
-        if (!is_dir($dir)) {
-            return;
-        }
-
-        $items = scandir($dir) ?: [];
-        foreach ($items as $item) {
-            if ($item === '.' || $item === '..') {
-                continue;
-            }
-
-            $path = $dir . '/' . $item;
-            if (is_dir($path)) {
-                $this->removeDirectory($path);
-            } else {
-                unlink($path);
-            }
-        }
-
-        rmdir($dir);
-    }
-
-    private function normalizePath(string $path): string
-    {
-        return str_replace('\\', '/', $path);
-    }
 }

@@ -107,82 +107,19 @@ final class ThemeAssetService
             }
         }
 
-        $settings['image'] = $this->normalizeImagePath($settings['image'], true);
-        if ($settings['image'] === '') {
-            $settings['image'] = $this->defaultHeaderImageSettings()['image'];
-        }
-
-        $settings['position_x'] = max(0, min(100, (int)$settings['position_x']));
-        $settings['position_y'] = max(0, min(100, (int)$settings['position_y']));
-        $settings['background_position_x'] = max(0, min(100, (int)$settings['background_position_x']));
-        $settings['background_position_y'] = max(0, min(100, (int)$settings['background_position_y']));
-        $settings['background_zoom'] = max(100, min(180, (int)$settings['background_zoom']));
-        if (!in_array($settings['branding_mode'], ['text', 'logo', 'both'], true)) {
-            $settings['branding_mode'] = 'text';
-        }
-        $settings['logo_height'] = max(32, min(96, (int)$settings['logo_height']));
-        $settings['logo'] = $this->normalizeImagePath($settings['logo']);
-        if (empty($settings['logo'])) {
-            $settings['logo'] = '';
-            if ($settings['branding_mode'] === 'logo') {
-                $settings['branding_mode'] = 'text';
-            }
-        }
-        $settings['background_image'] = $this->normalizeImagePath($settings['background_image']);
-
-        return $settings;
+        return (new HeaderImageSettingsSanitizer($this))->clean($settings);
     }
 
     public function saveHeaderImageSettings(array $settings): bool
     {
-        $settings = array_merge($this->defaultHeaderImageSettings(), $settings);
-        $settings['position_x'] = max(0, min(100, (int)$settings['position_x']));
-        $settings['position_y'] = max(0, min(100, (int)$settings['position_y']));
-        $settings['background_position_x'] = max(0, min(100, (int)$settings['background_position_x']));
-        $settings['background_position_y'] = max(0, min(100, (int)$settings['background_position_y']));
-        $settings['background_zoom'] = max(100, min(180, (int)$settings['background_zoom']));
-        if (!in_array($settings['branding_mode'], ['text', 'logo', 'both'], true)) {
-            $settings['branding_mode'] = 'text';
-        }
-        $settings['logo_height'] = max(32, min(96, (int)$settings['logo_height']));
-
         $dataDir = DCS_ROOT_PATH . '/site-config/data';
         if (!is_dir($dataDir)) {
             mkdir($dataDir, 0755, true);
         }
 
-        $settings['image'] = $this->normalizeImagePath($settings['image'], true);
-        if ($settings['image'] === '') {
-            $settings['image'] = $this->defaultHeaderImageSettings()['image'];
-        }
-        $settings['logo'] = $this->normalizeImagePath($settings['logo']);
-        $settings['background_image'] = $this->normalizeImagePath($settings['background_image']);
+        $settings = (new HeaderImageSettingsSanitizer($this))->clean($settings);
 
-        $imageUrl = $this->cssImageUrl($settings['image']);
-        $css = ".header-background {\n";
-        $css .= "    background-image: url('{$imageUrl}') !important;\n";
-        $css .= "    background-size: cover !important;\n";
-        $css .= "    background-position: {$settings['position_x']}% {$settings['position_y']}% !important;\n";
-        $css .= "    background-repeat: no-repeat !important;\n";
-        $css .= "}\n";
-
-        if (!empty($settings['background_image'])) {
-            $backgroundUrl = $this->cssImageUrl($settings['background_image']);
-            $css .= "\nbody {\n";
-            $css .= "    background-color: var(--background_color, #121212) !important;\n";
-            $css .= "    background-image: linear-gradient(rgba(0, 0, 0, 0.58), rgba(0, 0, 0, 0.58)), url('{$backgroundUrl}') !important;\n";
-            $css .= "    background-attachment: fixed !important;\n";
-            $css .= "    background-position: center center, {$settings['background_position_x']}% {$settings['background_position_y']}% !important;\n";
-            $css .= "    background-repeat: no-repeat, no-repeat !important;\n";
-            $css .= "    background-size: cover, {$settings['background_zoom']}% auto !important;\n";
-            $css .= "}\n";
-            $css .= "\n@media (max-width: 768px) {\n";
-            $css .= "    body {\n";
-            $css .= "        background: var(--page_background_css, var(--background_color, #121212)) !important;\n";
-            $css .= "        background-attachment: scroll !important;\n";
-            $css .= "    }\n";
-            $css .= "}\n";
-        }
+        $css = (new HeaderImageCssBuilder($this))->build($settings);
 
         return file_put_contents($this->headerImageSettingsPath(), json_encode($settings, JSON_PRETTY_PRINT)) !== false
             && file_put_contents(DCS_ROOT_PATH . '/header_custom.css', $css) !== false;

@@ -52,6 +52,7 @@ final class ThemePageService
             'backups' => $themeUploadService->listBackups(),
             'builtInThemePresets' => $themePresetService->builtInPresets(),
             'chartColors' => \loadChartTheme(),
+            'chartThemeFieldGroups' => (new ChartThemeFieldCatalog())->groups(),
             'csrfToken' => \getCSRFToken(),
             'customColors' => $customColors,
             'customThemePresets' => (new ThemePresetStorageService())->loadCustomPresets(),

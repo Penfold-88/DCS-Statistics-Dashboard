@@ -31,7 +31,7 @@
                             </div>
 
                             <button type="submit" class="btn btn-primary" style="margin-top: 20px;"><?= e(dcs_t('admin.themes.save_menu_configuration')) ?></button>
-                            <button type="button" class="btn btn-secondary" onclick="resetMenu()" style="margin-top: 20px;"><?= e(dcs_t('admin.themes.reset_to_default')) ?></button>
+                            <button type="button" class="btn btn-secondary" data-theme-action="reset-menu" style="margin-top: 20px;"><?= e(dcs_t('admin.themes.reset_to_default')) ?></button>
                         </form>
                     </div>
                 </div>

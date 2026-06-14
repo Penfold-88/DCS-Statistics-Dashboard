@@ -18,6 +18,7 @@ if (!function_exists('e')) {
     }
 }
 $installerSupport = new \DcsStats\Services\Admin\InstallerSupportService();
+$installerConfigFactory = new \DcsStats\Services\Admin\InstallerConfigFactory();
 
 function showInstallerLockedPage() {
     http_response_code(403);
@@ -224,26 +225,10 @@ if ($is_cli) {
 }
 
 // Create initial admin user
-$admin = [
-    'id' => 1,
-    'username' => $username,
-    'email' => $email,
-    'password_hash' => password_hash($password, PASSWORD_BCRYPT),
-    'role' => 2, // Air Boss (highest role)
-    'created_at' => date('Y-m-d H:i:s'),
-    'last_login' => null,
-    'is_active' => true,
-    'failed_attempts' => 0,
-    'locked_until' => null
-];
+$admin = $installerConfigFactory->adminUser($username, $email, $password);
 
 // Create data files
-$files = [
-    'users.json' => [$admin],
-    'logs.json' => [],
-    'bans.json' => [],
-    'sessions.json' => []
-];
+$files = $installerConfigFactory->adminDataFiles($admin);
 
 foreach ($files as $filename => $content) {
     $filepath = $dataDir . '/' . $filename;
@@ -279,34 +264,7 @@ if ($is_cli) {
 }
 
 // Create API configuration
-$apiConfig = [
-    'api_base_url' => rtrim($api_url ?? '', '/'),
-    'api_key' => !empty($api_key) ? $api_key : null,
-    'timeout' => 30,
-    'cache_ttl' => 300,
-    'refresh_interval' => 300,
-    'verify_ssl' => true,
-    'fallback_to_json' => false,
-    'use_api' => true,
-    'enabled_endpoints' => [
-        'get_server_statistics.php',
-        'get_leaderboard.php',
-        'get_pilot_credits.php',
-        'get_pilot_statistics.php',
-        'get_player_stats.php',
-        'get_squadrons.php',
-        'get_servers.php',
-        'get_active_players.php',
-        'search_players.php'
-    ],
-    'endpoints' => [
-        'getuser' => '/getuser',
-        'stats' => '/stats',
-        'topkills' => '/topkills',
-        'topkdr' => '/topkdr',
-        'weaponpk' => '/weaponpk'
-    ]
-];
+$apiConfig = $installerConfigFactory->apiConfig((string)($api_url ?? ''), (string)($api_key ?? ''));
 
 if (file_put_contents($apiConfigFile, json_encode($apiConfig, JSON_PRETTY_PRINT)) === false) {
     die("Error: Could not create api_config.json\n");
@@ -317,17 +275,11 @@ if ($is_cli) {
 }
 
 // Create site configuration
-$siteConfig = [
-    'site_name' => $site_name ?? 'DCS Statistics',
-    'default_language' => $default_language ?? 'en',
-    'date_format' => 'd/m/Y',
-    'discord_invite_url' => $discord_url ?? '',
-    'theme' => 'dark',
-    'maintenance_mode' => false,
-    'allow_player_search' => true,
-    'show_squadron_tab' => true,
-    'show_servers_tab' => true
-];
+$siteConfig = $installerConfigFactory->siteConfig(
+    $site_name ?? 'DCS Statistics',
+    $default_language ?? 'en',
+    $discord_url ?? ''
+);
 
 if (file_put_contents($siteConfigFile, json_encode($siteConfig, JSON_PRETTY_PRINT)) === false) {
     die("Error: Could not create site_config.json\n");

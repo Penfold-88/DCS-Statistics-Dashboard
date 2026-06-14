@@ -17,6 +17,7 @@ final class ThemeActionService
 
         $themePresetStorageService = new ThemePresetStorageService();
         $themePresetService = new ThemePresetService();
+        $themeSettingsBackupService = new ThemeSettingsBackupService();
         $themeMenuService = new ThemeMenuService();
         $themeUploadService = new ThemeUploadService();
         $themeColorService = new ThemeColorService();
@@ -60,7 +61,7 @@ final class ThemeActionService
                 break;
 
             case 'export_theme_settings':
-                $backup = $themePresetService->buildBackup($menuConfigFile);
+                $backup = $themeSettingsBackupService->buildBackup($menuConfigFile);
                 $fileName = 'dcs-theme-settings-' . date('Y-m-d-H-i-s') . '.json';
                 header('Content-Type: application/json');
                 header('Content-Disposition: attachment; filename="' . $fileName . '"');
@@ -81,7 +82,7 @@ final class ThemeActionService
                 }
 
                 $backup = json_decode((string)file_get_contents($uploadedFile['tmp_name']), true);
-                if ($themePresetService->importBackup($backup, $menuConfigFile)) {
+                if ($themeSettingsBackupService->importBackup($backup, $menuConfigFile)) {
                     $message = 'Theme settings restored successfully';
                     $this->log('THEME_SETTINGS_IMPORT', 'Imported theme settings backup');
                 } else {

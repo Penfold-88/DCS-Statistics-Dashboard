@@ -6,15 +6,20 @@
     const defaultChartTheme = themeConfig.defaultChartTheme || {};
 
     // Tab switching
-    function switchTab(tabName) {
+    function switchTab(tabName, tabButton) {
         // Remove active class from all tabs and contents
         document.querySelectorAll('.theme-tab').forEach(tab => tab.classList.remove('active'));
         document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
 
         // Add active class to selected tab and content
-        event.target.classList.add('active');
-        document.getElementById(tabName + '-tab').classList.add('active');
+        if (tabButton) tabButton.classList.add('active');
+        const tabContent = document.getElementById(tabName + '-tab');
+        if (tabContent) tabContent.classList.add('active');
     }
+
+    document.querySelectorAll('[data-theme-tab]').forEach(tab => {
+        tab.addEventListener('click', () => switchTab(tab.dataset.themeTab, tab));
+    });
 
     // File input handling
     const cssFileInput = document.getElementById('css_file');
@@ -388,6 +393,18 @@
             if (input) input.value = value;
         }
     }
+
+    document.querySelectorAll('[data-theme-action]').forEach(button => {
+        button.addEventListener('click', () => {
+            if (button.dataset.themeAction === 'restore-default-colors') {
+                restoreDefaultColors();
+            } else if (button.dataset.themeAction === 'restore-default-chart-colors') {
+                restoreDefaultChartColors();
+            } else if (button.dataset.themeAction === 'reset-menu') {
+                resetMenu();
+            }
+        });
+    });
 
     // Initialize drag and drop when page loads
     document.addEventListener('DOMContentLoaded', function() {

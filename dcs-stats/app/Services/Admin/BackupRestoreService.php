@@ -4,6 +4,13 @@ namespace DcsStats\Services\Admin;
 
 final class BackupRestoreService
 {
+    private AdminFilesystemService $filesystem;
+
+    public function __construct(?AdminFilesystemService $filesystem = null)
+    {
+        $this->filesystem = $filesystem ?? new AdminFilesystemService();
+    }
+
     public function restoreBackup(string $filename, callable $log): void
     {
         \DcsStats\Core\AdminBootstrap::panel();
@@ -35,9 +42,9 @@ final class BackupRestoreService
             return;
         }
 
-        $this->removeDirectory($restoreDir);
-        $this->removeDirectory($rollbackDir);
-        if (!$this->ensureDirectory($restoreDir) || !$this->ensureDirectory($rollbackDir)) {
+        $this->filesystem->removeDirectory($restoreDir);
+        $this->filesystem->removeDirectory($rollbackDir);
+        if (!$this->filesystem->ensureDirectory($restoreDir) || !$this->filesystem->ensureDirectory($rollbackDir)) {
             $log('Error: Could not create restore workspace');
             return;
         }
@@ -48,10 +55,10 @@ final class BackupRestoreService
             return;
         }
 
-        if (!$this->validateBackupZip($zip)) {
+        if (!$this->filesystem->archiveHasSafePaths($zip)) {
             $zip->close();
-            $this->removeDirectory($restoreDir);
-            $this->removeDirectory($rollbackDir);
+            $this->filesystem->removeDirectory($restoreDir);
+            $this->filesystem->removeDirectory($rollbackDir);
             $log('Error: Backup contains unsafe file paths');
             return;
         }
@@ -59,8 +66,8 @@ final class BackupRestoreService
         $log('Extracting backup...');
         if (!$zip->extractTo($restoreDir)) {
             $zip->close();
-            $this->removeDirectory($restoreDir);
-            $this->removeDirectory($rollbackDir);
+            $this->filesystem->removeDirectory($restoreDir);
+            $this->filesystem->removeDirectory($rollbackDir);
             $log('Error: Failed to extract backup');
             return;
         }
@@ -72,8 +79,8 @@ final class BackupRestoreService
         }
 
         $log('Cleaning up...');
-        $this->removeDirectory($restoreDir);
-        $this->removeDirectory($rollbackDir);
+        $this->filesystem->removeDirectory($restoreDir);
+        $this->filesystem->removeDirectory($rollbackDir);
 
         $currentAdmin = getCurrentAdmin();
         logAdminAction('BACKUP_RESTORE', [
@@ -108,21 +115,21 @@ final class BackupRestoreService
         try {
             foreach ($iterator as $file) {
                 $filePath = $file->getRealPath();
-                $relPath = $this->normalizePath(substr($filePath, strlen($restoreDir) + 1));
+                $relPath = $this->filesystem->normalizePath(substr($filePath, strlen($restoreDir) + 1));
                 $targetPath = $rootPath . '/' . $relPath;
 
-                if ($this->shouldPreservePath($relPath, $preserve)) {
+                if ($this->filesystem->shouldPreservePath($relPath, $preserve)) {
                     continue;
                 }
 
                 if ($file->isDir()) {
-                    if (!$this->ensureDirectory($targetPath)) {
+                    if (!$this->filesystem->ensureDirectory($targetPath)) {
                         throw new \RuntimeException("Failed to create directory: $relPath");
                     }
                     continue;
                 }
 
-                if (!$this->ensureDirectory(dirname($targetPath))) {
+                if (!$this->filesystem->ensureDirectory(dirname($targetPath))) {
                     throw new \RuntimeException("Failed to create parent directory: $relPath");
                 }
 
@@ -141,8 +148,8 @@ final class BackupRestoreService
             $log('Error: ' . $e->getMessage());
             $log('Rolling back changed files...');
             $this->rollbackRestoreChanges($changedFiles);
-            $this->removeDirectory($restoreDir);
-            $this->removeDirectory($rollbackDir);
+            $this->filesystem->removeDirectory($restoreDir);
+            $this->filesystem->removeDirectory($rollbackDir);
             $log('Restore failed. Live files have been rolled back where changes were made.');
             return null;
         }
@@ -172,7 +179,7 @@ final class BackupRestoreService
 
         foreach ($files as $file) {
             $filePath = $file->getRealPath();
-            $relPath = $this->normalizePath(substr($filePath, strlen($rootPath) + 1));
+            $relPath = $this->filesystem->normalizePath(substr($filePath, strlen($rootPath) + 1));
 
             if (
                 strpos($relPath, 'backups/') === 0 ||
@@ -195,42 +202,6 @@ final class BackupRestoreService
         return true;
     }
 
-    private function validateBackupZip(\ZipArchive $zip): bool
-    {
-        for ($i = 0; $i < $zip->numFiles; $i++) {
-            $name = $zip->getNameIndex($i);
-            if (!$this->isSafeZipPath((string)$name)) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    private function isSafeZipPath(string $path): bool
-    {
-        $path = $this->normalizePath($path);
-
-        return $path !== '' &&
-            $path[0] !== '/' &&
-            strpos($path, '../') === false &&
-            strpos($path, '/..') === false &&
-            strpos($path, ':') === false;
-    }
-
-    private function shouldPreservePath(string $relPath, array $preserve): bool
-    {
-        $relPath = $this->normalizePath($relPath);
-        foreach ($preserve as $path) {
-            $path = $this->normalizePath($path);
-            if ($relPath === $path || strpos($relPath, $path . '/') === 0) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
     private function backupTargetBeforeRestore(string $targetPath, string $relPath, string $rollbackDir, array &$changedFiles): bool
     {
         if (isset($changedFiles[$relPath])) {
@@ -248,7 +219,7 @@ final class BackupRestoreService
             return true;
         }
 
-        if (!$this->ensureDirectory(dirname($rollbackPath))) {
+        if (!$this->filesystem->ensureDirectory(dirname($rollbackPath))) {
             return false;
         }
 
@@ -259,48 +230,11 @@ final class BackupRestoreService
     {
         foreach (array_reverse($changedFiles) as $change) {
             if ($change['existed']) {
-                $this->ensureDirectory(dirname($change['target']));
+                $this->filesystem->ensureDirectory(dirname($change['target']));
                 copy($change['rollback'], $change['target']);
             } elseif (file_exists($change['target'])) {
                 unlink($change['target']);
             }
         }
-    }
-
-    private function removeDirectory(string $dir): void
-    {
-        if (!is_dir($dir)) {
-            return;
-        }
-
-        $items = scandir($dir) ?: [];
-        foreach ($items as $item) {
-            if ($item === '.' || $item === '..') {
-                continue;
-            }
-
-            $path = $dir . '/' . $item;
-            if (is_dir($path)) {
-                $this->removeDirectory($path);
-            } else {
-                unlink($path);
-            }
-        }
-
-        rmdir($dir);
-    }
-
-    private function ensureDirectory(string $dir): bool
-    {
-        if (is_dir($dir)) {
-            return true;
-        }
-
-        return mkdir($dir, 0755, true);
-    }
-
-    private function normalizePath(string $path): string
-    {
-        return str_replace('\\', '/', $path);
     }
 }

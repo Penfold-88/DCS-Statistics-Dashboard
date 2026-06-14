@@ -4,6 +4,13 @@ namespace DcsStats\Services\Admin;
 
 final class BackupService
 {
+    private AdminFilesystemService $filesystem;
+
+    public function __construct(?AdminFilesystemService $filesystem = null)
+    {
+        $this->filesystem = $filesystem ?? new AdminFilesystemService();
+    }
+
     public function listBackups(): array
     {
         $backupDir = DCS_ROOT_PATH . '/backups';
@@ -168,25 +175,8 @@ final class BackupService
 
     private function addConfigFilesToBackup(\ZipArchive $backupZip, callable $log): void
     {
-        $configFiles = [
-            'api_config.json',
-            'site_config.json',
-            '.version_meta.json',
-            '.env',
-            'docker-compose.yml',
-            'docker-compose.override.yml',
-            'Dockerfile',
-            'Dockerfile.simple',
-            '.dockerignore',
-            'docker/docker-compose.yml',
-            'docker/docker-compose.override.yml',
-            'docker/Dockerfile',
-            'docker/Dockerfile.dockerignore',
-            'docker/Dockerfile.simple',
-        ];
-
         $log('Backing up configuration files...');
-        foreach ($configFiles as $configFile) {
+        foreach (BackupFileCatalog::packageConfigurationFiles() as $configFile) {
             $configPath = DCS_ROOT_PATH . '/' . $configFile;
             if (file_exists($configPath)) {
                 $backupZip->addFile($configPath, $configFile);
@@ -205,13 +195,9 @@ final class BackupService
         $fileCount = 0;
         foreach ($files as $file) {
             $filePath = $file->getRealPath();
-            $relPath = substr($filePath, strlen(DCS_ROOT_PATH) + 1);
+            $relPath = $this->filesystem->normalizePath(substr($filePath, strlen(DCS_ROOT_PATH) + 1));
 
-            if (
-                strpos($relPath, 'backups') === 0 ||
-                strpos($relPath, 'UPGRADE') === 0 ||
-                strpos($relPath, 'RESTORE_TEMP') === 0
-            ) {
+            if ($this->filesystem->shouldPreservePath($relPath, BackupFileCatalog::projectBackupExcludes())) {
                 continue;
             }
 

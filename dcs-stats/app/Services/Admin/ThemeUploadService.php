@@ -5,10 +5,12 @@ namespace DcsStats\Services\Admin;
 final class ThemeUploadService
 {
     private ThemeAssetService $assetService;
+    private ImageUploadService $imageUploadService;
 
-    public function __construct(?ThemeAssetService $assetService = null)
+    public function __construct(?ThemeAssetService $assetService = null, ?ImageUploadService $imageUploadService = null)
     {
         $this->assetService = $assetService ?? new ThemeAssetService();
+        $this->imageUploadService = $imageUploadService ?? new ImageUploadService();
     }
 
     public function uploadCss(array $files): array
@@ -95,7 +97,7 @@ final class ThemeUploadService
         }
 
         if (!isset($post['use_default_header_image'])) {
-            $uploadResult = $this->uploadImage($files['header_image'] ?? null, 'header-image', 5242880, 'Header image', false);
+            $uploadResult = $this->imageUploadService->upload($files['header_image'] ?? null, 'header-image', 5242880, 'Header image', false);
             if (!$uploadResult['success']) {
                 return $uploadResult;
             }
@@ -105,7 +107,7 @@ final class ThemeUploadService
         }
 
         if (!isset($post['remove_background_image'])) {
-            $uploadResult = $this->uploadImage($files['background_image'] ?? null, 'page-background', 5242880, 'Page background image', false);
+            $uploadResult = $this->imageUploadService->upload($files['background_image'] ?? null, 'page-background', 5242880, 'Page background image', false);
             if (!$uploadResult['success']) {
                 return $uploadResult;
             }
@@ -115,7 +117,7 @@ final class ThemeUploadService
         }
 
         if (!isset($post['remove_header_logo'])) {
-            $uploadResult = $this->uploadImage($files['header_logo'] ?? null, 'header-logo', 2097152, 'Header logo', false);
+            $uploadResult = $this->imageUploadService->upload($files['header_logo'] ?? null, 'header-logo', 2097152, 'Header logo', false);
             if (!$uploadResult['success']) {
                 return $uploadResult;
             }
@@ -129,52 +131,6 @@ final class ThemeUploadService
         }
 
         return ['success' => false, 'message' => 'Failed to save header image settings'];
-    }
-
-    private function uploadImage(?array $uploadedFile, string $targetBaseName, int $maxBytes, string $label, bool $required): array
-    {
-        if (!$uploadedFile || ($uploadedFile['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {
-            return $required
-                ? ['success' => false, 'message' => $label . ' is required']
-                : ['success' => true, 'path' => ''];
-        }
-
-        if (($uploadedFile['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
-            return ['success' => false, 'message' => 'Failed to upload ' . strtolower($label)];
-        }
-
-        $tmpPath = $uploadedFile['tmp_name'];
-        $fileSize = $uploadedFile['size'];
-        $fileType = mime_content_type($tmpPath);
-        $extension = strtolower(pathinfo($uploadedFile['name'], PATHINFO_EXTENSION));
-        $allowedTypes = [
-            'jpg' => 'image/jpeg',
-            'jpeg' => 'image/jpeg',
-            'png' => 'image/png',
-            'webp' => 'image/webp',
-        ];
-
-        if (!isset($allowedTypes[$extension]) || $allowedTypes[$extension] !== $fileType) {
-            return ['success' => false, 'message' => 'Please upload a JPG, PNG, or WebP ' . strtolower(str_replace('Header ', '', $label))];
-        }
-
-        if ($fileSize > $maxBytes) {
-            $limit = $maxBytes >= 5242880 ? '5MB' : '2MB';
-            return ['success' => false, 'message' => $label . ' must be less than ' . $limit];
-        }
-
-        $uploadDir = DCS_ROOT_PATH . '/uploads';
-        if (!is_dir($uploadDir)) {
-            mkdir($uploadDir, 0755, true);
-        }
-
-        $targetName = $targetBaseName . '.' . ($extension === 'jpeg' ? 'jpg' : $extension);
-        $targetPath = $uploadDir . '/' . $targetName;
-        if (!move_uploaded_file($tmpPath, $targetPath)) {
-            return ['success' => false, 'message' => 'Failed to upload ' . strtolower($label)];
-        }
-
-        return ['success' => true, 'path' => 'uploads/' . $targetName];
     }
 
     public function listBackups(): array
