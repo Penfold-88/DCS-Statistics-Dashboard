@@ -27,14 +27,12 @@
                             </div>
 
                             <div class="header-position-controls">
-                                <label for="position_x">
-                                    <?= e(dcs_t('admin.themes.horizontal_position')) ?>
-                                    <input type="range" id="position_x" name="position_x" min="0" max="100" value="<?= (int)$headerImageSettings['position_x'] ?>">
-                                </label>
-                                <label for="position_y">
-                                    <?= e(dcs_t('admin.themes.vertical_position')) ?>
-                                    <input type="range" id="position_y" name="position_y" min="0" max="100" value="<?= (int)$headerImageSettings['position_y'] ?>">
-                                </label>
+                                <?php foreach ($headerImageFieldCatalog->headerPositionControls() as $control): ?>
+                                    <label for="<?= e($control['key']) ?>">
+                                        <?= e($control['label']) ?>
+                                        <input type="range" id="<?= e($control['key']) ?>" name="<?= e($control['key']) ?>" min="<?= (int)$control['min'] ?>" max="<?= (int)$control['max'] ?>" value="<?= (int)$headerImageSettings[$control['key']] ?>">
+                                    </label>
+                                <?php endforeach; ?>
                             </div>
 
                             <fieldset class="color-fieldset">
@@ -66,18 +64,12 @@
                                 </div>
 
                                 <div class="header-position-controls">
-                                    <label for="background_position_x">
-                                        <?= e(dcs_t('admin.themes.background_horizontal_position')) ?>
-                                        <input type="range" id="background_position_x" name="background_position_x" min="0" max="100" value="<?= (int)$headerImageSettings['background_position_x'] ?>">
-                                    </label>
-                                    <label for="background_position_y">
-                                        <?= e(dcs_t('admin.themes.background_vertical_position')) ?>
-                                        <input type="range" id="background_position_y" name="background_position_y" min="0" max="100" value="<?= (int)$headerImageSettings['background_position_y'] ?>">
-                                    </label>
-                                    <label for="background_zoom">
-                                        <?= e(dcs_t('admin.themes.background_zoom')) ?>
-                                        <input type="range" id="background_zoom" name="background_zoom" min="100" max="180" value="<?= (int)$headerImageSettings['background_zoom'] ?>">
-                                    </label>
+                                    <?php foreach ($headerImageFieldCatalog->backgroundPositionControls() as $control): ?>
+                                        <label for="<?= e($control['key']) ?>">
+                                            <?= e($control['label']) ?>
+                                            <input type="range" id="<?= e($control['key']) ?>" name="<?= e($control['key']) ?>" min="<?= (int)$control['min'] ?>" max="<?= (int)$control['max'] ?>" value="<?= (int)$headerImageSettings[$control['key']] ?>">
+                                        </label>
+                                    <?php endforeach; ?>
                                 </div>
                             </fieldset>
 
@@ -91,9 +83,9 @@
                                     <div class="color-input-group">
                                         <label for="branding_mode"><?= e(dcs_t('admin.themes.header_branding')) ?>:</label>
                                         <select id="branding_mode" name="branding_mode" class="form-control">
-                                            <option value="text" <?= $headerImageSettings['branding_mode'] === 'text' ? 'selected' : '' ?>><?= e(dcs_t('admin.themes.text_only')) ?></option>
-                                            <option value="both" <?= $headerImageSettings['branding_mode'] === 'both' ? 'selected' : '' ?>><?= e(dcs_t('admin.themes.logo_and_text')) ?></option>
-                                            <option value="logo" <?= $headerImageSettings['branding_mode'] === 'logo' ? 'selected' : '' ?>><?= e(dcs_t('admin.themes.logo_only')) ?></option>
+                                            <?php foreach ($headerImageFieldCatalog->brandingModes() as $mode => $label): ?>
+                                                <option value="<?= e($mode) ?>" <?= $headerImageSettings['branding_mode'] === $mode ? 'selected' : '' ?>><?= e($label) ?></option>
+                                            <?php endforeach; ?>
                                         </select>
                                     </div>
 

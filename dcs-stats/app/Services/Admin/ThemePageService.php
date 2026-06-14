@@ -63,6 +63,7 @@ final class ThemePageService
             'demoRestricted' => $demoRestricted,
             'error' => $error,
             'headerImageSettings' => $headerImageSettings,
+            'headerImageFieldCatalog' => new HeaderImageFieldCatalog(),
             'headerLogoPreview' => !empty($headerImageSettings['logo']) ? '../' . ltrim($headerImageSettings['logo'], '/') : '',
             'headerPreviewImage' => '../' . ltrim($headerImageSettings['image'], '/'),
             'isAirBoss' => $isAirBoss,
