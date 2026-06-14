@@ -1,12 +1,1 @@
-<style>
-.privacy-panel {
-    background: linear-gradient(135deg, var(--card_color) 0%, var(--card_alt_color) 100%);
-    border: 1px solid color-mix(in srgb, var(--border_color) 70%, transparent);
-    border-radius: 8px;
-    color: var(--card_text_color);
-    line-height: 1.7;
-    margin: 0 auto 30px;
-    max-width: 980px;
-    padding: 24px;
-}
-</style>
+<link rel="stylesheet" href="<?php echo htmlspecialchars(assetUrl('css/pages/privacy.css'), ENT_QUOTES, 'UTF-8'); ?>">
