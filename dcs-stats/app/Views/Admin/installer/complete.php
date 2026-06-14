@@ -5,28 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= e(dcs_t('admin.install.complete_page_title')) ?> - DCS Statistics</title>
     <link rel="stylesheet" href="css/admin.css">
-    <style>
-        body {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            padding: 20px;
-        }
-        .install-container {
-            width: 100%;
-            max-width: 500px;
-        }
-        .success-icon {
-            font-size: 64px;
-            color: var(--accent-primary);
-            text-align: center;
-            margin-bottom: 20px;
-        }
-    </style>
+    <link rel="stylesheet" href="../css/admin/installer.css">
 </head>
 <body>
-    <div class="install-container">
+    <div class="install-container install-container--complete">
         <div class="card text-center">
             <div class="success-icon">✓</div>
             <h1 class="text-success mb-3"><?= e(dcs_t('admin.install.complete_title')) ?></h1>

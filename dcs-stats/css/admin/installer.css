@@ -1,0 +1,75 @@
+body {
+    align-items: center;
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.install-container {
+    width: 100%;
+    max-width: 600px;
+}
+
+.install-container--complete {
+    max-width: 500px;
+}
+
+.permission-details {
+    background: var(--bg-tertiary, #1a1a1a);
+    border: 1px solid var(--border-color, #444);
+    border-radius: 6px;
+    margin-top: 12px;
+    padding: 12px;
+}
+
+.permission-details summary {
+    cursor: pointer;
+    font-weight: 700;
+}
+
+.permission-details code,
+.permission-row code {
+    word-break: break-word;
+}
+
+.permission-row {
+    align-items: flex-start;
+    display: grid;
+    gap: 8px;
+    grid-template-columns: 22px 1fr;
+    margin: 8px 0;
+}
+
+.permission-status {
+    font-weight: 700;
+}
+
+.success-icon {
+    color: var(--accent-primary);
+    font-size: 64px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.installer-locked-card {
+    background: var(--bg-secondary, #252525);
+    border: 1px solid var(--border-color, #444);
+    border-radius: 8px;
+    max-width: 560px;
+    padding: 28px;
+    text-align: center;
+    width: 100%;
+}
+
+.installer-locked-card h1 {
+    margin-top: 0;
+}
+
+.installer-locked-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 22px;
+}

@@ -5,46 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= e(dcs_t('admin.install.page_title')) ?> - DCS Statistics</title>
     <link rel="stylesheet" href="css/admin.css">
-    <style>
-        body {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            padding: 20px;
-        }
-        .install-container {
-            width: 100%;
-            max-width: 600px;
-        }
-        .permission-details {
-            background: var(--bg-tertiary, #1a1a1a);
-            border: 1px solid var(--border-color, #444);
-            border-radius: 6px;
-            margin-top: 12px;
-            padding: 12px;
-        }
-        .permission-details summary {
-            cursor: pointer;
-            font-weight: 700;
-        }
-        .permission-details code {
-            word-break: break-word;
-        }
-        .permission-row {
-            align-items: flex-start;
-            display: grid;
-            gap: 8px;
-            grid-template-columns: 22px 1fr;
-            margin: 8px 0;
-        }
-        .permission-row code {
-            word-break: break-word;
-        }
-        .permission-status {
-            font-weight: 700;
-        }
-    </style>
+    <link rel="stylesheet" href="../css/admin/installer.css">
 </head>
 <body>
     <div class="install-container">
