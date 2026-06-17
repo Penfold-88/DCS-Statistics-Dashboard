@@ -5,10 +5,12 @@ namespace DcsStats\Services\Admin;
 final class BackupRestoreService
 {
     private AdminFilesystemService $filesystem;
+    private PreRestoreBackupService $preRestoreBackupService;
 
-    public function __construct(?AdminFilesystemService $filesystem = null)
+    public function __construct(?AdminFilesystemService $filesystem = null, ?PreRestoreBackupService $preRestoreBackupService = null)
     {
         $this->filesystem = $filesystem ?? new AdminFilesystemService();
+        $this->preRestoreBackupService = $preRestoreBackupService ?? new PreRestoreBackupService($this->filesystem);
     }
 
     public function restoreBackup(string $filename, callable $log): void
@@ -37,7 +39,7 @@ final class BackupRestoreService
 
         $log("Starting restore from: $filename");
 
-        if (!$this->createPreRestoreBackup($rootPath, $log)) {
+        if (!$this->preRestoreBackupService->create($rootPath, $log)) {
             $log('Restore cancelled to avoid changing live files without a recovery point.');
             return;
         }
@@ -155,51 +157,6 @@ final class BackupRestoreService
         }
 
         return $restoredFiles;
-    }
-
-    private function createPreRestoreBackup(string $rootPath, callable $log): bool
-    {
-        $backupDir = $rootPath . '/backups';
-        if (!is_dir($backupDir) && !mkdir($backupDir, 0755, true)) {
-            $log('Error: Could not create backup directory before restore');
-            return false;
-        }
-
-        $backupFile = $backupDir . '/pre-restore-' . date('Ymd-His') . '.zip';
-        $zip = new \ZipArchive();
-        if ($zip->open($backupFile, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) !== true) {
-            $log('Error: Could not create pre-restore backup');
-            return false;
-        }
-
-        $files = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($rootPath, \RecursiveDirectoryIterator::SKIP_DOTS),
-            \RecursiveIteratorIterator::SELF_FIRST
-        );
-
-        foreach ($files as $file) {
-            $filePath = $file->getRealPath();
-            $relPath = $this->filesystem->normalizePath(substr($filePath, strlen($rootPath) + 1));
-
-            if (
-                strpos($relPath, 'backups/') === 0 ||
-                strpos($relPath, 'RESTORE_TEMP/') === 0 ||
-                strpos($relPath, 'UPGRADE/') === 0
-            ) {
-                continue;
-            }
-
-            if ($file->isDir()) {
-                $zip->addEmptyDir($relPath);
-            } else {
-                $zip->addFile($filePath, $relPath);
-            }
-        }
-
-        $zip->close();
-        $log('Pre-restore backup created: ' . basename($backupFile));
-
-        return true;
     }
 
     private function backupTargetBeforeRestore(string $targetPath, string $relPath, string $rollbackDir, array &$changedFiles): bool

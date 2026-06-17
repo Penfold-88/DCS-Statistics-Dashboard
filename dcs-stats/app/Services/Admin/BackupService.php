@@ -5,10 +5,20 @@ namespace DcsStats\Services\Admin;
 final class BackupService
 {
     private AdminFilesystemService $filesystem;
+    private BackupCleanupService $cleanupService;
+    private BackupMetadataService $metadataService;
+    private ByteFormatter $byteFormatter;
 
-    public function __construct(?AdminFilesystemService $filesystem = null)
-    {
+    public function __construct(
+        ?AdminFilesystemService $filesystem = null,
+        ?BackupCleanupService $cleanupService = null,
+        ?BackupMetadataService $metadataService = null,
+        ?ByteFormatter $byteFormatter = null
+    ) {
         $this->filesystem = $filesystem ?? new AdminFilesystemService();
+        $this->cleanupService = $cleanupService ?? new BackupCleanupService();
+        $this->metadataService = $metadataService ?? new BackupMetadataService();
+        $this->byteFormatter = $byteFormatter ?? new ByteFormatter();
     }
 
     public function listBackups(): array
@@ -23,12 +33,12 @@ final class BackupService
         $files = glob($backupDir . '/backup-*.zip') ?: [];
         foreach ($files as $file) {
             $filename = basename($file);
-            $metadata = $this->readBackupMetadata($file, $filename);
+            $metadata = $this->metadataService->read($file, $filename);
 
             $backups[] = [
                 'name' => $filename,
                 'date' => date('Y-m-d H:i:s', filemtime($file)),
-                'size' => $this->formatBytes((int)filesize($file)),
+                'size' => $this->byteFormatter->format((int)filesize($file)),
                 'version' => $metadata['version'],
                 'branch' => $metadata['branch'],
             ];
@@ -120,7 +130,7 @@ final class BackupService
         $backupZip->addFromString('.backup_meta.json', json_encode($metadata, JSON_PRETTY_PRINT));
         $backupZip->close();
 
-        $sizeFormatted = $this->formatBytes((int)filesize($backupFile));
+        $sizeFormatted = $this->byteFormatter->format((int)filesize($backupFile));
 
         $log('Backup complete!');
         $log("Total files: $fileCount");
@@ -132,45 +142,7 @@ final class BackupService
             'admin' => $currentAdmin['username'] ?? 'Unknown',
         ]);
 
-        $this->cleanupOldBackups($backupDir, 5, $log);
-    }
-
-    private function readBackupMetadata(string $file, string $filename): array
-    {
-        $metadata = [
-            'version' => 'Unknown',
-            'branch' => 'Unknown',
-        ];
-
-        if (preg_match('/backup-\d{8}-\d{6}-([^-]+)-(.+)\.zip/', $filename, $matches)) {
-            return [
-                'branch' => $matches[1],
-                'version' => str_replace('_', '.', $matches[2]),
-            ];
-        }
-
-        if (!class_exists('ZipArchive')) {
-            return $metadata;
-        }
-
-        $zip = new \ZipArchive();
-        if ($zip->open($file) !== true) {
-            return $metadata;
-        }
-
-        $metaIndex = $zip->locateName('.backup_meta.json');
-        if ($metaIndex !== false) {
-            $metaContent = $zip->getFromIndex($metaIndex);
-            $meta = json_decode((string)$metaContent, true);
-            if (is_array($meta)) {
-                $metadata['version'] = $meta['version'] ?? 'Unknown';
-                $metadata['branch'] = $meta['branch'] ?? 'Unknown';
-            }
-        }
-
-        $zip->close();
-
-        return $metadata;
+        $this->cleanupService->cleanupOldBackups($backupDir, 5, $log);
     }
 
     private function addConfigFilesToBackup(\ZipArchive $backupZip, callable $log): void
@@ -215,42 +187,4 @@ final class BackupService
         return $fileCount;
     }
 
-    private function cleanupOldBackups(string $backupDir, int $maxBackups, callable $log): void
-    {
-        if (!is_dir($backupDir)) {
-            return;
-        }
-
-        $backups = glob($backupDir . '/backup-*.zip');
-        if (!$backups || count($backups) <= $maxBackups) {
-            return;
-        }
-
-        usort($backups, function ($a, $b) {
-            return filemtime($b) - filemtime($a);
-        });
-
-        $deleted = 0;
-        for ($i = $maxBackups; $i < count($backups); $i++) {
-            if (unlink($backups[$i])) {
-                $deleted++;
-                $log('Deleted old backup: ' . basename($backups[$i]));
-            }
-        }
-
-        if ($deleted > 0) {
-            $log("Cleaned up $deleted old backup(s). Keeping $maxBackups most recent.");
-        }
-    }
-
-    private function formatBytes(int $bytes, int $precision = 2): string
-    {
-        $units = ['B', 'KB', 'MB', 'GB'];
-
-        for ($i = 0; $bytes > 1024 && $i < count($units) - 1; $i++) {
-            $bytes /= 1024;
-        }
-
-        return round($bytes, $precision) . ' ' . $units[$i];
-    }
 }

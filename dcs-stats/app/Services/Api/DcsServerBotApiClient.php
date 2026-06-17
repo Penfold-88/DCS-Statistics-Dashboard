@@ -21,6 +21,7 @@ class DCSServerBotAPIClient {
     protected $isDevMode;
     protected $config;
     private $mockDataProvider;
+    private $httpClient;
     
     public function __construct($config = []) {
         $this->apiBaseUrl = $config['api_base_url'] ?? 'http://localhost:9876';
@@ -29,6 +30,7 @@ class DCSServerBotAPIClient {
         $this->isDevMode = isDevMode();
         $this->config = $config;
         $this->mockDataProvider = new \DcsStats\Services\Api\DcsServerBotMockDataProvider();
+        $this->httpClient = new \DcsStats\Services\Api\DcsServerBotHttpClient();
     }
     
     /**
@@ -40,65 +42,17 @@ class DCSServerBotAPIClient {
             return $this->getMockData($endpoint, $data);
         }
         
-        $url = $this->apiBaseUrl . $endpoint;
-        $requestEndpoint = $endpoint;
-        if ($method === 'GET' && $data) {
-            $requestEndpoint .= '?' . http_build_query($data);
-        }
-        $cached = apiCacheRead($method, $this->apiBaseUrl, $requestEndpoint, $method === 'POST' ? $data : null, $this->config);
-        if ($cached !== null) {
-            return json_decode($cached['body'], true);
-        }
-        
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_TIMEOUT, $this->timeout);
-        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-        
-        // Add headers
-        $headers = [
-            'Accept: */*'
-        ];
-        
-        if ($this->apiKey) {
-            $headers[] = 'X-API-Key: ' . $this->apiKey;
-        }
-        
-        // Set method and data
-        if ($method === 'POST') {
-            curl_setopt($ch, CURLOPT_POST, true);
-            if ($data) {
-                // Use form-urlencoded for POST data
-                curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
-                $headers[] = 'Content-Type: application/x-www-form-urlencoded';
-            }
-        } elseif ($method === 'GET') {
-            if ($data) {
-                $url .= '?' . http_build_query($data);
-                curl_setopt($ch, CURLOPT_URL, $url);
-            }
-        }
-        
-        // Set headers after determining content type
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-        
-        $response = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $error = curl_error($ch);
-        curl_close($ch);
-        
-        if ($error) {
-            throw new Exception('API request failed: ' . $error);
-        }
-        
-        if ($httpCode >= 400) {
-            throw new Exception('API returned error code: ' . $httpCode);
-        }
-        
-        apiCacheWrite($method, $this->apiBaseUrl, $requestEndpoint, $method === 'POST' ? $data : null, $this->config, $response, $httpCode);
+        $response = $this->httpClient->request(
+            $method,
+            $this->apiBaseUrl,
+            $endpoint,
+            $data,
+            $this->config,
+            $this->apiKey,
+            $this->timeout
+        );
 
-        return json_decode($response, true);
+        return json_decode($response['body'], true);
     }
 
     public function getLeaderboard($what = 'kills', $limit = 10, $offset = 0, $order = 'desc') {
@@ -132,20 +86,7 @@ class DCSServerBotAPIClient {
             return null;
         }
 
-        // If no date provided, we need to get the user's last seen date first
-        if (!$date) {
-            try {
-                $userData = $this->makeRequest('POST', '/getuser', ['nick' => $nickname]);
-                if ($userData && is_array($userData) && isset($userData[0]['date'])) {
-                    $date = $userData[0]['date'];
-                } else {
-                    // If we can't get user data, stats will likely fail
-                    throw new Exception('Unable to determine user last seen date');
-                }
-            } catch (Exception $e) {
-                throw new Exception('Failed to get user data: ' . $e->getMessage());
-            }
-        }
+        $date = $this->resolvePlayerDate($nickname, $date);
         
         // API expects 'nick' and the user's exact last seen date
         $data = [
@@ -198,20 +139,7 @@ class DCSServerBotAPIClient {
             return null;
         }
 
-        // If no date provided, we need to get the user's last seen date first
-        if (!$date) {
-            try {
-                $userData = $this->makeRequest('POST', '/getuser', ['nick' => $nickname]);
-                if ($userData && is_array($userData) && isset($userData[0]['date'])) {
-                    $date = $userData[0]['date'];
-                } else {
-                    // If we can't get user data, stats will likely fail
-                    throw new Exception('Unable to determine user last seen date');
-                }
-            } catch (Exception $e) {
-                throw new Exception('Failed to get user data: ' . $e->getMessage());
-            }
-        }
+        $date = $this->resolvePlayerDate($nickname, $date);
         
         // API expects 'nick' and the user's exact last seen date
         $data = [
@@ -262,6 +190,23 @@ class DCSServerBotAPIClient {
      */
     private function getMockData($endpoint, $data = null) {
         return $this->mockDataProvider->get($endpoint, $data);
+    }
+
+    private function resolvePlayerDate($nickname, $date) {
+        if ($date) {
+            return $date;
+        }
+
+        try {
+            $userData = $this->makeRequest('POST', '/getuser', ['nick' => $nickname]);
+            if ($userData && is_array($userData) && isset($userData[0]['date'])) {
+                return $userData[0]['date'];
+            }
+
+            throw new Exception('Unable to determine user last seen date');
+        } catch (Exception $e) {
+            throw new Exception('Failed to get user data: ' . $e->getMessage());
+        }
     }
 }
 

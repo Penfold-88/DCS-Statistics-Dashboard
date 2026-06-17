@@ -15,89 +15,64 @@ final class ThemeActionService
         $error = '';
         $action = $post['action'] ?? '';
 
-        $themePresetStorageService = new ThemePresetStorageService();
-        $themePresetService = new ThemePresetService();
-        $themeSettingsBackupService = new ThemeSettingsBackupService();
-        $themeMenuService = new ThemeMenuService();
+        $themePresetActionService = new ThemePresetActionService();
+        $themeSettingsActionService = new ThemeSettingsActionService();
+        $themeMenuActionService = new ThemeMenuActionService();
         $themeUploadService = new ThemeUploadService();
-        $themeColorService = new ThemeColorService();
+        $themeColorActionService = new ThemeColorActionService();
 
         switch ($action) {
             case 'apply_theme_preset':
-                $presetId = $post['preset_id'] ?? '';
-                $presetType = $post['preset_type'] ?? 'built_in';
-                $preset = $presetType === 'custom'
-                    ? $themePresetStorageService->customPresetById($presetId)
-                    : ($themePresetService->builtInPresets()[$presetId] ?? null);
-
-                if ($preset && $themePresetService->applyPreset($preset)) {
-                    $message = 'Theme preset applied successfully';
-                    $this->log('THEME_PRESET_APPLY', 'Applied theme preset: ' . ($preset['name'] ?? $presetId));
+                $presetResult = $themePresetActionService->apply($post);
+                if ($presetResult['success']) {
+                    $message = $presetResult['message'];
+                    $this->log('THEME_PRESET_APPLY', $presetResult['log_message'] ?? $presetResult['message']);
                 } else {
-                    $error = 'Theme preset could not be applied';
+                    $error = $presetResult['message'];
                 }
                 break;
 
             case 'save_theme_preset':
-                $presetName = trim($post['preset_name'] ?? '');
-                $savePresetResult = $themePresetService->saveCurrentPreset($presetName);
+                $savePresetResult = $themePresetActionService->save($post);
                 if ($savePresetResult['success']) {
                     $message = $savePresetResult['message'];
-                    $this->log('THEME_PRESET_SAVE', 'Saved custom theme preset: ' . $presetName);
+                    $this->log('THEME_PRESET_SAVE', $savePresetResult['log_message'] ?? $savePresetResult['message']);
                 } else {
                     $error = $savePresetResult['message'];
                 }
                 break;
 
             case 'delete_theme_preset':
-                $presetIndex = (int)($post['preset_id'] ?? -1);
-                $deletePresetResult = $themePresetService->deleteCustomPreset($presetIndex);
+                $deletePresetResult = $themePresetActionService->delete($post);
                 if ($deletePresetResult['success']) {
                     $message = $deletePresetResult['message'];
-                    $this->log('THEME_PRESET_DELETE', 'Deleted custom theme preset: ' . ($deletePresetResult['deleted_name'] ?? 'Custom preset'));
+                    $this->log('THEME_PRESET_DELETE', $deletePresetResult['log_message'] ?? $deletePresetResult['message']);
                 } else {
                     $error = $deletePresetResult['message'];
                 }
                 break;
 
             case 'export_theme_settings':
-                $backup = $themeSettingsBackupService->buildBackup($menuConfigFile);
-                $fileName = 'dcs-theme-settings-' . date('Y-m-d-H-i-s') . '.json';
-                header('Content-Type: application/json');
-                header('Content-Disposition: attachment; filename="' . $fileName . '"');
-                header('Cache-Control: no-store');
-                echo json_encode($backup, JSON_PRETTY_PRINT);
-                exit;
+                $themeSettingsActionService->export($menuConfigFile);
 
             case 'import_theme_settings':
-                if (!isset($files['theme_settings_file']) || $files['theme_settings_file']['error'] !== UPLOAD_ERR_OK) {
-                    $error = 'Please select a theme settings backup file';
-                    break;
-                }
-
-                $uploadedFile = $files['theme_settings_file'];
-                if ($uploadedFile['size'] > 1048576) {
-                    $error = 'Theme settings backup must be less than 1MB';
-                    break;
-                }
-
-                $backup = json_decode((string)file_get_contents($uploadedFile['tmp_name']), true);
-                if ($themeSettingsBackupService->importBackup($backup, $menuConfigFile)) {
-                    $message = 'Theme settings restored successfully';
-                    $this->log('THEME_SETTINGS_IMPORT', 'Imported theme settings backup');
+                $importResult = $themeSettingsActionService->import($files, $menuConfigFile);
+                if ($importResult['success']) {
+                    $message = $importResult['message'];
+                    $this->log('THEME_SETTINGS_IMPORT', $importResult['log_message'] ?? $importResult['message']);
                 } else {
-                    $error = 'Invalid theme settings backup file';
+                    $error = $importResult['message'];
                 }
                 break;
 
             case 'update_menu':
-                $newMenuItems = $themeMenuService->menuFromPost($post);
-                if (!$themeMenuService->saveMenu($menuConfigFile, $newMenuItems)) {
-                    $error = 'Failed to save menu configuration. Please check file permissions.';
+                $menuResult = $themeMenuActionService->update($post, $menuConfigFile);
+                if (!$menuResult['success']) {
+                    $error = $menuResult['message'];
                 } else {
-                    $menuItems = $newMenuItems;
-                    $message = 'Menu configuration updated successfully';
-                    $this->log('MENU_UPDATE', 'Updated navigation menu configuration');
+                    $menuItems = $menuResult['menuItems'];
+                    $message = $menuResult['message'];
+                    $this->log('MENU_UPDATE', $menuResult['log_message'] ?? $menuResult['message']);
                 }
                 break;
 
@@ -117,18 +92,12 @@ final class ThemeActionService
                 break;
 
             case 'update_colors':
-                $colors = [];
-                foreach ($themeColorService->defaultColors() as $key => $defaultValue) {
-                    $colors[$key] = $post[$key] ?? $defaultValue;
+                if ($themeColorActionService->updateColors($post)) {
+                    $message = 'Color theme updated successfully';
+                    $this->log('THEME_COLORS', 'Updated theme colors');
+                } else {
+                    $error = 'Failed to save color theme';
                 }
-                $themeOptions = [
-                    'header_title_gradient_enabled' => isset($post['header_title_gradient_enabled']),
-                    'page_background_gradient_enabled' => isset($post['page_background_gradient_enabled']),
-                ];
-
-                file_put_contents(DCS_ROOT_PATH . '/custom_theme.css', $themeColorService->buildCustomCss($colors, $themeOptions));
-                $message = 'Color theme updated successfully';
-                $this->log('THEME_COLORS', 'Updated theme colors');
                 break;
 
             case 'update_header_image':
@@ -142,12 +111,7 @@ final class ThemeActionService
                 break;
 
             case 'update_chart_colors':
-                $chartTheme = [];
-                foreach (\getDefaultChartTheme() as $key => $defaultValue) {
-                    $chartTheme[$key] = $post[$key] ?? $defaultValue;
-                }
-
-                if (\saveChartTheme($chartTheme)) {
+                if ($themeColorActionService->updateChartColors($post)) {
                     $message = 'Leaderboard chart colours updated successfully';
                     $this->log('CHART_THEME_COLORS', 'Updated leaderboard chart colours');
                 } else {

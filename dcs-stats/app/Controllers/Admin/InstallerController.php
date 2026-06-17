@@ -19,6 +19,8 @@ if (!function_exists('e')) {
 }
 $installerSupport = new \DcsStats\Services\Admin\InstallerSupportService();
 $installerConfigFactory = new \DcsStats\Services\Admin\InstallerConfigFactory();
+$installerEnvironment = new \DcsStats\Services\Admin\InstallerEnvironmentService();
+$installerWebForm = new \DcsStats\Services\Admin\InstallerWebFormService($installerSupport);
 
 function showInstallerLockedPage() {
     http_response_code(403);
@@ -28,21 +30,7 @@ function showInstallerLockedPage() {
 $installerLanguage = dcs_language_code($_POST['install_language'] ?? $_GET['lang'] ?? 'en');
 dcs_set_language_override($installerLanguage);
 
-// Check if this is the auto-created default installation
-$isDefaultInstall = false;
-if (file_exists($usersFile)) {
-    $users = json_decode(file_get_contents($usersFile), true);
-    if (count($users) === 1 && $users[0]['username'] === 'admin' && 
-        $users[0]['email'] === 'admin@example.com' && 
-        password_verify('', $users[0]['password_hash'])) {
-        $isDefaultInstall = true;
-        // Remove the default files to allow proper installation
-        @unlink($usersFile);
-        @unlink($dataDir . '/logs.json');
-        @unlink($dataDir . '/bans.json');
-        @unlink($dataDir . '/sessions.json');
-    }
-}
+$isDefaultInstall = $installerEnvironment->resetDefaultInstall($usersFile, $dataDir);
 
 if (!$isDefaultInstall && file_exists($usersFile) && (file_exists($apiConfigFile) || file_exists($legacyApiConfigFile))) {
     if ($is_cli) {
@@ -59,35 +47,13 @@ if ($is_cli) {
     echo "====================================\n\n";
 }
 
-// Check PHP version
-if (version_compare(PHP_VERSION, '7.4.0', '<')) {
-    die("Error: PHP 7.4 or higher is required. You have " . PHP_VERSION . "\n");
-}
-
-// Check required extensions
-$required_extensions = ['json', 'session', 'openssl', 'mbstring'];
-$missing_extensions = [];
-
-foreach ($required_extensions as $ext) {
-    if (!extension_loaded($ext)) {
-        $missing_extensions[] = $ext;
-    }
-}
-
-if (!empty($missing_extensions)) {
-    die("Error: Missing required PHP extensions: " . implode(', ', $missing_extensions) . "\n");
-}
+$installerEnvironment->assertRuntimeRequirements();
 
 if ($is_cli) {
     echo "✓ PHP version and extensions OK\n";
 }
 
-// Create data directory
-if (!is_dir($dataDir)) {
-    if (!mkdir($dataDir, 0700, true)) {
-        die("Error: Could not create data directory. Please create it manually with permissions 700.\n");
-    }
-}
+$installerEnvironment->ensureDataDirectory($dataDir);
 
 if ($is_cli) {
     echo "✓ Data directory created\n";
@@ -99,60 +65,26 @@ $isDev = isDevMode();
 
 // For web installation, provide a form interface
 if (!$is_cli) {
-    $readyToInstall = false;
-
-    // Handle form submission
-    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        $username = $_POST['username'] ?? 'admin';
-        $email = $_POST['email'] ?? '';
-        $password = $_POST['password'] ?? '';
-        $api_url = $_POST['api_url'] ?? '';
-        $api_key = trim($_POST['api_key'] ?? '');
-        $site_name = $_POST['site_name'] ?? 'DCS Statistics';
-        $discord_url = $_POST['discord_url'] ?? '';
-        $default_language = dcs_language_code($_POST['install_language'] ?? 'en');
-        $update_branch = 'main'; // Always start with main branch
-        
-        // Validate inputs
-        $errors = $installerSupport->validateInputs([
-            'username' => $username,
-            'email' => $email,
-            'password' => $password,
-            'api_url' => $api_url,
-            'api_key' => $api_key,
-        ]);
-        
-        // Test API connection with protocol auto-detection (skip in dev mode)
-        if (empty($errors) && !empty($api_url)) {
-            $apiResult = $installerSupport->resolveApiUrl($api_url, $api_key, $isDev);
-            $api_url = $apiResult['url'];
-            if (!$apiResult['connected']) {
-                $errors[] = $apiResult['error'];
-            }
-        }
-        
-        if (empty($errors)) {
-            $readyToInstall = true;
-        }
-    }
+    $webFormState = $installerWebForm->submissionState($_POST, $isDev);
+    $readyToInstall = $webFormState['ready'];
+    $errors = $webFormState['errors'];
+    $username = $webFormState['username'];
+    $email = $webFormState['email'];
+    $password = $webFormState['password'];
+    $api_url = $webFormState['api_url'];
+    $api_key = $webFormState['api_key'];
+    $site_name = $webFormState['site_name'];
+    $discord_url = $webFormState['discord_url'];
+    $default_language = $webFormState['default_language'];
+    $update_branch = $webFormState['update_branch'];
     
     // Show installation form
     if (!$readyToInstall) {
-        $permissionFolders = [
-            'dcs-stats/site-config/data/' => DCS_ROOT_PATH . '/site-config/data',
-            'dcs-stats/uploads/' => DCS_ROOT_PATH . '/uploads',
-            'dcs-stats/custom/' => DCS_ROOT_PATH . '/custom',
-            'dcs-stats/backups/' => DCS_ROOT_PATH . '/backups',
-        ];
-        $permissionFiles = [
-            'dcs-stats/site_config.json' => DCS_ROOT_PATH . '/site_config.json',
-            'dcs-stats/menu_config.json' => DCS_ROOT_PATH . '/menu_config.json',
-            'dcs-stats/custom_theme.css' => DCS_ROOT_PATH . '/custom_theme.css',
-            'dcs-stats/header_custom.css' => DCS_ROOT_PATH . '/header_custom.css',
-            'dcs-stats/.version_meta.json' => DCS_ROOT_PATH . '/.version_meta.json',
-        ];
-        $permissionFolderStatuses = $installerSupport->permissionStatuses($permissionFolders, 'dir');
-        $permissionFileStatuses = $installerSupport->permissionStatuses($permissionFiles, 'file');
+        $permissionState = $installerWebForm->permissionState();
+        $permissionFolders = $permissionState['folders'];
+        $permissionFiles = $permissionState['files'];
+        $permissionFolderStatuses = $permissionState['folder_statuses'];
+        $permissionFileStatuses = $permissionState['file_statuses'];
         $showInstallerForm = ($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST' || !empty($errors);
         require DCS_APP_PATH . '/Views/Admin/installer/form.php';
         exit;
@@ -242,22 +174,13 @@ if ($is_cli) {
     echo "✓ Data files created\n";
 }
 
-// Create .htaccess if not exists
-$htaccess = $dataDir . '/.htaccess';
-if (!file_exists($htaccess)) {
-    file_put_contents($htaccess, "Order deny,allow\nDeny from all");
-}
+$installerEnvironment->ensureSecurityFile($dataDir);
 
 if ($is_cli) {
     echo "✓ Security files created\n";
 }
 
-// Test write permissions
-$testFile = $dataDir . '/test.tmp';
-if (file_put_contents($testFile, 'test') === false) {
-    die("\nError: Data directory is not writable. Please check permissions.\n");
-}
-unlink($testFile);
+$installerEnvironment->assertWritable($dataDir);
 
 if ($is_cli) {
     echo "✓ Write permissions OK\n";
@@ -312,15 +235,7 @@ if ($is_cli) {
     echo "✓ Version tracking initialized\n";
 }
 
-$installerSelfDeleteStatus = 'not_attempted';
-$installerSelfDeletePath = realpath(DCS_ROOT_PATH . '/site-config/install.php');
-$installerDirPath = realpath(DCS_ROOT_PATH . '/site-config');
-if ($installerSelfDeletePath !== false &&
-    $installerDirPath !== false &&
-    $installerSelfDeletePath === $installerDirPath . DIRECTORY_SEPARATOR . 'install.php' &&
-    is_file($installerSelfDeletePath)) {
-    $installerSelfDeleteStatus = @unlink($installerSelfDeletePath) ? 'removed' : 'failed';
-}
+$installerSelfDeleteStatus = $installerEnvironment->removeInstallerFile();
 
 if ($is_cli) {
     echo "\n";
