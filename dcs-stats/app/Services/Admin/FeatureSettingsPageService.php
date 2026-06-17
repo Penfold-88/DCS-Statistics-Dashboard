@@ -4,7 +4,15 @@ namespace DcsStats\Services\Admin;
 
 final class FeatureSettingsPageService
 {
+    private FeatureSettingsFormActionService $actions;
+    private FeatureSettingsServerDetector $serverDetector;
     private array $lockedFeatures = [];
+
+    public function __construct(?FeatureSettingsServerDetector $serverDetector = null, ?FeatureSettingsFormActionService $actions = null)
+    {
+        $this->serverDetector = $serverDetector ?? new FeatureSettingsServerDetector();
+        $this->actions = $actions ?? new FeatureSettingsFormActionService();
+    }
 
     public function state(array $currentAdmin): array
     {
@@ -16,12 +24,12 @@ final class FeatureSettingsPageService
             'leaderboard_sorties' => \dcs_t('admin.settings.locked_sorties_reason'),
         ];
         $demoRestricted = \isDemoRestricted($currentAdmin);
-        $dynamicServerFeatures = $this->detectedServerCardFeatures();
+        $dynamicServerFeatures = $this->serverDetector->detectedServerCardFeatures();
         $message = '';
         $messageType = '';
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            [$message, $messageType] = $this->handlePost($dynamicServerFeatures, $demoRestricted);
+            [$message, $messageType] = $this->actions->handle($dynamicServerFeatures, $this->lockedFeatures, $demoRestricted);
         }
 
         $featureGroups = \getFeatureGroups();
@@ -73,78 +81,5 @@ final class FeatureSettingsPageService
     private function translationKey($value): string
     {
         return preg_replace('/[^a-z0-9]+/', '_', strtolower(trim((string)$value)));
-    }
-
-    private function detectedServerCardFeatures(): array
-    {
-        try {
-            $client = \createEnhancedAPIClient();
-            $response = $client->request('/servers', null, 'GET');
-            $servers = is_array($response) ? $response : [];
-            $features = [];
-
-            foreach ($servers as $index => $server) {
-                if (!is_array($server)) {
-                    continue;
-                }
-
-                $name = trim((string)($server['name'] ?? \dcs_t('admin.settings.server_number', ['number' => $index + 1])));
-                if ($name === '') {
-                    $name = \dcs_t('admin.settings.server_number', ['number' => $index + 1]);
-                }
-
-                $features[\serverCardFeatureKey($name)] = $name;
-            }
-
-            return $features;
-        } catch (\Exception $e) {
-            return [];
-        }
-    }
-
-    private function handlePost(array $dynamicServerFeatures, bool $demoRestricted): array
-    {
-        if (!isset($_POST['csrf_token']) || !\verifyCSRFToken($_POST['csrf_token'])) {
-            return [\dcs_t('admin.settings.csrf_invalid'), 'error'];
-        }
-
-        if ($demoRestricted) {
-            return [\demoWriteLockMessage(), 'error'];
-        }
-
-        $allFeatures = \loadSiteFeatures();
-        $featureGroupsForSave = \getFeatureGroups();
-        if (!empty($dynamicServerFeatures)) {
-            $featureGroupsForSave['Server Features'] = array_merge(
-                $featureGroupsForSave['Server Features'],
-                $dynamicServerFeatures
-            );
-        }
-
-        foreach ($featureGroupsForSave as $group => $features) {
-            foreach ($features as $key => $label) {
-                $allFeatures[$key] = isset($_POST['features'][$key]);
-            }
-        }
-
-        foreach ($this->lockedFeatures as $lockedKey => $reason) {
-            $allFeatures[$lockedKey] = false;
-        }
-
-        foreach (\getFeatureDependencies() as $parent => $children) {
-            if (!$allFeatures[$parent]) {
-                foreach ($children as $child) {
-                    $allFeatures[$child] = false;
-                }
-            }
-        }
-
-        if (!\saveSiteFeatures($allFeatures)) {
-            return [\dcs_t('admin.settings.save_failed'), 'error'];
-        }
-
-        \logAdminActivity('SETTINGS_CHANGE', $_SESSION['admin_id'], 'settings', 'site_features', $allFeatures);
-
-        return [\dcs_t('admin.settings.save_success'), 'success'];
     }
 }
