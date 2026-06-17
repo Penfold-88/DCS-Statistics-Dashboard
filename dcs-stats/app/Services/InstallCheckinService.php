@@ -4,6 +4,15 @@ namespace DcsStats\Services;
 
 final class InstallCheckinService
 {
+    private InstallCheckinStateStore $stateStore;
+    private InstallCheckinTransport $transport;
+
+    public function __construct(?InstallCheckinStateStore $stateStore = null, ?InstallCheckinTransport $transport = null)
+    {
+        $this->stateStore = $stateStore ?? new InstallCheckinStateStore();
+        $this->transport = $transport ?? new InstallCheckinTransport();
+    }
+
     public function endpoint(): string
     {
         if (defined('DCS_STATS_INSTALL_CHECKIN_ENDPOINT')) {
@@ -31,29 +40,17 @@ final class InstallCheckinService
 
     public function statePath(): string
     {
-        $dataDir = DCS_ROOT_PATH . '/site-config/data';
-        if (!is_dir($dataDir)) {
-            @mkdir($dataDir, 0700, true);
-        }
-
-        return $dataDir . '/install_checkin_state.json';
+        return $this->stateStore->path();
     }
 
     public function loadState(): array
     {
-        $statePath = $this->statePath();
-        if (!file_exists($statePath)) {
-            return [];
-        }
-
-        $state = json_decode((string)@file_get_contents($statePath), true);
-
-        return is_array($state) ? $state : [];
+        return $this->stateStore->load();
     }
 
     public function saveState(array $state): void
     {
-        @file_put_contents($this->statePath(), json_encode($state, JSON_PRETTY_PRINT));
+        $this->stateStore->save($state);
     }
 
     public function buildPayload(array $payload)
@@ -78,27 +75,7 @@ final class InstallCheckinService
 
     public function sendWithCurl(string $endpoint, string $json, array $headers, bool $verifySsl = true): array
     {
-        $curl = curl_init($endpoint);
-        curl_setopt_array($curl, [
-            CURLOPT_POST => true,
-            CURLOPT_POSTFIELDS => $json,
-            CURLOPT_HTTPHEADER => $headers,
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_CONNECTTIMEOUT_MS => 500,
-            CURLOPT_TIMEOUT_MS => 750,
-            CURLOPT_SSL_VERIFYPEER => $verifySsl,
-            CURLOPT_SSL_VERIFYHOST => $verifySsl ? 2 : 0,
-        ]);
-        curl_exec($curl);
-        $status = (int)curl_getinfo($curl, CURLINFO_HTTP_CODE);
-        $errno = (int)curl_errno($curl);
-        curl_close($curl);
-
-        return [
-            'success' => $status >= 200 && $status < 300,
-            'status' => $status,
-            'errno' => $errno,
-        ];
+        return $this->transport->sendWithCurl($endpoint, $json, $headers, $verifySsl);
     }
 
     public function sendPayload(string $endpoint, array $payload): bool
@@ -109,33 +86,7 @@ final class InstallCheckinService
             return false;
         }
 
-        if (function_exists('curl_init')) {
-            $result = $this->sendWithCurl($endpoint, $json, $headers, true);
-            if ($result['success']) {
-                return true;
-            }
-
-            if ($result['errno'] === 60 && $this->allowSslFallback()) {
-                $fallbackResult = $this->sendWithCurl($endpoint, $json, $headers, false);
-                return $fallbackResult['success'];
-            }
-
-            return false;
-        }
-
-        $context = stream_context_create([
-            'http' => [
-                'method' => 'POST',
-                'header' => implode("\r\n", $headers) . "\r\n",
-                'content' => $json,
-                'timeout' => 0.75,
-                'ignore_errors' => true,
-            ],
-        ]);
-
-        $result = @file_get_contents($endpoint, false, $context);
-
-        return $result !== false;
+        return $this->transport->sendPayload($endpoint, $json, $headers, $this->allowSslFallback());
     }
 
     public function payloadKey(array $payload): string

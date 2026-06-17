@@ -19,133 +19,32 @@ final class ApiCache
 
     public static function maxFiles(array $config = []): int
     {
-        $maxFiles = isset($config['cache_max_files']) ? (int)$config['cache_max_files'] : 500;
-
-        return max(50, $maxFiles);
+        return (new ApiCachePolicy())->maxFiles($config);
     }
 
     public static function prune(array $config = []): int
     {
-        $dir = self::directory();
-        if (!is_dir($dir)) {
-            return 0;
-        }
-
-        $markerFile = $dir . '/.last-prune';
-        if (is_file($markerFile) && (time() - filemtime($markerFile)) < 7200) {
-            return 0;
-        }
-        @file_put_contents($markerFile, (string)time(), LOCK_EX);
-        @chmod($markerFile, 0600);
-
-        $files = glob($dir . '/*.json') ?: [];
-        if (empty($files)) {
-            return 0;
-        }
-
-        $maxAge = max(self::ttl($config), 900) + 300;
-        $now = time();
-        $removed = 0;
-        $remaining = [];
-
-        foreach ($files as $file) {
-            if (!is_file($file)) {
-                continue;
-            }
-
-            $fileAge = $now - (int)filemtime($file);
-            if ($fileAge > $maxAge) {
-                if (@unlink($file)) {
-                    $removed++;
-                }
-                continue;
-            }
-
-            $remaining[] = $file;
-        }
-
-        $maxFiles = self::maxFiles($config);
-        if (count($remaining) > $maxFiles) {
-            usort($remaining, function ($a, $b) {
-                return filemtime($a) <=> filemtime($b);
-            });
-
-            $deleteCount = count($remaining) - $maxFiles;
-            for ($i = 0; $i < $deleteCount; $i++) {
-                if (@unlink($remaining[$i])) {
-                    $removed++;
-                }
-            }
-        }
-
-        return $removed;
+        return (new ApiCachePruner())->prune(self::directory(), $config);
     }
 
     public static function normalisePath(string $endpoint): string
     {
-        $parts = parse_url($endpoint);
-
-        return $parts['path'] ?? $endpoint;
+        return (new ApiCachePolicy())->normalisePath($endpoint);
     }
 
     public static function ttl(array $config): int
     {
-        $ttl = isset($config['cache_ttl']) ? (int)$config['cache_ttl'] : 300;
-
-        return max(0, $ttl);
+        return (new ApiCachePolicy())->ttl($config);
     }
 
     public static function ttlForEndpoint(string $endpoint, array $config): int
     {
-        $ttl = self::ttl($config);
-        $path = self::normalisePath($endpoint);
-
-        $minimumEndpointTtls = [
-            '/server_attendance' => 900,
-        ];
-
-        if (isset($minimumEndpointTtls[$path]) && $ttl > 0) {
-            return max($ttl, $minimumEndpointTtls[$path]);
-        }
-
-        return $ttl;
+        return (new ApiCachePolicy())->ttlForEndpoint($endpoint, $config);
     }
 
     public static function isCacheable(string $method, string $endpoint, array $config = []): bool
     {
-        if (self::ttlForEndpoint($endpoint, $config) <= 0) {
-            return false;
-        }
-
-        $method = strtoupper($method);
-        $path = self::normalisePath($endpoint);
-
-        $cacheableEndpoints = [
-            '/credits',
-            '/getuser',
-            '/highscore',
-            '/leaderboard',
-            '/modulestats',
-            '/player_info',
-            '/player_squadrons',
-            '/server_attendance',
-            '/serverstats',
-            '/squadron_credits',
-            '/squadron_members',
-            '/squadrons',
-            '/stats',
-            '/topkdr',
-            '/topkills',
-            '/traps',
-            '/trueskill',
-            '/weaponpk',
-        ];
-
-        if (!in_array($path, $cacheableEndpoints, true)) {
-            return false;
-        }
-
-        return in_array($method, ['GET', 'POST'], true);
+        return (new ApiCachePolicy())->isCacheable($method, $endpoint, $config);
     }
 
     public static function key(string $method, string $baseUrl, string $endpoint, $data = null): string

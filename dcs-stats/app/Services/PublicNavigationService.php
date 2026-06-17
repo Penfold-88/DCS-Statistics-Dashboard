@@ -4,6 +4,13 @@ namespace DcsStats\Services;
 
 final class PublicNavigationService
 {
+    private PublicNavigationFeatureService $featureService;
+
+    public function __construct(?PublicNavigationFeatureService $featureService = null)
+    {
+        $this->featureService = $featureService ?? new PublicNavigationFeatureService();
+    }
+
     public function state(): array
     {
         \DcsStats\Core\SupportBootstrap::siteFeatures();
@@ -12,36 +19,12 @@ final class PublicNavigationService
         $menuItems = $this->menuItems();
         $this->appendLegacyFeatureLinks($menuItems);
 
-        $customLinks = getFeatureValue('custom_links', []);
-        if (!is_array($customLinks)) {
-            $customLinks = [];
-        }
-        $customLinks = array_values(array_filter($customLinks, function ($link) {
-            return is_array($link)
-                && ($link['enabled'] ?? true)
-                && trim((string)($link['label'] ?? '')) !== ''
-                && trim((string)($link['url'] ?? '')) !== '';
-        }));
-
-        $customLinksMenuText = trim((string)getFeatureValue('custom_links_menu_text', 'Squadron Links'));
-        if ($customLinksMenuText === '') {
-            $customLinksMenuText = dcs_t('nav.squadron_links');
-        }
-
-        $siteFeatureValues = loadSiteFeatures();
-        $serverCardVisibility = [];
-        foreach ($siteFeatureValues as $featureKey => $enabled) {
-            if (strpos($featureKey, 'server_card_') === 0) {
-                $serverCardVisibility[$featureKey] = (bool)$enabled;
-            }
-        }
-
         return [
             'menuItems' => $menuItems,
-            'customLinks' => $customLinks,
-            'customLinksMenuText' => $customLinksMenuText,
+            'customLinks' => $this->featureService->customLinks(),
+            'customLinksMenuText' => $this->featureService->customLinksMenuText(),
             'serverScopeEnabled' => isFeatureEnabled('server_scope_filter'),
-            'serverCardVisibility' => $serverCardVisibility,
+            'serverCardVisibility' => $this->featureService->serverCardVisibility(),
         ];
     }
 

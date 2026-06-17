@@ -4,6 +4,17 @@ namespace DcsStats\Services;
 
 final class HeaderService
 {
+    private PublicSecurityHeaderService $securityHeaderService;
+    private PublicMaintenanceGate $maintenanceGate;
+
+    public function __construct(
+        ?PublicSecurityHeaderService $securityHeaderService = null,
+        ?PublicMaintenanceGate $maintenanceGate = null
+    ) {
+        $this->securityHeaderService = $securityHeaderService ?? new PublicSecurityHeaderService();
+        $this->maintenanceGate = $maintenanceGate ?? new PublicMaintenanceGate();
+    }
+
     public function state(): array
     {
         
@@ -12,8 +23,8 @@ final class HeaderService
         \DcsStats\Core\SupportBootstrap::language();
         \DcsStats\Core\AdminBootstrap::demo();
 
-        $this->sendSecurityHeaders();
-        $this->exitForMaintenanceIfNeeded();
+        $this->securityHeaderService->send();
+        $this->maintenanceGate->exitIfNeeded();
 
         $siteConfig = $this->siteConfig();
         $siteName = $siteConfig['site_name'] ?? 'DCS Statistics';
@@ -89,22 +100,6 @@ final class HeaderService
         ];
     }
 
-    private function sendSecurityHeaders(): void
-    {
-        header('X-Content-Type-Options: nosniff');
-        if (isset($_GET['preview']) && $_GET['preview'] === '1') {
-            header('X-Frame-Options: SAMEORIGIN');
-        } else {
-            header('X-Frame-Options: DENY');
-        }
-        header('X-XSS-Protection: 1; mode=block');
-        header('Referrer-Policy: strict-origin-when-cross-origin');
-
-        $cspConnectSrc = "'self' http://localhost:* https://localhost:*";
-        $frameAncestors = (isset($_GET['preview']) && $_GET['preview'] === '1') ? " frame-ancestors 'self';" : " frame-ancestors 'none';";
-        header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src {$cspConnectSrc};" . $frameAncestors);
-    }
-
     private function previewColors(): ?array
     {
         if (!isset($_GET['preview']) || $_GET['preview'] !== '1') {
@@ -118,31 +113,6 @@ final class HeaderService
         }
 
         return $previewColors;
-    }
-
-    private function exitForMaintenanceIfNeeded(): void
-    {
-        $maintenanceFile = DCS_ROOT_PATH . '/site-config/data/maintenance.json';
-        if (!file_exists($maintenanceFile)) {
-            return;
-        }
-
-        $maintenance = json_decode((string)file_get_contents($maintenanceFile), true);
-        if (empty($maintenance['enabled'])) {
-            return;
-        }
-
-        $allowed = $maintenance['ip_whitelist'] ?? [];
-        $ip = $_SERVER['REMOTE_ADDR'] ?? '';
-        if (in_array($ip, $allowed)) {
-            return;
-        }
-
-        if (!defined('MAINTENANCE_OVERRIDE')) {
-            define('MAINTENANCE_OVERRIDE', true);
-        }
-        (new \DcsStats\Controllers\Public\MaintenanceController())->show();
-        exit;
     }
 
     private function frontendDemoMode(): bool
