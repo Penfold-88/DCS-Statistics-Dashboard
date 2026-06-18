@@ -4,8 +4,9 @@ namespace DcsStats\Services\Admin;
 
 final class BackupService
 {
-    private AdminFilesystemService $filesystem;
+    private BackupArchiveBuilder $archiveBuilder;
     private BackupCleanupService $cleanupService;
+    private BackupDeletionService $deletionService;
     private BackupMetadataService $metadataService;
     private ByteFormatter $byteFormatter;
 
@@ -13,10 +14,13 @@ final class BackupService
         ?AdminFilesystemService $filesystem = null,
         ?BackupCleanupService $cleanupService = null,
         ?BackupMetadataService $metadataService = null,
-        ?ByteFormatter $byteFormatter = null
+        ?ByteFormatter $byteFormatter = null,
+        ?BackupArchiveBuilder $archiveBuilder = null,
+        ?BackupDeletionService $deletionService = null
     ) {
-        $this->filesystem = $filesystem ?? new AdminFilesystemService();
+        $this->archiveBuilder = $archiveBuilder ?? new BackupArchiveBuilder($filesystem);
         $this->cleanupService = $cleanupService ?? new BackupCleanupService();
+        $this->deletionService = $deletionService ?? new BackupDeletionService();
         $this->metadataService = $metadataService ?? new BackupMetadataService();
         $this->byteFormatter = $byteFormatter ?? new ByteFormatter();
     }
@@ -53,39 +57,7 @@ final class BackupService
 
     public function deleteBackup(string $filename): array
     {
-        if ($filename === '') {
-            return ['success' => false, 'error' => 'No backup specified'];
-        }
-
-        if (!preg_match('/^backup-\d{8}-\d{6}(?:-[A-Za-z0-9_.-]+-[A-Za-z0-9_.-]+)?\.zip$/', $filename)) {
-            return ['success' => false, 'error' => 'Invalid backup filename'];
-        }
-
-        $backupDir = DCS_ROOT_PATH . '/backups';
-        $backupDirReal = realpath($backupDir);
-        $backupFileReal = realpath($backupDir . '/' . $filename);
-
-        if ($backupDirReal === false || $backupFileReal === false || !is_file($backupFileReal)) {
-            return ['success' => false, 'error' => 'Backup not found'];
-        }
-
-        $backupDirPrefix = rtrim($backupDirReal, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
-        if (strpos($backupFileReal, $backupDirPrefix) !== 0) {
-            return ['success' => false, 'error' => 'Invalid backup path'];
-        }
-
-        if (!unlink($backupFileReal)) {
-            return ['success' => false, 'error' => 'Failed to delete backup'];
-        }
-
-        \DcsStats\Core\AdminBootstrap::panel();
-        $currentAdmin = getCurrentAdmin();
-        logAdminAction('BACKUP_DELETE', [
-            'backup' => $filename,
-            'admin' => $currentAdmin['username'] ?? 'Unknown',
-        ]);
-
-        return ['success' => true];
+        return $this->deletionService->delete($filename);
     }
 
     public function createBackup(callable $log): void
@@ -115,8 +87,7 @@ final class BackupService
             return;
         }
 
-        $this->addConfigFilesToBackup($backupZip, $log);
-        $fileCount = $this->addProjectFilesToBackup($backupZip, $log);
+        $fileCount = $this->archiveBuilder->populate($backupZip, $log);
 
         $currentAdmin = getCurrentAdmin();
         $metadata = [
@@ -143,48 +114,6 @@ final class BackupService
         ]);
 
         $this->cleanupService->cleanupOldBackups($backupDir, 5, $log);
-    }
-
-    private function addConfigFilesToBackup(\ZipArchive $backupZip, callable $log): void
-    {
-        $log('Backing up configuration files...');
-        foreach (BackupFileCatalog::packageConfigurationFiles() as $configFile) {
-            $configPath = DCS_ROOT_PATH . '/' . $configFile;
-            if (file_exists($configPath)) {
-                $backupZip->addFile($configPath, $configFile);
-                $log("✓ Config: $configFile");
-            }
-        }
-    }
-
-    private function addProjectFilesToBackup(\ZipArchive $backupZip, callable $log): int
-    {
-        $files = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator(DCS_ROOT_PATH, \RecursiveDirectoryIterator::SKIP_DOTS),
-            \RecursiveIteratorIterator::SELF_FIRST
-        );
-
-        $fileCount = 0;
-        foreach ($files as $file) {
-            $filePath = $file->getRealPath();
-            $relPath = $this->filesystem->normalizePath(substr($filePath, strlen(DCS_ROOT_PATH) + 1));
-
-            if ($this->filesystem->shouldPreservePath($relPath, BackupFileCatalog::projectBackupExcludes())) {
-                continue;
-            }
-
-            if ($file->isDir()) {
-                $backupZip->addEmptyDir($relPath);
-            } else {
-                $backupZip->addFile($filePath, $relPath);
-                $fileCount++;
-                if ($fileCount % 100 === 0) {
-                    $log("Backed up $fileCount files...");
-                }
-            }
-        }
-
-        return $fileCount;
     }
 
 }

@@ -5,10 +5,17 @@ namespace DcsStats\Services\Api;
 final class PublicLeaderboardService
 {
     private PublicStatsFormatter $formatter;
+    private PublicMissionStatsService $missionStatsService;
+    private PublicCreditsService $creditsService;
 
-    public function __construct(?PublicStatsFormatter $formatter = null)
-    {
+    public function __construct(
+        ?PublicStatsFormatter $formatter = null,
+        ?PublicMissionStatsService $missionStatsService = null,
+        ?PublicCreditsService $creditsService = null
+    ) {
         $this->formatter = $formatter ?? new PublicStatsFormatter();
+        $this->missionStatsService = $missionStatsService ?? new PublicMissionStatsService();
+        $this->creditsService = $creditsService ?? new PublicCreditsService();
     }
 
     public function getLeaderboard(string $sortBy, int $limit): array
@@ -47,69 +54,11 @@ final class PublicLeaderboardService
 
     public function getMissionStats(): array
     {
-        \DcsStats\Core\SupportBootstrap::apiClient();
-
-        try {
-            $client = createEnhancedAPIClient();
-            $topKills = $client->request('/topkills', null, 'GET');
-
-            if (!$topKills || !is_array($topKills)) {
-                return [];
-            }
-
-            $stats = [];
-            foreach ($topKills as $player) {
-                $stats[] = [
-                    'name' => htmlspecialchars($player['name'] ?? 'Unknown', ENT_QUOTES, 'UTF-8'),
-                    'kills' => intval($player['kills'] ?? 0),
-                    'deaths' => intval($player['deaths'] ?? 0),
-                    'sorties' => intval($player['sorties'] ?? 0),
-                    'missions' => intval($player['missions'] ?? 0),
-                    'points' => intval($player['points'] ?? 0),
-                ];
-            }
-
-            usort($stats, function ($a, $b) {
-                return $b['points'] <=> $a['points'];
-            });
-
-            return $stats;
-        } catch (\Exception $e) {
-            return [];
-        }
+        return $this->missionStatsService->get();
     }
 
     public function getCredits(): array
     {
-        \DcsStats\Core\SupportBootstrap::apiClient();
-
-        $response = ['data' => [], 'error' => null];
-
-        try {
-            $client = createEnhancedAPIClient();
-            $leaderboard = $client->request('/leaderboard?what=credits&limit=100', null, 'GET');
-            $players = $leaderboard['items'] ?? [];
-
-            if ($players && is_array($players)) {
-                $response['data'] = array_map(function (array $player): array {
-                    return [
-                        'name' => $player['nick'] ?? 'Unknown',
-                        'nick' => $player['nick'] ?? 'Unknown',
-                        'credits' => $player['credits'] ?? 0,
-                        'kills' => $player['kills'] ?? 0,
-                        'deaths' => $player['deaths'] ?? 0,
-                        'kdr' => $player['kdr'] ?? 0,
-                    ];
-                }, $players);
-                $response['total_count'] = $leaderboard['total_count'] ?? count($players);
-                $response['source'] = 'api';
-            } else {
-                $response['error'] = 'No credits data available';
-            }
-        } catch (\Exception $e) {
-            $response['error'] = 'Failed to fetch credits: ' . $e->getMessage();
-        }
-
-        return $response;
+        return $this->creditsService->get();
     }
 }

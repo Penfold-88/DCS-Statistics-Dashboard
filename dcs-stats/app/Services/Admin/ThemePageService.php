@@ -4,6 +4,38 @@ namespace DcsStats\Services\Admin;
 
 final class ThemePageService
 {
+    private ThemeAssetService $assetService;
+    private ThemeColorService $colorService;
+    private ThemeMenuConfigService $menuConfigService;
+    private ThemePresetService $presetService;
+    private ThemeMenuService $menuService;
+    private ThemeUploadService $uploadService;
+    private ThemeActionService $actionService;
+    private ThemePresetStorageService $presetStorageService;
+    private ThemePreviewUrlBuilder $previewUrlBuilder;
+
+    public function __construct(
+        ?ThemeAssetService $assetService = null,
+        ?ThemeColorService $colorService = null,
+        ?ThemeMenuConfigService $menuConfigService = null,
+        ?ThemePresetService $presetService = null,
+        ?ThemeMenuService $menuService = null,
+        ?ThemeUploadService $uploadService = null,
+        ?ThemeActionService $actionService = null,
+        ?ThemePresetStorageService $presetStorageService = null,
+        ?ThemePreviewUrlBuilder $previewUrlBuilder = null
+    ) {
+        $this->assetService = $assetService ?? new ThemeAssetService();
+        $this->colorService = $colorService ?? new ThemeColorService();
+        $this->menuConfigService = $menuConfigService ?? new ThemeMenuConfigService();
+        $this->presetService = $presetService ?? new ThemePresetService();
+        $this->menuService = $menuService ?? new ThemeMenuService();
+        $this->uploadService = $uploadService ?? new ThemeUploadService($this->assetService);
+        $this->actionService = $actionService ?? new ThemeActionService();
+        $this->presetStorageService = $presetStorageService ?? new ThemePresetStorageService();
+        $this->previewUrlBuilder = $previewUrlBuilder ?? new ThemePreviewUrlBuilder();
+    }
+
     public function state(array $currentAdmin): array
     {
         \DcsStats\Core\SupportBootstrap::siteFeatures();
@@ -13,15 +45,8 @@ final class ThemePageService
         $message = '';
         $error = '';
 
-        $themeAssetService = new ThemeAssetService();
-        $themeColorService = new ThemeColorService();
-        $themeMenuConfigService = new ThemeMenuConfigService();
-        $themePresetService = new ThemePresetService();
-        $themeMenuService = new ThemeMenuService();
-        $themeUploadService = new ThemeUploadService($themeAssetService);
-
-        $menuConfigFile = $themeMenuConfigService->configPath();
-        $menuItems = $themeMenuService->loadMenuItems($menuConfigFile);
+        $menuConfigFile = $this->menuConfigService->configPath();
+        $menuItems = $this->menuService->loadMenuItems($menuConfigFile);
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (!\verifyCSRFToken(\getRequestCSRFToken())) {
@@ -29,7 +54,7 @@ final class ThemePageService
             } elseif ($demoRestricted) {
                 $error = \demoWriteLockMessage();
             } else {
-                $actionState = (new ThemeActionService())->handle(
+                $actionState = $this->actionService->handle(
                     $_POST,
                     $_FILES,
                     $menuConfigFile,
@@ -43,23 +68,23 @@ final class ThemePageService
         }
 
         $customCss = DCS_ROOT_PATH . '/custom_theme.css';
-        $customColors = $themeColorService->loadColorsFromCss($customCss);
-        $themeOptions = $themeColorService->loadOptionsFile($customCss);
-        $headerImageSettings = $themeAssetService->loadHeaderImageSettings();
+        $customColors = $this->colorService->loadColorsFromCss($customCss);
+        $themeOptions = $this->colorService->loadOptionsFile($customCss);
+        $headerImageSettings = $this->assetService->loadHeaderImageSettings();
 
         return [
             'backgroundPreviewImage' => !empty($headerImageSettings['background_image']) ? '../' . ltrim($headerImageSettings['background_image'], '/') : '',
-            'backups' => $themeUploadService->listBackups(),
-            'builtInThemePresets' => $themePresetService->builtInPresets(),
+            'backups' => $this->uploadService->listBackups(),
+            'builtInThemePresets' => $this->presetService->builtInPresets(),
             'chartColors' => \loadChartTheme(),
             'chartThemeFieldGroups' => (new ChartThemeFieldCatalog())->groups(),
             'csrfToken' => \getCSRFToken(),
             'customColors' => $customColors,
-            'customThemePresets' => (new ThemePresetStorageService())->loadCustomPresets(),
+            'customThemePresets' => $this->presetStorageService->loadCustomPresets(),
             'currentAdmin' => $currentAdmin,
             'defaultChartTheme' => \getDefaultChartTheme(),
-            'defaultThemeColors' => $themeColorService->defaultColors(),
-            'defaultMenuItems' => $themeMenuService->defaultMenuItems(),
+            'defaultThemeColors' => $this->colorService->defaultColors(),
+            'defaultMenuItems' => $this->menuService->defaultMenuItems(),
             'demoRestricted' => $demoRestricted,
             'error' => $error,
             'headerImageSettings' => $headerImageSettings,
@@ -70,28 +95,9 @@ final class ThemePageService
             'menuItems' => $menuItems,
             'message' => $message,
             'pageTitle' => \dcs_t('admin.themes.title'),
-            'previewUrl' => $this->previewUrl($customColors, $themeOptions),
-            'themeColorGroups' => $themeColorService->colorGroups(),
+            'previewUrl' => $this->previewUrlBuilder->build($customColors, $themeOptions),
+            'themeColorGroups' => $this->colorService->colorGroups(),
             'themeOptions' => $themeOptions,
         ];
-    }
-
-    private function previewUrl(array $customColors, array $themeOptions): string
-    {
-        $previewParams = ['preview' => '1'];
-        foreach ($customColors as $colorKey => $colorValue) {
-            $previewParams[$colorKey] = ltrim((string)$colorValue, '#');
-        }
-        $previewParams['header_title_gradient_enabled'] = !empty($themeOptions['header_title_gradient_enabled']) ? '1' : '0';
-        $previewParams['page_background_gradient_enabled'] = !empty($themeOptions['page_background_gradient_enabled']) ? '1' : '0';
-
-        $https = !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off';
-        $port = (string)($_SERVER['SERVER_PORT'] ?? '');
-        $protocol = ($https || $port === '443') ? 'https://' : 'http://';
-        $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
-        $currentPath = dirname((string)($_SERVER['SCRIPT_NAME'] ?? '/site-config/themes.php'));
-        $parentPath = dirname($currentPath);
-
-        return $protocol . $host . ($parentPath === '/' ? '' : $parentPath) . '/index.php?' . http_build_query($previewParams);
     }
 }

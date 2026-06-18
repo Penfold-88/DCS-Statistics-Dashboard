@@ -4,6 +4,13 @@ namespace DcsStats\Services\Admin;
 
 final class UpdateCheckService
 {
+    private UpdateCheckGitHubClient $githubClient;
+
+    public function __construct(?UpdateCheckGitHubClient $githubClient = null)
+    {
+        $this->githubClient = $githubClient ?? new UpdateCheckGitHubClient();
+    }
+
     public function buildReport(): string
     {
         \DcsStats\Core\SupportBootstrap::updateChannel();
@@ -33,11 +40,11 @@ final class UpdateCheckService
         $lines[] = "";
         $lines[] = "Checking selected GitHub branch...";
 
-        $branchResult = $this->fetchBranchInfo($repo, $branch);
+        $branchResult = $this->githubClient->branch($repo, $branch);
         if ($branchResult['http_code'] !== 200 && $branch === 'master') {
             $lines[] = "Master branch not found. Checking fallback branch: main";
             $branch = 'main';
-            $branchResult = $this->fetchBranchInfo($repo, $branch);
+            $branchResult = $this->githubClient->branch($repo, $branch);
         }
 
         if ($branchResult['http_code'] === 200 && !empty($branchResult['body'])) {
@@ -72,7 +79,7 @@ final class UpdateCheckService
         $lines[] = "----------------------------------------";
         $lines[] = "Available versions for downgrade:";
 
-        foreach ($this->fetchReleaseTags($repo) as $tagName) {
+        foreach ($this->githubClient->releaseTags($repo) as $tagName) {
             $marker = version_compare($currentVersion, $tagName, '==') ? ' (current)' : '';
             $lines[] = "- " . $tagName . $marker;
         }
@@ -80,49 +87,4 @@ final class UpdateCheckService
         return implode("\n", $lines) . "\n";
     }
 
-    private function fetchBranchInfo(string $repo, string $branch): array
-    {
-        $url = "https://api.github.com/repos/$repo/branches/" . rawurlencode($branch);
-        return $this->fetchGitHub($url);
-    }
-
-    private function fetchReleaseTags(string $repo): array
-    {
-        $result = $this->fetchGitHub("https://api.github.com/repos/$repo/releases?per_page=10");
-        if (empty($result['body'])) {
-            return [];
-        }
-
-        $releases = json_decode($result['body'], true);
-        if (!is_array($releases)) {
-            return [];
-        }
-
-        $tags = [];
-        foreach ($releases as $release) {
-            if (isset($release['tag_name'])) {
-                $tags[] = $release['tag_name'];
-            }
-        }
-
-        return $tags;
-    }
-
-    private function fetchGitHub(string $url): array
-    {
-        $ch = curl_init($url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_USERAGENT, 'DCS-Stats-Updater');
-        $body = curl_exec($ch);
-        $error = curl_error($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-
-        return [
-            'body' => $body,
-            'error' => $error,
-            'http_code' => $httpCode,
-        ];
-    }
 }
-

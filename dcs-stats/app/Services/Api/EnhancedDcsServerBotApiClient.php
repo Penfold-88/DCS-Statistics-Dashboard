@@ -8,9 +8,12 @@ final class EnhancedDcsServerBotApiClient extends \DCSServerBotAPIClient
     private ?string $detectedProtocol = null;
     private bool $protocolTested = false;
     private bool $verifySsl = true;
+    private DcsServerBotProtocolDetector $protocolDetector;
 
-    public function __construct($config = [])
+    public function __construct($config = [], ?DcsServerBotProtocolDetector $protocolDetector = null)
     {
+        $this->protocolDetector = $protocolDetector ?? new DcsServerBotProtocolDetector();
+
         if (isset($config['api_host'])) {
             $this->apiHost = preg_replace('#^https?://#', '', $config['api_host']);
         } elseif (isset($config['api_base_url'])) {
@@ -35,40 +38,11 @@ final class EnhancedDcsServerBotApiClient extends \DCSServerBotAPIClient
             return (string)$this->detectedProtocol;
         }
 
-        foreach (['http', 'https'] as $protocol) {
-            $testUrl = $protocol . '://' . $this->apiHost . '/servers';
-
-            $ch = curl_init();
-            curl_setopt($ch, CURLOPT_URL, $testUrl);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 2);
-            curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-            curl_setopt($ch, CURLOPT_NOBODY, true);
-            curl_setopt($ch, CURLOPT_HEADER, false);
-
-            if ($protocol === 'https') {
-                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, $this->verifySsl);
-                curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, $this->verifySsl ? 2 : 0);
-            }
-
-            curl_exec($ch);
-            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            $error = curl_error($ch);
-            curl_close($ch);
-
-            if ($httpCode > 0 && $httpCode < 500 && empty($error)) {
-                $this->detectedProtocol = $protocol;
-                $this->apiBaseUrl = $protocol . '://' . $this->apiHost;
-                $this->protocolTested = true;
-                return $protocol;
-            }
-        }
-
-        $this->detectedProtocol = 'http';
-        $this->apiBaseUrl = 'http://' . $this->apiHost;
+        $this->detectedProtocol = $this->protocolDetector->detect($this->apiHost, $this->verifySsl);
+        $this->apiBaseUrl = $this->detectedProtocol . '://' . $this->apiHost;
         $this->protocolTested = true;
 
-        return 'http';
+        return $this->detectedProtocol;
     }
 
     public function request($endpoint, $data = null, $method = 'POST')

@@ -10,6 +10,9 @@ final class SystemUpdateService
     private SystemUpdateDeploymentService $deploymentService;
     private SystemUpdateArchiveService $archiveService;
     private SystemUpdateRemoteService $remoteService;
+    private SystemUpdateWorkspaceService $workspaceService;
+    private SystemUpdateDownloadService $downloadService;
+    private SystemUpdateFinalizer $finalizer;
 
     public function __construct(
         ?AdminFilesystemService $filesystem = null,
@@ -17,7 +20,10 @@ final class SystemUpdateService
         ?SystemUpdateBackupService $backupService = null,
         ?SystemUpdateDeploymentService $deploymentService = null,
         ?SystemUpdateArchiveService $archiveService = null,
-        ?SystemUpdateRemoteService $remoteService = null
+        ?SystemUpdateRemoteService $remoteService = null,
+        ?SystemUpdateWorkspaceService $workspaceService = null,
+        ?SystemUpdateDownloadService $downloadService = null,
+        ?SystemUpdateFinalizer $finalizer = null
     ) {
         $this->filesystem = $filesystem ?? new AdminFilesystemService();
         $this->githubClient = $githubClient ?? new SystemUpdateGitHubClient();
@@ -25,6 +31,9 @@ final class SystemUpdateService
         $this->deploymentService = $deploymentService ?? new SystemUpdateDeploymentService($this->filesystem);
         $this->archiveService = $archiveService ?? new SystemUpdateArchiveService($this->filesystem);
         $this->remoteService = $remoteService ?? new SystemUpdateRemoteService($this->githubClient);
+        $this->workspaceService = $workspaceService ?? new SystemUpdateWorkspaceService($this->filesystem);
+        $this->downloadService = $downloadService ?? new SystemUpdateDownloadService($this->githubClient);
+        $this->finalizer = $finalizer ?? new SystemUpdateFinalizer();
     }
 
     public function run(?string $specificVersion, callable $log): void
@@ -60,23 +69,13 @@ final class SystemUpdateService
         }
 
         $rootPath = DCS_ROOT_PATH;
-        $upgradeParentDir = $rootPath . '/UPGRADE';
-        $upgradeDir = $upgradeParentDir . '/update-' . bin2hex(random_bytes(8));
-        $backupDir = $rootPath . '/backups';
-
-        if (!is_dir($upgradeParentDir)) {
-            mkdir($upgradeParentDir, 0755, true);
+        $workspace = $this->workspaceService->prepare($rootPath);
+        if ($workspace === null) {
+            $log('Update cancelled: Could not create the update workspace.');
+            return;
         }
-        mkdir($upgradeDir, 0755, true);
-        register_shutdown_function(function () use ($upgradeDir) {
-            if (is_dir($upgradeDir)) {
-                $this->filesystem->removeDirectory($upgradeDir);
-            }
-        });
-
-        if (!is_dir($backupDir)) {
-            mkdir($backupDir, 0755, true);
-        }
+        $upgradeDir = $workspace['upgrade_dir'];
+        $backupDir = $workspace['backup_dir'];
 
         $remoteInfo = $this->remoteService->resolveRemoteBranch($repo, $branch, $specificVersion, $apiUrl, $log);
         if ($remoteInfo === null) {
@@ -94,7 +93,7 @@ final class SystemUpdateService
         $downloadLabel = $specificVersion ? "version $specificVersion" : "{$channelConfig['channel']} branch ($branch)";
         $log("Downloading $downloadLabel...");
         $zipFile = $upgradeDir . '/update.zip';
-        if (!$this->downloadArchive($apiUrl, $zipFile, $log)) {
+        if (!$this->downloadService->download($apiUrl, $zipFile, $log)) {
             return;
         }
 
@@ -107,83 +106,19 @@ final class SystemUpdateService
         $this->deploymentService->applyNewCode($rootPath, $newCodeDir, $log);
 
         $log('Cleaning up...');
-        $this->filesystem->removeDirectory($upgradeDir);
+        $this->workspaceService->cleanup($upgradeDir);
 
-        $versionLabel = $specificVersion ?? $this->buildVersionLabel($branch, $remoteCommitDate, $remoteCommitSha);
-        $currentAdmin = getCurrentAdmin();
-        updateVersionMetadata(
-            $versionLabel,
+        $this->finalizer->complete(
+            $specificVersion,
+            $currentVersion,
             $branch,
-            $currentAdmin['username'] ?? 'Unknown',
             $remoteCommitSha,
-            $remoteCommitDate
+            $remoteCommitDate,
+            $log
         );
-
-        $this->runInstallCheckin($log);
-        $this->updateConfigVersion($specificVersion, $currentVersion, $log);
-
-        logAdminAction('SYSTEM_UPDATE', [
-            'from_version' => $currentVersion,
-            'to_version' => $specificVersion ?? $versionLabel,
-            'branch' => $branch,
-            'admin' => $currentAdmin['username'] ?? 'Unknown',
-        ]);
 
         $log('Update complete.');
         $log('Please refresh your browser to see the changes.');
-    }
-
-    private function downloadArchive(string $apiUrl, string $zipFile, callable $log): bool
-    {
-        $download = $this->githubClient->downloadArchive($apiUrl, $zipFile);
-        if (!$download['success']) {
-            $log('Download failed. HTTP Code: ' . $download['http_code']);
-            @unlink($zipFile);
-            return false;
-        }
-
-        $log('Download complete.');
-        return true;
-    }
-
-    private function runInstallCheckin(callable $log): void
-    {
-        \DcsStats\Core\SupportBootstrap::installCheckin();
-        $checkinResult = runInstallCheckinIfDue(
-            getCurrentVersionInfo(),
-            getUpdateChannelConfig(),
-            ['event' => 'update', 'force' => true]
-        );
-        $log('Install check-in after update: ' . ($checkinResult['status'] ?? 'unknown'));
-    }
-
-    private function updateConfigVersion(?string $newVersion, string $currentVersion, callable $log): void
-    {
-        if ($newVersion === null || $newVersion === $currentVersion) {
-            return;
-        }
-
-        $configFile = DCS_ROOT_PATH . '/app/Core/AdminConfig.php';
-        if (!file_exists($configFile)) {
-            return;
-        }
-
-        $config = file_get_contents($configFile);
-        $config = preg_replace(
-            "/define\('ADMIN_PANEL_VERSION', '[^']+'/",
-            "define('ADMIN_PANEL_VERSION', '$newVersion'",
-            $config
-        );
-        file_put_contents($configFile, $config);
-        $log("Updated version to: $newVersion");
-    }
-
-    private function buildVersionLabel(string $branch, ?string $commitDate, ?string $commitSha): string
-    {
-        $date = $commitDate ? date('Y-m-d', strtotime($commitDate)) : date('Y-m-d');
-        $shortSha = $commitSha ? substr($commitSha, 0, 12) : 'unknown';
-
-        return $branch . ' @ ' . $date . ' #' . $shortSha;
     }
 
 }

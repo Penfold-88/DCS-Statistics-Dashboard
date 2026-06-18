@@ -10,82 +10,37 @@ final class Localization
 
     public static function builtInLanguages(): array
     {
-        return [
-            'en' => 'English',
-            'de' => 'Deutsch',
-            'it' => 'Italiano',
-        ];
+        return (new LanguageRegistry())->builtInLanguages();
     }
 
     public static function customLanguageRegistryPath(): string
     {
-        return DCS_ROOT_PATH . '/site-config/data/languages.json';
+        return (new LanguageRegistry())->registryPath();
     }
 
     public static function customLanguageDir(): string
     {
-        return DCS_ROOT_PATH . '/site-config/data/languages';
+        return (new LanguageRegistry())->languageDir();
     }
 
     public static function normalizeCode($language): string
     {
-        $language = strtolower(trim((string)$language));
-        $language = str_replace('_', '-', $language);
-
-        return preg_match('/^[a-z]{2}(-[a-z]{2})?$/', $language) ? $language : '';
+        return (new LanguageRegistry())->normalizeCode($language);
     }
 
     public static function customLanguages(): array
     {
-        $path = self::customLanguageRegistryPath();
-        if (!file_exists($path)) {
-            return [];
-        }
-
-        $data = json_decode((string)@file_get_contents($path), true);
-        if (!is_array($data)) {
-            return [];
-        }
-
-        $languages = [];
-        $builtIn = self::builtInLanguages();
-        foreach ($data as $code => $info) {
-            $code = self::normalizeCode($code);
-            if ($code === '' || isset($builtIn[$code]) || !is_array($info) || empty($info['name'])) {
-                continue;
-            }
-
-            $file = $info['file'] ?? ($code . '.json');
-            if (!preg_match('/^[a-z0-9-]+\.json$/i', $file)) {
-                continue;
-            }
-
-            $languages[$code] = [
-                'name' => (string)$info['name'],
-                'file' => $file,
-                'uploaded_at' => $info['uploaded_at'] ?? null,
-            ];
-        }
-
-        return $languages;
+        return (new LanguageRegistry())->customLanguages();
     }
 
     public static function supportedLanguages(): array
     {
-        $languages = self::builtInLanguages();
-        foreach (self::customLanguages() as $code => $info) {
-            $languages[$code] = $info['name'];
-        }
-
-        return $languages;
+        return (new LanguageRegistry())->supportedLanguages();
     }
 
     public static function languageCode($language = null): string
     {
-        $supported = self::supportedLanguages();
-        $language = self::normalizeCode($language);
-
-        return isset($supported[$language]) ? $language : 'en';
+        return (new LanguageRegistry())->languageCode($language);
     }
 
     public static function defaultLanguage(): string
@@ -156,20 +111,7 @@ final class Localization
             return self::$translationCache[$language];
         }
 
-        $translations = [];
-        $file = DCS_ROOT_PATH . '/lang/' . $language . '.php';
-        if (file_exists($file)) {
-            $translations = require $file;
-        } else {
-            $customLanguages = self::customLanguages();
-            if (isset($customLanguages[$language])) {
-                $customFile = self::customLanguageDir() . '/' . $customLanguages[$language]['file'];
-                $customData = file_exists($customFile) ? json_decode((string)@file_get_contents($customFile), true) : [];
-                $translations = $customData['translations'] ?? $customData;
-            }
-        }
-
-        self::$translationCache[$language] = is_array($translations) ? $translations : [];
+        self::$translationCache[$language] = (new TranslationFileLoader())->load($language);
 
         return self::$translationCache[$language];
     }
