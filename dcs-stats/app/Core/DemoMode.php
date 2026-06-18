@@ -11,72 +11,22 @@ final class DemoMode
 
     public static function configPath(): string
     {
-        $paths = [
-            DCS_ROOT_PATH . '/.demo',
-            dirname(DCS_ROOT_PATH) . '/.demo',
-        ];
-
-        foreach ($paths as $path) {
-            if (file_exists($path)) {
-                return $path;
-            }
-        }
-
-        return '';
+        return (new DemoConfigReader())->configPath();
     }
 
     public static function protectedUsername(): string
     {
-        $path = self::configPath();
-        if ($path === '' || !is_readable($path)) {
-            return '';
-        }
-
-        $content = trim((string)@file_get_contents($path));
-        if ($content === '') {
-            return '';
-        }
-
-        $json = json_decode($content, true);
-        if (is_array($json)) {
-            return trim((string)($json['protected_user'] ?? $json['owner'] ?? $json['username'] ?? ''));
-        }
-
-        foreach (preg_split('/\R/', $content) as $line) {
-            $line = trim($line);
-            if ($line === '' || $line[0] === '#') {
-                continue;
-            }
-
-            if (strpos($line, '=') !== false) {
-                [$key, $value] = array_map('trim', explode('=', $line, 2));
-                if (in_array(strtolower($key), ['protected_user', 'owner', 'username'], true)) {
-                    return $value;
-                }
-                continue;
-            }
-
-            return $line;
-        }
-
-        return '';
+        return (new DemoConfigReader())->protectedUsername();
     }
 
     public static function isOwner($admin = null): bool
     {
-        if (!$admin && function_exists('getCurrentAdmin')) {
-            $admin = \getCurrentAdmin();
-        }
-
-        $protectedUsername = self::protectedUsername();
-        return $protectedUsername !== ''
-            && is_array($admin)
-            && hash_equals($protectedUsername, (string)($admin['username'] ?? ''));
+        return (new DemoAccessPolicy())->isOwner($admin);
     }
 
     public static function isRestricted($admin = null): bool
     {
-        return self::isEnabled() && !self::isOwner($admin);
+        return (new DemoAccessPolicy())->isRestricted($admin);
     }
 
     public static function restrictionMessage(): string
@@ -91,17 +41,7 @@ final class DemoMode
 
     public static function maskValue($value): string
     {
-        $value = trim((string)$value);
-        if ($value === '') {
-            return '';
-        }
-
-        $port = '';
-        if (preg_match('/:(\d+)$/', $value, $matches)) {
-            $port = ':' . $matches[1];
-        }
-
-        return '••••••••' . $port;
+        return (new DemoAccessPolicy())->maskValue($value);
     }
 
     public static function blockWriteRequest($admin = null, bool $json = false): bool
