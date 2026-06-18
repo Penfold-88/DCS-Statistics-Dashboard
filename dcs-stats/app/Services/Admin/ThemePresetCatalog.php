@@ -4,9 +4,16 @@ namespace DcsStats\Services\Admin;
 
 final class ThemePresetCatalog
 {
+    private ThemeColorService $colorService;
+
+    public function __construct(?ThemeColorService $colorService = null)
+    {
+        $this->colorService = $colorService ?? new ThemeColorService();
+    }
+
     public function builtInPresets(): array
     {
-        $defaults = (new ThemeColorService())->defaultColors();
+        $defaults = $this->colorService->defaultColors();
 
         return [
             'carrier_night' => [

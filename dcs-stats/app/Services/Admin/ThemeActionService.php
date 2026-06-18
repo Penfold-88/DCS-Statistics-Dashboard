@@ -14,9 +14,10 @@ final class ThemeActionService
         ?ThemeUploadService $uploadActions = null,
         ?ThemeColorActionService $colorActions = null,
         ?ThemeConfigurationActionDispatcher $configurationActions = null,
-        ?ThemeAppearanceActionDispatcher $appearanceActions = null
+        ?ThemeAppearanceActionDispatcher $appearanceActions = null,
+        ?ThemeActionLogger $logger = null
     ) {
-        $logger = new ThemeActionLogger();
+        $logger = $logger ?? new ThemeActionLogger();
         $this->configurationActions = $configurationActions ?? new ThemeConfigurationActionDispatcher(
             $presetActions,
             $settingsActions,

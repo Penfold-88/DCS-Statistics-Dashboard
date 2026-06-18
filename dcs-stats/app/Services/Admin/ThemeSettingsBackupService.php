@@ -4,6 +4,15 @@ namespace DcsStats\Services\Admin;
 
 final class ThemeSettingsBackupService
 {
+    private ThemeColorService $colorService;
+    private ThemeAssetService $assetService;
+
+    public function __construct(?ThemeColorService $colorService = null, ?ThemeAssetService $assetService = null)
+    {
+        $this->colorService = $colorService ?? new ThemeColorService();
+        $this->assetService = $assetService ?? new ThemeAssetService();
+    }
+
     public function buildBackup(string $menuConfigFile): array
     {
         $customCss = DCS_ROOT_PATH . '/custom_theme.css';
@@ -12,10 +21,10 @@ final class ThemeSettingsBackupService
             'type' => 'dcs_statistics_dashboard_theme_settings',
             'version' => 1,
             'created_at' => date('c'),
-            'theme_colors' => (new ThemeColorService())->loadColorsFromCss($customCss),
-            'theme_options' => (new ThemeColorService())->loadOptionsFile($customCss),
+            'theme_colors' => $this->colorService->loadColorsFromCss($customCss),
+            'theme_options' => $this->colorService->loadOptionsFile($customCss),
             'chart_colors' => \loadChartTheme(),
-            'header_image' => (new ThemeAssetService())->loadHeaderImageSettings(),
+            'header_image' => $this->assetService->loadHeaderImageSettings(),
             'menu' => file_exists($menuConfigFile) ? json_decode((string)file_get_contents($menuConfigFile), true) : null,
         ];
     }
@@ -26,10 +35,9 @@ final class ThemeSettingsBackupService
             return false;
         }
 
-        $colorService = new ThemeColorService();
-        $colors = $colorService->cleanColors($backup['theme_colors'] ?? []);
-        $options = $colorService->cleanOptions($backup['theme_options'] ?? []);
-        if (file_put_contents(DCS_ROOT_PATH . '/custom_theme.css', $colorService->buildCustomCss($colors, $options)) === false) {
+        $colors = $this->colorService->cleanColors($backup['theme_colors'] ?? []);
+        $options = $this->colorService->cleanOptions($backup['theme_options'] ?? []);
+        if (file_put_contents(DCS_ROOT_PATH . '/custom_theme.css', $this->colorService->buildCustomCss($colors, $options)) === false) {
             return false;
         }
 
@@ -38,7 +46,7 @@ final class ThemeSettingsBackupService
         }
 
         if (isset($backup['header_image']) && is_array($backup['header_image'])) {
-            (new ThemeAssetService())->saveHeaderImageSettings($backup['header_image']);
+            $this->assetService->saveHeaderImageSettings($backup['header_image']);
         }
 
         if (isset($backup['menu']) && is_array($backup['menu'])) {

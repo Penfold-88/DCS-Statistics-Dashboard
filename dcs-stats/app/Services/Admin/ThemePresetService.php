@@ -4,9 +4,23 @@ namespace DcsStats\Services\Admin;
 
 final class ThemePresetService
 {
+    private ThemePresetCatalog $catalog;
+    private ThemeColorService $colorService;
+    private ThemePresetStorageService $storageService;
+
+    public function __construct(
+        ?ThemePresetCatalog $catalog = null,
+        ?ThemeColorService $colorService = null,
+        ?ThemePresetStorageService $storageService = null
+    ) {
+        $this->colorService = $colorService ?? new ThemeColorService();
+        $this->catalog = $catalog ?? new ThemePresetCatalog($this->colorService);
+        $this->storageService = $storageService ?? new ThemePresetStorageService();
+    }
+
     public function builtInPresets(): array
     {
-        return (new ThemePresetCatalog())->builtInPresets();
+        return $this->catalog->builtInPresets();
     }
 
     public function applyPreset($preset): bool
@@ -15,11 +29,10 @@ final class ThemePresetService
             return false;
         }
 
-        $colorService = new ThemeColorService();
-        $colors = $colorService->cleanColors(array_merge($colorService->defaultColors(), $preset['colors'] ?? []));
-        $options = $colorService->cleanOptions($preset['options'] ?? []);
+        $colors = $this->colorService->cleanColors(array_merge($this->colorService->defaultColors(), $preset['colors'] ?? []));
+        $options = $this->colorService->cleanOptions($preset['options'] ?? []);
 
-        if (file_put_contents(DCS_ROOT_PATH . '/custom_theme.css', $colorService->buildCustomCss($colors, $options)) === false) {
+        if (file_put_contents(DCS_ROOT_PATH . '/custom_theme.css', $this->colorService->buildCustomCss($colors, $options)) === false) {
             return false;
         }
 
@@ -42,19 +55,17 @@ final class ThemePresetService
         }
 
         $customCss = DCS_ROOT_PATH . '/custom_theme.css';
-        $storageService = new ThemePresetStorageService();
-        $colorService = new ThemeColorService();
-        $presets = $storageService->loadCustomPresets();
+        $presets = $this->storageService->loadCustomPresets();
         $presets[] = [
             'name' => $presetName,
             'description' => 'Saved custom squadron theme',
             'created_at' => date('c'),
-            'colors' => $colorService->loadColorsFromCss($customCss),
-            'options' => $colorService->loadOptionsFile($customCss),
+            'colors' => $this->colorService->loadColorsFromCss($customCss),
+            'options' => $this->colorService->loadOptionsFile($customCss),
             'chart_colors' => \loadChartTheme(),
         ];
 
-        if ($storageService->saveCustomPresets($presets)) {
+        if ($this->storageService->saveCustomPresets($presets)) {
             return ['success' => true, 'message' => 'Custom theme preset saved successfully'];
         }
 
@@ -63,8 +74,7 @@ final class ThemePresetService
 
     public function deleteCustomPreset(int $presetIndex): array
     {
-        $storageService = new ThemePresetStorageService();
-        $presets = $storageService->loadCustomPresets();
+        $presets = $this->storageService->loadCustomPresets();
         if (!isset($presets[$presetIndex])) {
             return ['success' => false, 'message' => 'Custom preset not found'];
         }
@@ -72,7 +82,7 @@ final class ThemePresetService
         $deletedName = $presets[$presetIndex]['name'] ?? 'Custom preset';
         array_splice($presets, $presetIndex, 1);
 
-        if ($storageService->saveCustomPresets($presets)) {
+        if ($this->storageService->saveCustomPresets($presets)) {
             return [
                 'success' => true,
                 'message' => 'Custom theme preset deleted successfully',

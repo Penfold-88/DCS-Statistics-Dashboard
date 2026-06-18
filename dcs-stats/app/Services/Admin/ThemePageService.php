@@ -13,6 +13,8 @@ final class ThemePageService
     private ThemeActionService $actionService;
     private ThemePresetStorageService $presetStorageService;
     private ThemePreviewUrlBuilder $previewUrlBuilder;
+    private ChartThemeFieldCatalog $chartThemeFieldCatalog;
+    private HeaderImageFieldCatalog $headerImageFieldCatalog;
 
     public function __construct(
         ?ThemeAssetService $assetService = null,
@@ -23,7 +25,9 @@ final class ThemePageService
         ?ThemeUploadService $uploadService = null,
         ?ThemeActionService $actionService = null,
         ?ThemePresetStorageService $presetStorageService = null,
-        ?ThemePreviewUrlBuilder $previewUrlBuilder = null
+        ?ThemePreviewUrlBuilder $previewUrlBuilder = null,
+        ?ChartThemeFieldCatalog $chartThemeFieldCatalog = null,
+        ?HeaderImageFieldCatalog $headerImageFieldCatalog = null
     ) {
         $this->assetService = $assetService ?? new ThemeAssetService();
         $this->colorService = $colorService ?? new ThemeColorService();
@@ -34,6 +38,8 @@ final class ThemePageService
         $this->actionService = $actionService ?? new ThemeActionService();
         $this->presetStorageService = $presetStorageService ?? new ThemePresetStorageService();
         $this->previewUrlBuilder = $previewUrlBuilder ?? new ThemePreviewUrlBuilder();
+        $this->chartThemeFieldCatalog = $chartThemeFieldCatalog ?? new ChartThemeFieldCatalog();
+        $this->headerImageFieldCatalog = $headerImageFieldCatalog ?? new HeaderImageFieldCatalog();
     }
 
     public function state(array $currentAdmin): array
@@ -77,7 +83,7 @@ final class ThemePageService
             'backups' => $this->uploadService->listBackups(),
             'builtInThemePresets' => $this->presetService->builtInPresets(),
             'chartColors' => \loadChartTheme(),
-            'chartThemeFieldGroups' => (new ChartThemeFieldCatalog())->groups(),
+            'chartThemeFieldGroups' => $this->chartThemeFieldCatalog->groups(),
             'csrfToken' => \getCSRFToken(),
             'customColors' => $customColors,
             'customThemePresets' => $this->presetStorageService->loadCustomPresets(),
@@ -88,7 +94,7 @@ final class ThemePageService
             'demoRestricted' => $demoRestricted,
             'error' => $error,
             'headerImageSettings' => $headerImageSettings,
-            'headerImageFieldCatalog' => new HeaderImageFieldCatalog(),
+            'headerImageFieldCatalog' => $this->headerImageFieldCatalog,
             'headerLogoPreview' => !empty($headerImageSettings['logo']) ? '../' . ltrim($headerImageSettings['logo'], '/') : '',
             'headerPreviewImage' => '../' . ltrim($headerImageSettings['image'], '/'),
             'isAirBoss' => $isAirBoss,

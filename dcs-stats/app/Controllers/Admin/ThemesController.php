@@ -2,7 +2,7 @@
 
 namespace DcsStats\Controllers\Admin;
 
-use DcsStats\Services\Admin\ThemePageService;
+use DcsStats\Services\Admin\ThemePageServiceFactory;
 
 final class ThemesController extends AdminPageController
 {
@@ -14,6 +14,6 @@ final class ThemesController extends AdminPageController
         ]);
 
         $currentAdmin = $this->requirePermission('manage_themes');
-        $this->render('themes.php', (new ThemePageService())->state($currentAdmin));
+        $this->render('themes.php', (new ThemePageServiceFactory())->create()->state($currentAdmin));
     }
 }
