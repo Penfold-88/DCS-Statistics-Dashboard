@@ -22,15 +22,26 @@ class DCSServerBotAPIClient {
     protected $config;
     private $mockDataProvider;
     private $httpClient;
+    private $playerClient;
     
-    public function __construct($config = []) {
+    public function __construct(
+        $config = [],
+        $mockDataProvider = null,
+        $httpClient = null,
+        $playerClient = null
+    ) {
         $this->apiBaseUrl = $config['api_base_url'] ?? 'http://localhost:9876';
         $this->apiKey = $config['api_key'] ?? null;
         $this->timeout = $config['timeout'] ?? 30;
         $this->isDevMode = isDevMode();
         $this->config = $config;
-        $this->mockDataProvider = new \DcsStats\Services\Api\DcsServerBotMockDataProvider();
-        $this->httpClient = new \DcsStats\Services\Api\DcsServerBotHttpClient();
+        $this->mockDataProvider = $mockDataProvider ?? new \DcsStats\Services\Api\DcsServerBotMockDataProvider();
+        $this->httpClient = $httpClient ?? new \DcsStats\Services\Api\DcsServerBotHttpClient();
+        $this->playerClient = $playerClient ?? new \DcsStats\Services\Api\DcsServerBotPlayerClient(
+            function ($method, $endpoint, $data = null) {
+                return $this->makeRequest($method, $endpoint, $data);
+            }
+        );
     }
     
     /**
@@ -69,31 +80,14 @@ class DCSServerBotAPIClient {
      * Returns an array of matching users
      */
     public function getUser($nickname) {
-        if ($nickname) {
-            // API expects 'nick' not 'nickname'
-            // Returns an array of users that match this nick
-            $users = $this->makeRequest('POST', '/getuser', ['nick' => $nickname]);
-            // Return the first match if found
-            return !empty($users) && is_array($users) ? $users[0] : null;
-        }
+        return $this->playerClient->getUser($nickname);
     }
     
     /**
      * Get player statistics
      */
     public function getPlayerStats($nickname, $date = null) {
-        if (!$nickname) {
-            return null;
-        }
-
-        $date = $this->resolvePlayerDate($nickname, $date);
-        
-        // API expects 'nick' and the user's exact last seen date
-        $data = [
-            'nick' => $nickname,
-            'date' => $date
-        ];
-        return $this->makeRequest('POST', '/stats', $data);
+        return $this->playerClient->getPlayerStats($nickname, $date);
     }
     
     /**
@@ -119,34 +113,14 @@ class DCSServerBotAPIClient {
     }
 
     public function getPlayerInfo($nickname, $date = null) {
-        if (!$nickname) {
-            return null;
-        }
-
-        $data = ['nick' => $nickname];
-        if ($date) {
-            $data['date'] = $date;
-        }
-
-        return $this->makeRequest('POST', '/player_info', $data);
+        return $this->playerClient->getPlayerInfo($nickname, $date);
     }
     
     /**
      * Get missile probability of kill for a player
      */
     public function getWeaponPK($nickname, $date = null) {
-        if (!$nickname) {
-            return null;
-        }
-
-        $date = $this->resolvePlayerDate($nickname, $date);
-        
-        // API expects 'nick' and the user's exact last seen date
-        $data = [
-            'nick' => $nickname,
-            'date' => $date
-        ];
-        return $this->makeRequest('POST', '/weaponpk', $data);
+        return $this->playerClient->getWeaponPk($nickname, $date);
     }
     
     /**
@@ -192,37 +166,11 @@ class DCSServerBotAPIClient {
         return $this->mockDataProvider->get($endpoint, $data);
     }
 
-    private function resolvePlayerDate($nickname, $date) {
-        if ($date) {
-            return $date;
-        }
-
-        try {
-            $userData = $this->makeRequest('POST', '/getuser', ['nick' => $nickname]);
-            if ($userData && is_array($userData) && isset($userData[0]['date'])) {
-                return $userData[0]['date'];
-            }
-
-            throw new Exception('Unable to determine user last seen date');
-        } catch (Exception $e) {
-            throw new Exception('Failed to get user data: ' . $e->getMessage());
-        }
-    }
 }
 
 // Configuration loader
 function loadAPIConfig() {
-    $configResult = loadApiConfigWithFix();
-    if (!empty($configResult['config']) && is_array($configResult['config'])) {
-        return $configResult['config'];
-    }
-    
-    // Default configuration
-    return [
-        'api_base_url' => getenv('DCSBOT_API_URL') ?: 'http://localhost:8080',
-        'api_key' => getenv('DCSBOT_API_KEY') ?: null,
-        'timeout' => 30
-    ];
+    return (new \DcsStats\Services\Api\DcsServerBotApiConfigLoader())->load();
 }
 
 // Create global API client instance
