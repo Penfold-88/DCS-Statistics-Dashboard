@@ -4,6 +4,13 @@ namespace DcsStats\Services\Admin;
 
 final class ThemeAssetService
 {
+    private ?HeaderImageSettingsStore $settingsStore;
+
+    public function __construct(?HeaderImageSettingsStore $settingsStore = null)
+    {
+        $this->settingsStore = $settingsStore;
+    }
+
     public function defaultHeaderImageSettings(): array
     {
         return [
@@ -98,30 +105,20 @@ final class ThemeAssetService
 
     public function loadHeaderImageSettings(): array
     {
-        $settings = $this->defaultHeaderImageSettings();
-        $path = $this->headerImageSettingsPath();
-        if (file_exists($path)) {
-            $saved = json_decode((string)file_get_contents($path), true);
-            if (is_array($saved)) {
-                $settings = array_merge($settings, array_intersect_key($saved, $settings));
-            }
-        }
-
-        return (new HeaderImageSettingsSanitizer($this))->clean($settings);
+        return $this->settingsStore()->load();
     }
 
     public function saveHeaderImageSettings(array $settings): bool
     {
-        $dataDir = DCS_ROOT_PATH . '/site-config/data';
-        if (!is_dir($dataDir)) {
-            mkdir($dataDir, 0755, true);
+        return $this->settingsStore()->save($settings);
+    }
+
+    private function settingsStore(): HeaderImageSettingsStore
+    {
+        if ($this->settingsStore === null) {
+            $this->settingsStore = new HeaderImageSettingsStore($this);
         }
 
-        $settings = (new HeaderImageSettingsSanitizer($this))->clean($settings);
-
-        $css = (new HeaderImageCssBuilder($this))->build($settings);
-
-        return file_put_contents($this->headerImageSettingsPath(), json_encode($settings, JSON_PRETTY_PRINT)) !== false
-            && file_put_contents(DCS_ROOT_PATH . '/header_custom.css', $css) !== false;
+        return $this->settingsStore;
     }
 }
