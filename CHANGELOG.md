@@ -12,56 +12,53 @@ V1.3 remains in development. New implementation entries should include the date 
 
 ---
 
-### 🏗️ Framework Conversion
+### ✨ Headline Features
 
-- Moved application code into focused controllers, services, core helpers, and views under `dcs-stats/app/`.
-- Converted public pages, public APIs, admin pages, admin APIs, installation, authentication, updates, themes, settings, backup, export, and configuration workflows to framework classes.
-- Reduced 39 large mixed-responsibility facades and introduced 89 focused services.
-- Removed more than 3,000 lines from mixed-responsibility classes while retaining existing behaviour.
-- Kept thin root and `site-config/` PHP entry files as stable deployment adapters.
-- Removed obsolete internal compatibility wrappers and duplicate API aliases once framework callers no longer depended on them.
-- Retained `dcs-stats/` as the web document root. V1.3 does not require a Laravel-style `/public` directory, custom `php.ini` settings, or mandatory rewrite rules.
+- 🏗️ **Completed the internal framework conversion** across public pages, APIs, administration, installation, updates, themes, settings, backup, export, authentication, and configuration. *(19 June 2026)*
+- 🧩 **Introduced 89 focused services** and reduced 39 large mixed-responsibility facades. *(19 June 2026)*
+- 🧹 **Removed more than 3,000 lines** from mixed-responsibility classes while retaining existing behaviour. *(19 June 2026)*
+- 🔌 **Preserved simple deployment compatibility** for Docker, XAMPP, and hosted web servers without requiring a Laravel-style `/public` directory. *(19 June 2026)*
 
 ---
 
-### 📅 Implementation Timeline
+### 🏗️ Framework & File Organisation
 
-#### 11 June 2026 — Framework foundations and view cleanup
+- 📁 Moved application code into controllers, services, core helpers, and views under `dcs-stats/app/`. *(11–19 June 2026)*
+- 🎛️ Converted public pages, public APIs, admin pages, admin APIs, installation, authentication, updates, themes, settings, backup, export, and configuration workflows to framework classes. *(11–19 June 2026)*
+- 🖼️ Separated public rendering, shared layouts, page assets, and reusable views from legacy page files. *(11–14 June 2026)*
+- 🧱 Reduced controllers and page facades to request orchestration, service calls, and view rendering. *(13–19 June 2026)*
+- 🔗 Improved dependency boundaries and reduced repeated per-request service creation. *(14–19 June 2026)*
 
-- Established the V1.3 framework conversion checkpoints.
-- Continued separating public rendering, shared layout state, and reusable framework views from legacy page files.
-- Reduced mixed PHP, HTML, CSS, and JavaScript responsibilities in migrated views.
+---
 
-#### 13–14 June 2026 — Controllers, views, themes, and headers
+### 🎨 Theme & Header Services
 
-- Continued moving public and admin behaviour behind controllers and focused services.
-- Extracted framework-managed view assets and page-specific presentation files.
-- Refined theme, header, logo, preview, and appearance service boundaries.
-- Centralised theme service composition and reduced repeated per-request dependency creation.
+- 🧩 Centralised theme service composition. *(14 June 2026)*
+- 🖼️ Moved header image persistence into a dedicated service. *(18 June 2026)*
+- 🔗 Moved theme preview URL construction into a dedicated service. *(18 June 2026)*
+- 🎨 Split theme actions into focused preset, import, menu, appearance, upload, restore, logging, and dispatch services. *(19 June 2026)*
+- 🧭 Retained `ThemeActionService::handle()` as the stable public facade. *(19 June 2026)*
 
-#### 17 June 2026 — Admin framework services
+---
 
-- Extracted admin dashboard, settings, authentication, permissions, navigation, maintenance, metadata, backup, and page-state services.
-- Reduced large admin page facades to request orchestration and view rendering.
-- Improved dependency boundaries across admin workflows.
+### 🧰 Admin, Core & Installer Services
 
-#### 18 June 2026 — Core, installer, API, and public services
+- 🔐 Extracted admin authentication, session, permission, navigation, URL, and data-initialisation services. *(17–18 June 2026)*
+- ⚙️ Extracted admin dashboard, settings, maintenance, metadata, backup, export, and page-state services. *(17–18 June 2026)*
+- 🌍 Decomposed cache, localisation, API configuration, feature configuration, and storage responsibilities. *(18 June 2026)*
+- 🛠️ Extracted installer environment, input, file-writing, version-initialisation, and completion-rendering services. *(18 June 2026)*
+- 📡 Reduced public API controllers to endpoint facades backed by focused API services. *(18 June 2026)*
 
-- Decomposed core cache, localisation, API configuration, feature configuration, and storage responsibilities.
-- Extracted installer environment, input, file-writing, version-initialisation, and completion-rendering services.
-- Reduced public API controllers to endpoint facades backed by focused API services.
-- Extracted public dashboard, navigation, stylesheet, maintenance, server, and page-state services.
-- Moved header image persistence and theme preview URL construction into dedicated services.
+---
 
-#### 19 June 2026 — Framework completion and compatibility cleanup
+### 🧹 Compatibility & Cleanup
 
-- Completed the framework service decomposition across the existing dashboard.
-- Split theme actions into focused preset, import, menu, appearance, upload, restore, logging, and dispatch services while retaining `ThemeActionService::handle()` as the public facade.
-- Removed 23 obsolete internal compatibility wrappers after replacing filename-based bootstrap dependencies with framework support loaders.
-- Removed nine duplicate `*_api.php` aliases and retained one canonical URL for each public API endpoint.
-- Verified all 498 remaining PHP files lint cleanly after compatibility cleanup.
-- Confirmed public pages, canonical APIs, login, and protected admin routes continued to respond correctly.
-- Confirmed production compatibility requires the remaining thin PHP entry files; they are intentional deployment adapters and will not be replaced with mandatory web-server rewrites.
+- 🗑️ Removed 23 obsolete internal compatibility wrappers after replacing filename-based bootstrap dependencies with framework support loaders. *(19 June 2026)*
+- 🔌 Removed nine duplicate `*_api.php` aliases and retained one canonical URL for each public API endpoint. *(19 June 2026)*
+- 🧭 Kept thin root and `site-config/` PHP entry files as stable deployment adapters. *(19 June 2026)*
+- 🌐 Retained `dcs-stats/` as the web document root with no mandatory rewrite rules, custom `php.ini` settings, or `/public` directory migration. *(19 June 2026)*
+- ✅ Verified all 498 remaining PHP files lint cleanly after compatibility cleanup. *(19 June 2026)*
+- 🧪 Confirmed public pages, canonical APIs, login, and protected admin routes continued to respond correctly. *(19 June 2026)*
 
 ---
 
