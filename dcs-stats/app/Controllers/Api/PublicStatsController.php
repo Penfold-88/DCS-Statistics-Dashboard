@@ -3,20 +3,29 @@
 namespace DcsStats\Controllers\Api;
 
 use DcsStats\Core\ApiResponse;
+use DcsStats\Services\Api\PublicApiRequestGuard;
 use DcsStats\Services\Api\PublicStatsService;
 
 final class PublicStatsController
 {
+    private PublicStatsService $stats;
+    private PublicApiRequestGuard $requestGuard;
+
+    public function __construct(?PublicStatsService $stats = null, ?PublicApiRequestGuard $requestGuard = null)
+    {
+        $this->stats = $stats ?? new PublicStatsService();
+        $this->requestGuard = $requestGuard ?? new PublicApiRequestGuard();
+    }
+
     public function playerStats(): void
     {
-        $this->prepareJson();
-        $this->loadSecurity();
+        $this->requestGuard->prepareJson();
 
-        if (!checkRateLimit(30, 60)) {
+        if (!$this->requestGuard->allow(30, 60)) {
             return;
         }
 
-        ApiResponse::json((new PublicStatsService())->getPlayerStats(
+        ApiResponse::json($this->stats->getPlayerStats(
             $_GET['name'] ?? '',
             $_GET['date'] ?? null
         ));
@@ -24,14 +33,13 @@ final class PublicStatsController
 
     public function leaderboard(): void
     {
-        $this->prepareJson();
-        $this->loadSecurity();
+        $this->requestGuard->prepareJson();
 
-        if (!checkRateLimit(120, 60)) {
+        if (!$this->requestGuard->allow(120, 60)) {
             return;
         }
 
-        ApiResponse::json((new PublicStatsService())->getLeaderboard(
+        ApiResponse::json($this->stats->getLeaderboard(
             $_GET['sort'] ?? 'kills',
             (int)($_GET['limit'] ?? 10)
         ));
@@ -39,8 +47,8 @@ final class PublicStatsController
 
     public function squadrons(): void
     {
-        $this->prepareJson();
-        $result = (new PublicStatsService())->getSquadrons();
+        $this->requestGuard->prepareJson();
+        $result = $this->stats->getSquadrons();
         if ($result['error'] !== null) {
             http_response_code(500);
         }
@@ -50,81 +58,59 @@ final class PublicStatsController
 
     public function missionStats(): void
     {
-        $this->prepareJson();
-        $this->loadSecurity();
+        $this->requestGuard->prepareJson();
 
-        if (!checkRateLimit(60, 60)) {
+        if (!$this->requestGuard->allow(60, 60)) {
             return;
         }
 
-        ApiResponse::json((new PublicStatsService())->getMissionStats());
+        ApiResponse::json($this->stats->getMissionStats());
     }
 
     public function credits(): void
     {
-        $this->prepareJson();
-        $this->loadSecurity();
+        $this->requestGuard->prepareJson();
 
-        if (!checkRateLimit(60, 60)) {
+        if (!$this->requestGuard->allow(60, 60)) {
             return;
         }
 
-        ApiResponse::json((new PublicStatsService())->getCredits());
+        ApiResponse::json($this->stats->getCredits());
     }
 
     public function squadronMembers(): void
     {
-        $this->prepareJson();
+        $this->requestGuard->prepareJson();
 
-        ApiResponse::json((new PublicStatsService())->getSquadronMembers($this->requestInput()));
+        ApiResponse::json($this->stats->getSquadronMembers($this->requestGuard->input()));
     }
 
     public function squadronCredits(): void
     {
-        $this->prepareJson();
+        $this->requestGuard->prepareJson();
 
-        ApiResponse::json((new PublicStatsService())->getSquadronCredits($this->requestInput()));
+        ApiResponse::json($this->stats->getSquadronCredits($this->requestGuard->input()));
     }
 
     public function searchPlayers(): void
     {
-        $this->prepareJson();
-        $this->loadSecurity();
+        $this->requestGuard->prepareJson();
 
-        if (!checkRateLimit(60, 60)) {
+        if (!$this->requestGuard->allow(60, 60)) {
             return;
         }
 
-        ApiResponse::json((new PublicStatsService())->searchPlayers($_GET['search'] ?? $_GET['q'] ?? ''));
+        ApiResponse::json($this->stats->searchPlayers($_GET['search'] ?? $_GET['q'] ?? ''));
     }
 
     public function serverStats(): void
     {
-        $this->prepareJson();
-        $this->loadSecurity();
+        $this->requestGuard->prepareJson();
 
-        if (!checkRateLimit(60, 60)) {
+        if (!$this->requestGuard->allow(60, 60)) {
             return;
         }
 
-        ApiResponse::json((new PublicStatsService())->getServerStats());
-    }
-
-    private function prepareJson(): void
-    {
-        ini_set('display_errors', '0');
-        error_reporting(0);
-        header('X-Content-Type-Options: nosniff');
-    }
-
-    private function loadSecurity(): void
-    {
-        \DcsStats\Core\SupportBootstrap::security();
-    }
-
-    private function requestInput(): array
-    {
-        $input = json_decode(file_get_contents('php://input'), true);
-        return is_array($input) ? $input : [];
+        ApiResponse::json($this->stats->getServerStats());
     }
 }
