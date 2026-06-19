@@ -28,7 +28,11 @@ The DCSServerBot API key, API host details, and sensitive settings stay server-s
 
 Optional DCSServerBot API key support is available and recommended where possible.
 
+API keys saved by the dashboard are encrypted with AES-256-GCM. Existing plaintext keys are migrated automatically, and generated encryption-key material is stored separately under the protected `site-config/data/` directory.
+
 For Docker or server-managed installs, the API key can be supplied through `DCSBOT_API_KEY`. When this environment variable is set, it is used at runtime instead of the saved JSON key, which keeps the key out of `site-config/data/api_config.json`.
+
+Those installations may also provide `DCS_CONFIG_ENCRYPTION_KEY` as stable encryption-key material. It must remain unchanged while an encrypted saved key is in use.
 
 After installation, the installer attempts to remove `site-config/install.php` automatically. If the web server cannot remove it, `site-config/install.php` is locked behind the admin session and the Admin Dashboard shows a cleanup warning with a delete button.
 

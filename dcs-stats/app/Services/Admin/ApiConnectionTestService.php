@@ -24,7 +24,7 @@ final class ApiConnectionTestService
             $saveConfig = $apiConfig;
             $saveConfig['api_base_url'] = $detectedUrl;
 
-            if (@file_put_contents($configFile, json_encode($saveConfig, JSON_PRETTY_PRINT))) {
+            if (\DcsStats\Core\ApiConfig::save($saveConfig, $configFile)) {
                 return [
                     'success' => true,
                     'message' => \dcs_t('admin.api.test_success_saved', ['protocol' => $protocol]),

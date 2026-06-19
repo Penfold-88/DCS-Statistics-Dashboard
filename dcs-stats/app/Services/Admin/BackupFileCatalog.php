@@ -14,6 +14,7 @@ final class BackupFileCatalog
             'header_custom.css',
             'menu_config.json',
             'site-config/data/api_config.json',
+            'site-config/data/.api_key.key',
             'site-config/data/users.json',
             'site-config/data/logs.json',
             'site-config/data/bans.json',

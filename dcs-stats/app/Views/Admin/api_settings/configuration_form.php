@@ -29,7 +29,7 @@
                    name="api_key"
                    value=""
                    autocomplete="new-password"
-                   placeholder="<?= $demoRestricted || $envApiKeyActive ? '••••••••' : (!empty($apiConfig['api_key']) ? e(dcs_t('admin.api.api_key_saved')) : e(dcs_t('admin.api.api_key_placeholder'))) ?>"
+                   placeholder="<?= $demoRestricted || $envApiKeyActive ? '••••••••' : (!empty($apiConfig['stored_api_key_present']) ? e(dcs_t('admin.api.api_key_saved')) : e(dcs_t('admin.api.api_key_placeholder'))) ?>"
                    <?= $demoRestricted ? 'disabled' : '' ?>>
             <div class="help-text"><?= e($envApiKeyActive ? dcs_t('admin.api.api_key_env_help') : dcs_t('admin.api.api_key_help')) ?></div>
         </div>

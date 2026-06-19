@@ -8,6 +8,11 @@ dcs-stats/.demo
 .php-sessions/
 dcs-stats/site-config/data/*.json
 !dcs-stats/site-config/data/.htaccess
+dcs-stats/site-config/data/.api_key.key
+dcs-stats/site-config/data/.install.lock
+dcs-stats/site-config/data/.updates/
+dcs-stats/site-config/data/.restore-*/
+dcs-stats/site-config/data/.rollback-*/
 dcs-stats/site-config/data/api-cache/
 dcs-stats/site-config/data/php-sessions/
 dcs-stats/api_config.json

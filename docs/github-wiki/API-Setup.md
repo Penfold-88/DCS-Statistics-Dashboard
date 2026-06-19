@@ -44,6 +44,8 @@ DCSServerBot API Key
 
 If your bot has no API key configured, leave the field blank.
 
+Keys saved through the installer or API Settings page are encrypted with AES-256-GCM. Existing plaintext keys are migrated automatically on the next configuration load.
+
 For Docker or server-managed installs, you can keep the API key out of the saved JSON config by setting an environment variable:
 
 ```env
@@ -51,6 +53,8 @@ DCSBOT_API_KEY=your_key_here
 ```
 
 When `DCSBOT_API_KEY` is present, the dashboard uses it for API requests and ignores the saved API key field. The API Settings page will show a notice when this override is active.
+
+Server-managed installations may set `DCS_CONFIG_ENCRYPTION_KEY` to provide stable encryption-key material. Keep the value unchanged after first use. Without it, the dashboard creates a protected local key under `site-config/data/`.
 
 ---
 

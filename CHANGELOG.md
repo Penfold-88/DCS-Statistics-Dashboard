@@ -62,6 +62,9 @@ V1.3 remains in development. New implementation entries should include the date 
 - 📦 Hardened updates with verified TLS, native Windows certificate support, GitHub host and repository validation, immutable commit resolution, download limits, SHA-256 audit output, strict archive structure checks, and protected workspaces. *(19 June 2026)*
 - 💾 Added randomized private restore workspaces, archive size and symlink checks, stricter language upload validation, and safer path-boundary checks. *(19 June 2026)*
 - 🛠️ Added installer CSRF and rate protection, an optional `DCS_INSTALL_TOKEN`, exclusive installation locking, race-condition checks, and explicit self-delete failure logging. *(19 June 2026)*
+- 🔐 Replaced plaintext non-Docker API-key storage with AES-256-GCM encryption, automatic migration, protected local key material, and optional `DCS_CONFIG_ENCRYPTION_KEY` support. *(19 June 2026)*
+- 🧾 Replaced silent remember-me session-store failures with explicit validation and server-side error logging. *(19 June 2026)*
+- 🐳 Clarified Docker PHP memory headroom, increased multipart POST capacity above the upload ceiling, and retained production OPcache timestamp validation settings. *(19 June 2026)*
 
 ---
 

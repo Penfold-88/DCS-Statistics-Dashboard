@@ -43,7 +43,14 @@ final class ApiConfig
 
         $envApiKey = self::environmentApiKey();
         if ($envApiKey !== null) {
+            $config['stored_api_key_present'] = !empty($config['api_key']) || !empty($config['api_key_encrypted']);
             $config['api_key'] = $envApiKey;
+            $config['api_key_source'] = 'environment';
+            $config['api_key_env_override'] = true;
+        } else {
+            $config['stored_api_key_present'] = !empty($config['api_key']) || !empty($config['api_key_encrypted']);
+            $config['api_key_source'] = $config['stored_api_key_present'] ? 'encrypted_storage' : 'none';
+            $config['api_key_env_override'] = false;
         }
 
         return $config;
@@ -67,5 +74,10 @@ final class ApiConfig
     public static function createFromHost(string $apiHost, ?string $configFile = null): array
     {
         return (new ApiConfigStorage())->createFromHost($apiHost, $configFile);
+    }
+
+    public static function save(array $config, string $configFile): bool
+    {
+        return (new ApiConfigStorage())->save($config, $configFile);
     }
 }

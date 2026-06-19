@@ -132,7 +132,7 @@ final class InstallerController
         $this->cliStatus($isCli, "✓ Write permissions OK\n");
 
         $apiConfig = $this->configFactory->apiConfig((string)$input['api_url'], (string)$input['api_key']);
-        if (!$this->fileWriter->writeJson($apiConfigFile, $apiConfig)) {
+        if (!\DcsStats\Core\ApiConfig::save($apiConfig, $apiConfigFile)) {
             die("Error: Could not create api_config.json\n");
         }
         $this->cliStatus($isCli, "✓ API configuration created\n");

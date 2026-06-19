@@ -13,17 +13,31 @@ final class AdminRememberMeSessionStore
 
     public function all(): array
     {
-        return json_decode((string)@file_get_contents($this->path()), true) ?: [];
+        $path = $this->path();
+        if (!is_file($path)) {
+            return [];
+        }
+
+        $content = file_get_contents($path);
+        if ($content === false) {
+            error_log('DCS Statistics could not read the remember-me session store.');
+            return [];
+        }
+
+        $sessions = json_decode($content, true);
+        return is_array($sessions) ? $sessions : [];
     }
 
     public function save(array $sessions): void
     {
-        @file_put_contents(
-            $this->path(),
-            json_encode($sessions, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES),
-            LOCK_EX
-        );
-        @chmod($this->path(), 0600);
+        $path = $this->path();
+        $json = json_encode($sessions, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+        if (!is_string($json) || file_put_contents($path, $json, LOCK_EX) === false) {
+            error_log('DCS Statistics could not write the remember-me session store.');
+            return;
+        }
+
+        chmod($path, 0600);
     }
 
     private function path(): string
