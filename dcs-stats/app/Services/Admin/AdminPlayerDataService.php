@@ -12,7 +12,7 @@ final class AdminPlayerDataService
             $client = \createEnhancedAPIClient();
 
             if ($search) {
-                $searchUrl = '/search_players_api.php?search=' . urlencode((string)$search);
+                $searchUrl = '/search_players.php?search=' . urlencode((string)$search);
                 if ($limit) {
                     $searchUrl .= '&limit=' . (int)$limit;
                 }

@@ -28,15 +28,15 @@
 
         <strong><?= e(dcs_t('admin.api.dashboard_endpoints')) ?>:</strong>
         <ul>
-            <li><code>get_servers_api.php</code> / <code>get_servers.php</code> - <?= e(dcs_t('admin.api.dashboard_servers')) ?></li>
+            <li><code>get_servers.php</code> - <?= e(dcs_t('admin.api.dashboard_servers')) ?></li>
             <li><code>get_server_stats.php</code> - <?= e(dcs_t('admin.api.dashboard_server_stats')) ?></li>
-            <li><code>get_leaderboard_api.php</code> / <code>get_leaderboard.php</code> - <?= e(dcs_t('admin.api.dashboard_leaderboard')) ?></li>
-            <li><code>get_player_stats_api.php</code> / <code>get_player_stats.php</code> - <?= e(dcs_t('admin.api.dashboard_player_stats')) ?></li>
-            <li><code>get_credits_api.php</code> / <code>get_credits.php</code> - <?= e(dcs_t('admin.api.dashboard_credits')) ?></li>
-            <li><code>get_missionstats_api.php</code> / <code>get_missionstats.php</code> - <?= e(dcs_t('admin.api.dashboard_missionstats')) ?></li>
-            <li><code>get_squadrons_api.php</code> / <code>get_squadrons.php</code> - <?= e(dcs_t('admin.api.dashboard_squadrons')) ?></li>
-            <li><code>get_squadron_members_api.php</code> / <code>get_squadron_members.php</code> - <?= e(dcs_t('admin.api.dashboard_squadron_members')) ?></li>
-            <li><code>get_squadron_credits_api.php</code> / <code>get_squadron_credits.php</code> - <?= e(dcs_t('admin.api.dashboard_squadron_credits')) ?></li>
+            <li><code>get_leaderboard.php</code> - <?= e(dcs_t('admin.api.dashboard_leaderboard')) ?></li>
+            <li><code>get_player_stats.php</code> - <?= e(dcs_t('admin.api.dashboard_player_stats')) ?></li>
+            <li><code>get_credits.php</code> - <?= e(dcs_t('admin.api.dashboard_credits')) ?></li>
+            <li><code>get_missionstats.php</code> - <?= e(dcs_t('admin.api.dashboard_missionstats')) ?></li>
+            <li><code>get_squadrons.php</code> - <?= e(dcs_t('admin.api.dashboard_squadrons')) ?></li>
+            <li><code>get_squadron_members.php</code> - <?= e(dcs_t('admin.api.dashboard_squadron_members')) ?></li>
+            <li><code>get_squadron_credits.php</code> - <?= e(dcs_t('admin.api.dashboard_squadron_credits')) ?></li>
             <li><code>get_api_config.php</code> - <?= e(dcs_t('admin.api.dashboard_api_config')) ?></li>
             <li><code>get_leaderboard_client.php</code> - <?= e(dcs_t('admin.api.dashboard_leaderboard_client')) ?></li>
         </ul>
