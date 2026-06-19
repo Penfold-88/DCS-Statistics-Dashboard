@@ -9,10 +9,10 @@ final class DashboardController extends AdminPageController
     public function show(): void
     {
         $this->boot([
-            'site_features.php',
-            'install_checkin.php',
-            'api_config_helper.php',
-            'language.php',
+            'siteFeatures',
+            'installCheckin',
+            'apiConfig',
+            'language',
         ]);
 
         $this->requirePermission('view_dashboard');

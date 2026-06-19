@@ -9,8 +9,8 @@ final class ThemesController extends AdminPageController
     public function show(): void
     {
         $this->boot([
-            'chart_theme.php',
-            'language.php',
+            'chartTheme',
+            'language',
         ]);
 
         $currentAdmin = $this->requirePermission('manage_themes');

@@ -4,6 +4,34 @@ namespace DcsStats\Core;
 
 final class SupportBootstrap
 {
+    public static function load(string ...$supports): void
+    {
+        $loaders = [
+            'url',
+            'language',
+            'siteFeatures',
+            'siteMetadata',
+            'apiConfig',
+            'apiCache',
+            'apiClient',
+            'security',
+            'chartTheme',
+            'devMode',
+            'tableResponsive',
+            'installCheckin',
+            'updateChannel',
+            'versionTracker',
+        ];
+
+        foreach ($supports as $support) {
+            if (!in_array($support, $loaders, true)) {
+                throw new \InvalidArgumentException('Unknown support bootstrap: ' . $support);
+            }
+
+            call_user_func([self::class, $support]);
+        }
+    }
+
     public static function url(): void
     {
         require_once DCS_APP_PATH . '/Support/url_functions.php';

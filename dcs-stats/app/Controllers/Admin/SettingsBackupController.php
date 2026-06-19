@@ -9,9 +9,9 @@ final class SettingsBackupController extends AdminPageController
     public function show(): void
     {
         $this->boot([
-            'language.php',
-            'site_features.php',
-            'site_metadata.php',
+            'language',
+            'siteFeatures',
+            'siteMetadata',
         ]);
 
         $currentAdmin = $this->requirePermission('manage_features');

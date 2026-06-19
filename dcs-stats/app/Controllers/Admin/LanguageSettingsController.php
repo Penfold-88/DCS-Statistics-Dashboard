@@ -8,7 +8,7 @@ final class LanguageSettingsController extends AdminPageController
 {
     public function show(): void
     {
-        $this->boot(['language.php']);
+        $this->boot(['language']);
 
         $currentAdmin = $this->requirePermission('manage_features');
         $languageState = (new LanguageSettingsPageService())->state($currentAdmin);

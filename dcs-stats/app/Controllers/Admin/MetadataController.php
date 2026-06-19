@@ -9,8 +9,8 @@ final class MetadataController extends AdminPageController
     public function show(): void
     {
         $this->boot([
-            'language.php',
-            'site_metadata.php',
+            'language',
+            'siteMetadata',
         ]);
 
         $currentAdmin = $this->requirePermission('manage_features');

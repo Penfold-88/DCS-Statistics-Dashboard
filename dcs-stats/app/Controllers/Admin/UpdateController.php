@@ -9,7 +9,7 @@ final class UpdateController extends AdminPageController
     public function show(): void
     {
         $this->boot([
-            'language.php',
+            'language',
         ]);
 
         $currentAdmin = $this->requirePermission('manage_updates');

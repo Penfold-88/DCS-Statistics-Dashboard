@@ -9,9 +9,9 @@ final class ApiSettingsController extends AdminPageController
     public function show(): void
     {
         $this->boot([
-            'api_config_helper.php',
-            'api_cache.php',
-            'language.php',
+            'apiConfig',
+            'apiCache',
+            'language',
         ]);
 
         $currentAdmin = $this->requirePermission('manage_api');

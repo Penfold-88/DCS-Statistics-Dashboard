@@ -8,7 +8,7 @@ final class MaintenanceController extends AdminPageController
 {
     public function show(): void
     {
-        $this->boot(['language.php']);
+        $this->boot(['language']);
 
         $currentAdmin = $this->requirePermission('manage_maintenance');
         $maintenanceState = (new MaintenancePageService())->state($currentAdmin);

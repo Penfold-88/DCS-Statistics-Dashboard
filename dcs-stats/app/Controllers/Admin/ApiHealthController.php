@@ -9,8 +9,8 @@ final class ApiHealthController extends AdminPageController
     public function show(): void
     {
         $this->boot([
-            'api_config_helper.php',
-            'language.php',
+            'apiConfig',
+            'language',
         ]);
 
         $this->requirePermission('manage_api');

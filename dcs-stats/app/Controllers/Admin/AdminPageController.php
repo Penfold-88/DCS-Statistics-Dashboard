@@ -3,16 +3,14 @@
 namespace DcsStats\Controllers\Admin;
 
 use DcsStats\Core\AdminBootstrap;
+use DcsStats\Core\SupportBootstrap;
 
 abstract class AdminPageController
 {
-    protected function boot(array $extraIncludes = []): void
+    protected function boot(array $supports = []): void
     {
         AdminBootstrap::panel();
-
-        foreach ($extraIncludes as $include) {
-            AdminBootstrap::includeCompat($include);
-        }
+        SupportBootstrap::load(...$supports);
     }
 
     protected function requirePermission(string $permission): array
