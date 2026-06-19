@@ -7,9 +7,9 @@
         <h3>Player Data</h3>
         <p>Export player information including names, UCIDs, and statistics.</p>
 
-        <form method="POST" action="">
+        <form method="POST" action="api/export_data.php">
             <?= csrfField() ?>
-            <input type="hidden" name="export_type" value="players">
+            <input type="hidden" name="type" value="players">
 
             <div class="export-fields">
                 <div class="form-group">
@@ -41,9 +41,9 @@
         <h3>Mission Statistics</h3>
         <p>Export detailed mission events including kills, deaths, and flight data.</p>
 
-        <form method="POST" action="">
+        <form method="POST" action="api/export_data.php">
             <?= csrfField() ?>
-            <input type="hidden" name="export_type" value="missions">
+            <input type="hidden" name="type" value="missions">
 
             <div class="export-fields">
                 <div class="form-group">
@@ -75,9 +75,9 @@
         <h3>Admin Activity Logs</h3>
         <p>Export admin panel activity logs for audit purposes.</p>
 
-        <form method="POST" action="">
+        <form method="POST" action="api/export_data.php">
             <?= csrfField() ?>
-            <input type="hidden" name="export_type" value="admin_logs">
+            <input type="hidden" name="type" value="admin_logs">
 
             <div class="export-fields">
                 <div class="form-group">
@@ -113,9 +113,9 @@
                 Large exports may take significant time.
             </p>
 
-            <form method="POST" action="" onsubmit="return confirm('Are you sure you want to export ALL data?');">
+            <form method="POST" action="api/export_data.php" onsubmit="return confirm('Are you sure you want to export ALL data?');">
                 <?= csrfField() ?>
-                <input type="hidden" name="export_type" value="full">
+                <input type="hidden" name="type" value="full">
 
                 <div class="export-fields">
                     <div class="form-group">

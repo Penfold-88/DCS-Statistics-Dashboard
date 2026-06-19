@@ -4,6 +4,13 @@ namespace DcsStats\Services\Admin;
 
 final class ThemeCssBackupService
 {
+    private CssContentValidator $cssValidator;
+
+    public function __construct(?CssContentValidator $cssValidator = null)
+    {
+        $this->cssValidator = $cssValidator ?? new CssContentValidator();
+    }
+
     public function upload(array $files): array
     {
         if (!isset($files['css_file']) || $files['css_file']['error'] !== UPLOAD_ERR_OK) {
@@ -24,11 +31,17 @@ final class ThemeCssBackupService
             return ['success' => false, 'message' => 'CSS file size must be less than 1MB'];
         }
 
+        $css = file_get_contents($fileTmp);
+        if ($css === false || !$this->cssValidator->isSafe($css)) {
+            return ['success' => false, 'message' => 'CSS file contains unsafe external or executable content'];
+        }
+
         $currentCss = DCS_ROOT_PATH . '/styles.css';
         $backupDir = $this->backupDirectory();
         if (!is_dir($backupDir)) {
-            mkdir($backupDir, 0755, true);
+            mkdir($backupDir, 0700, true);
         }
+        @chmod($backupDir, 0700);
 
         copy($currentCss, $backupDir . '/styles_' . date('Y-m-d_H-i-s') . '.css');
 
@@ -45,18 +58,38 @@ final class ThemeCssBackupService
 
     public function restore(string $backupFile): array
     {
-        $backupPath = $this->backupDirectory() . '/' . basename($backupFile);
+        $backupName = basename($backupFile);
+        if (!preg_match('/^styles_\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}\.css$/', $backupName)) {
+            return ['success' => false, 'message' => 'Invalid backup filename'];
+        }
 
-        if (!file_exists($backupPath)) {
+        $backupDir = realpath($this->backupDirectory());
+        $backupPath = realpath($this->backupDirectory() . '/' . $backupName);
+
+        if (
+            $backupDir === false ||
+            $backupPath === false ||
+            dirname($backupPath) !== $backupDir ||
+            !is_file($backupPath) ||
+            is_link($backupPath) ||
+            filesize($backupPath) > 1048576
+        ) {
             return ['success' => false, 'message' => 'Backup file not found'];
         }
 
-        copy($backupPath, DCS_ROOT_PATH . '/styles.css');
+        $css = file_get_contents($backupPath);
+        if ($css === false || !$this->cssValidator->isSafe($css)) {
+            return ['success' => false, 'message' => 'Backup contains unsafe CSS content'];
+        }
+
+        if (file_put_contents(DCS_ROOT_PATH . '/styles.css', $css, LOCK_EX) === false) {
+            return ['success' => false, 'message' => 'Failed to restore CSS backup'];
+        }
 
         return [
             'success' => true,
             'message' => 'Theme restored from backup',
-            'filename' => basename($backupFile),
+            'filename' => $backupName,
         ];
     }
 

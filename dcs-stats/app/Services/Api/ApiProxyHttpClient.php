@@ -6,7 +6,21 @@ final class ApiProxyHttpClient
 {
     public function send(array $apiConfig, array $request): array
     {
-        $url = rtrim($apiConfig['api_base_url'], '/') . '/' . ltrim($request['path'], '/');
+        $baseUrl = rtrim((string)($apiConfig['api_base_url'] ?? ''), '/');
+        $baseParts = parse_url($baseUrl);
+        if (
+            !is_array($baseParts) ||
+            !in_array(strtolower((string)($baseParts['scheme'] ?? '')), ['http', 'https'], true) ||
+            empty($baseParts['host']) ||
+            isset($baseParts['user']) ||
+            isset($baseParts['pass']) ||
+            isset($baseParts['query']) ||
+            isset($baseParts['fragment'])
+        ) {
+            return ['body' => false, 'http_code' => 0, 'error' => 'Invalid API base URL'];
+        }
+
+        $url = $baseUrl . '/' . ltrim($request['path'], '/');
         if (!empty($request['query_params'])) {
             $url .= '?' . http_build_query($request['query_params']);
         }
@@ -15,7 +29,8 @@ final class ApiProxyHttpClient
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_TIMEOUT, $apiConfig['timeout'] ?? 30);
-        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, min(10, (int)($apiConfig['timeout'] ?? 30)));
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, false);
 
         if (stripos($url, 'https://') === 0) {
             $verifySsl = filter_var($apiConfig['verify_ssl'] ?? true, FILTER_VALIDATE_BOOLEAN);
@@ -48,7 +63,7 @@ final class ApiProxyHttpClient
         return [
             'body' => $body,
             'http_code' => $httpCode,
-            'error' => $error,
+            'error' => $error !== '' ? 'Upstream API connection failed' : '',
         ];
     }
 }

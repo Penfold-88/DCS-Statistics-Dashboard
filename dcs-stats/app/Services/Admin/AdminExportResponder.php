@@ -16,7 +16,7 @@ final class AdminExportResponder
         }
 
         foreach ($data as $row) {
-            fputcsv($output, $row);
+            fputcsv($output, array_map([$this, 'safeCsvCell'], $row));
         }
 
         fclose($output);
@@ -30,5 +30,19 @@ final class AdminExportResponder
 
         echo json_encode($data, JSON_PRETTY_PRINT);
         exit;
+    }
+
+    private function safeCsvCell($value)
+    {
+        if (!is_scalar($value) && $value !== null) {
+            $value = json_encode($value, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        }
+
+        $value = (string)$value;
+        if (preg_match('/^[=+\-@\t\r]/', $value) === 1) {
+            return "'" . $value;
+        }
+
+        return $value;
     }
 }

@@ -19,7 +19,7 @@
                         <div class="admin-username"><?= e($currentAdmin['username']) ?></div>
                         <div class="admin-role"><?= getRoleBadge($currentAdmin['role']) ?></div>
                     </div>
-                    <a href="logout.php" class="btn btn-secondary btn-small"><?= e(dcs_t('admin.common.logout')) ?></a>
+                    <?php require DCS_APP_PATH . '/Views/Admin/partials/logout_form.php'; ?>
                 </div>
             </header>
 

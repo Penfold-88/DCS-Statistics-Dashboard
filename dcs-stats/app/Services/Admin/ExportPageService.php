@@ -10,49 +10,12 @@ final class ExportPageService
         $error = null;
         $pageTitle = $demoRestricted ? 'Export Data Locked' : 'Export Data';
 
-        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['export'])) {
-            $error = $this->handleExport($demoRestricted);
-        }
-
         return [
             'demoRestricted' => $demoRestricted,
             'error' => $error,
             'pageTitle' => $pageTitle,
             'recentExports' => $this->recentExports(),
         ];
-    }
-
-    private function handleExport(bool $demoRestricted): ?string
-    {
-        if (!isset($_POST['csrf_token']) || !\verifyCSRFToken($_POST['csrf_token'])) {
-            return ERROR_MESSAGES['csrf_invalid'];
-        }
-
-        if ($demoRestricted) {
-            return 'Demo mode is enabled. Data exports are locked on the public demo.';
-        }
-
-        $exportType = $_POST['export_type'] ?? '';
-        $format = $_POST['format'] ?? 'csv';
-        $dateFrom = $_POST['date_from'] ?? '';
-        $dateTo = $_POST['date_to'] ?? '';
-
-        \logAdminActivity('DATA_EXPORT', $_SESSION['admin_id'], 'export', $exportType, [
-            'format' => $format,
-            'date_from' => $dateFrom,
-            'date_to' => $dateTo,
-        ]);
-
-        $params = http_build_query([
-            'type' => $exportType,
-            'format' => $format,
-            'date_from' => $dateFrom,
-            'date_to' => $dateTo,
-            'csrf_token' => \getCSRFToken(),
-        ]);
-
-        header('Location: api/export_data.php?' . $params);
-        exit;
     }
 
     private function recentExports(): array
@@ -67,7 +30,7 @@ final class ExportPageService
 
         $recentExports = [];
         foreach ($logs as $log) {
-            if (($log['action'] ?? '') !== 'DATA_EXPORT') {
+            if (!in_array(($log['action'] ?? ''), ['DATA_EXPORT', 'DATA_EXPORT_DOWNLOAD'], true)) {
                 continue;
             }
 

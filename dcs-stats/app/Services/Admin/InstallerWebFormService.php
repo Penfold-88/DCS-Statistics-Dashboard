@@ -15,11 +15,11 @@ final class InstallerWebFormService
         $this->permissionCatalog = $permissionCatalog ?? new InstallerPermissionCatalog();
     }
 
-    public function submissionState(array $post, bool $isDev): array
+    public function submissionState(array $post, bool $isDev, array $preValidationErrors = []): array
     {
         $state = [
             'ready' => false,
-            'errors' => [],
+            'errors' => $preValidationErrors,
             'username' => 'admin',
             'email' => '',
             'password' => '',
@@ -42,6 +42,10 @@ final class InstallerWebFormService
         $state['api_key'] = trim($post['api_key'] ?? '');
         $state['site_name'] = $post['site_name'] ?? 'DCS Statistics';
         $state['discord_url'] = $post['discord_url'] ?? '';
+
+        if (!empty($state['errors'])) {
+            return $state;
+        }
 
         $state['errors'] = $this->support->validateInputs([
             'username' => $state['username'],

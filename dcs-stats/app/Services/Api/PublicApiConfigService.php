@@ -23,16 +23,7 @@ final class PublicApiConfigService
 
     public function getLeaderboardClientConfig(): array
     {
-        \DcsStats\Core\SupportBootstrap::apiConfig();
-
-        $configResult = loadApiConfigWithFix();
-        $config = $configResult['config'];
-
-        return [
-            'api_base_url' => $config['api_base_url'] ?? 'http://localhost:8080',
-            'use_api' => $config['use_api'] ?? false,
-            'timeout' => $config['timeout'] ?? 30,
-        ];
+        return $this->getBrowserConfig();
     }
 
     private function safeInt($value, int $default, int $min, int $max): int

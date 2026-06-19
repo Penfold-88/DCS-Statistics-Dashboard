@@ -20,7 +20,9 @@ final class SystemUpdateDownloadService
             return false;
         }
 
-        $log('Download complete.');
+        @chmod($zipFile, 0600);
+        $log('Download complete (' . (int)$download['size'] . ' bytes).');
+        $log('Archive SHA-256: ' . $download['sha256']);
         return true;
     }
 }

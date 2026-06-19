@@ -48,6 +48,10 @@ final class PublicStatsController
     public function squadrons(): void
     {
         $this->requestGuard->prepareJson();
+        if (!$this->requestGuard->allow(60, 60)) {
+            return;
+        }
+
         $result = $this->stats->getSquadrons();
         if ($result['error'] !== null) {
             http_response_code(500);
@@ -81,6 +85,9 @@ final class PublicStatsController
     public function squadronMembers(): void
     {
         $this->requestGuard->prepareJson();
+        if (!$this->requestGuard->allow(60, 60)) {
+            return;
+        }
 
         ApiResponse::json($this->stats->getSquadronMembers($this->requestGuard->input()));
     }
@@ -88,6 +95,9 @@ final class PublicStatsController
     public function squadronCredits(): void
     {
         $this->requestGuard->prepareJson();
+        if (!$this->requestGuard->allow(60, 60)) {
+            return;
+        }
 
         ApiResponse::json($this->stats->getSquadronCredits($this->requestGuard->input()));
     }

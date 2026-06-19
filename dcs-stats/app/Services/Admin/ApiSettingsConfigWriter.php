@@ -34,7 +34,9 @@ final class ApiSettingsConfigWriter
         unset($apiConfig['api_key_source'], $apiConfig['api_key_env_override'], $apiConfig['stored_api_key_present']);
 
         if (file_put_contents($configFile, json_encode($apiConfig, JSON_PRETTY_PRINT))) {
-            \logAdminActivity('API_CONFIG_CHANGE', $_SESSION['admin_id'], 'settings', 'api_config', $apiConfig);
+            @chmod($configFile, 0600);
+            $auditConfig = (new SensitiveDataRedactor())->redact($apiConfig);
+            \logAdminActivity('API_CONFIG_CHANGE', $_SESSION['admin_id'], 'settings', 'api_config', $auditConfig);
             return [$apiConfig, \dcs_t('admin.api.save_success'), 'success', null];
         }
 

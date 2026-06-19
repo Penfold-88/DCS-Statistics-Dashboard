@@ -24,6 +24,11 @@ final class PublicLeaderboardService
         \DcsStats\Core\SupportBootstrap::apiConfig();
 
         try {
+            $allowedSorts = ['kills', 'deaths', 'kdr', 'kills_pvp', 'deaths_pvp', 'kdr_pvp', 'credits', 'playtime'];
+            if (!in_array($sortBy, $allowedSorts, true)) {
+                $sortBy = 'kills';
+            }
+
             $config = loadApiConfigWithFix()['config'];
             $apiClient = new \DCSServerBotAPIClient($config);
             $limit = max(1, min(100, $limit));

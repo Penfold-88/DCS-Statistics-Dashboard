@@ -33,7 +33,8 @@ final class SecurityInputValidator
             return false;
         }
 
-        if (strpos($realPath, $realBase) !== 0) {
+        $basePrefix = rtrim($realBase, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+        if ($realPath !== $realBase && strpos($realPath, $basePrefix) !== 0) {
             return false;
         }
 
@@ -52,12 +53,25 @@ final class SecurityInputValidator
             return false;
         }
 
-        if (isset($rules['pattern']) && !preg_match($rules['pattern'], $input)) {
-            return false;
+        if (isset($rules['pattern'])) {
+            $allowedPatterns = [
+                'slug' => '/^[a-z0-9]+(?:-[a-z0-9]+)*$/',
+                'identifier' => '/^[A-Za-z0-9_.-]+$/',
+            ];
+            $pattern = $allowedPatterns[(string)$rules['pattern']] ?? null;
+            if ($pattern === null || !preg_match($pattern, $input)) {
+                return false;
+            }
         }
 
         if (isset($rules['type'])) {
             switch ($rules['type']) {
+                case 'search_query':
+                    if (!preg_match('/^[\p{L}\p{N}_\-\s\.\[\]|]+$/u', $input)) {
+                        return false;
+                    }
+                    break;
+
                 case 'player_name':
                     if (!preg_match('/^[a-zA-Z0-9_\-\s\.\[\]|]+$/u', $input)) {
                         return false;
@@ -69,6 +83,9 @@ final class SecurityInputValidator
                         return false;
                     }
                     break;
+
+                default:
+                    return false;
             }
         }
 

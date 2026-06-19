@@ -59,22 +59,36 @@ final class DataExportBuilder
             return [
                 'export_date' => date('c'),
                 'export_by' => $currentAdmin['username'],
-                'players' => getPlayers(),
-                'bans' => getPlayerBans(false),
-                'admin_users' => array_map(function ($user) {
-                    unset($user['password_hash']);
-                    return $user;
-                }, getAdminUsers()),
-                'admin_logs' => json_decode(file_get_contents(ADMIN_LOGS_FILE), true) ?: [],
+                'players' => $this->allowFields(getPlayers(), [
+                    'name', 'ucid', 'discord_id', 'first_seen', 'last_seen', 'created_at', 'updated_at',
+                ]),
+                'bans' => $this->allowFields(getPlayerBans(false), [
+                    'ucid', 'name', 'player_name', 'reason', 'is_active', 'created_at', 'banned_at',
+                    'banned_by', 'expires_at', 'unbanned_at', 'unbanned_by',
+                ]),
+                'admin_users' => $this->allowFields(getAdminUsers(), [
+                    'id', 'username', 'email', 'role', 'permissions', 'created_at', 'last_login', 'is_active',
+                ]),
+                'admin_logs' => $this->allowFields(
+                    json_decode((string)@file_get_contents(ADMIN_LOGS_FILE), true) ?: [],
+                    ['admin_id', 'action', 'target_type', 'target_id', 'details', 'created_at', 'timestamp']
+                ),
             ];
         }
 
-        $data = [];
-        foreach (getPlayers() as $player) {
-            $stats = getPlayerStats($player['ucid']);
-            $data[] = array_merge($player, $stats);
+        return $this->players();
+    }
+
+    private function allowFields(array $records, array $allowedFields): array
+    {
+        $allowed = array_flip($allowedFields);
+        $filtered = [];
+        foreach ($records as $record) {
+            if (is_array($record)) {
+                $filtered[] = array_intersect_key($record, $allowed);
+            }
         }
 
-        return $data;
+        return $filtered;
     }
 }

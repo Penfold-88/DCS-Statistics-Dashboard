@@ -12,6 +12,12 @@ final class DataExportController
     {
         AdminAuth::requirePermission('export_data');
 
+        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
+            http_response_code(405);
+            header('Allow: POST');
+            die('Method not allowed');
+        }
+
         \DcsStats\Core\AdminBootstrap::panel();
         \DcsStats\Core\AdminBootstrap::demo();
 
@@ -21,15 +27,12 @@ final class DataExportController
             die('Demo mode is enabled. Data exports are locked on the public demo.');
         }
 
-        if (!isset($_GET['csrf_token']) || !Csrf::verify($_GET['csrf_token'])) {
-            http_response_code(403);
-            die('Invalid security token');
-        }
+        Csrf::requireValid();
 
-        $exportType = (string)($_GET['type'] ?? '');
-        $format = (string)($_GET['format'] ?? 'csv');
-        $dateFrom = (string)($_GET['date_from'] ?? '');
-        $dateTo = (string)($_GET['date_to'] ?? '');
+        $exportType = (string)($_POST['type'] ?? '');
+        $format = (string)($_POST['format'] ?? 'csv');
+        $dateFrom = (string)($_POST['date_from'] ?? '');
+        $dateTo = (string)($_POST['date_to'] ?? '');
 
         if (!$this->validDate($dateFrom)) {
             http_response_code(400);
@@ -64,4 +67,3 @@ final class DataExportController
         return $date === '' || preg_match('/^\d{4}-\d{2}-\d{2}$/', $date) === 1;
     }
 }
-

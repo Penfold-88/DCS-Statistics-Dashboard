@@ -17,9 +17,25 @@ final class SystemUpdateRemoteService
         $remoteCommitDate = null;
 
         if ($specificVersion !== null) {
+            $log('Resolving requested version to an immutable commit...');
+            $commitResult = $this->githubClient->fetchCommit($repo, $specificVersion);
+            $commitInfo = is_string($commitResult['data'] ?? null)
+                ? json_decode($commitResult['data'], true)
+                : null;
+            $remoteCommitSha = is_array($commitInfo) ? ($commitInfo['sha'] ?? null) : null;
+            $remoteCommitDate = is_array($commitInfo) ? ($commitInfo['commit']['committer']['date'] ?? null) : null;
+            if (
+                (int)($commitResult['http_code'] ?? 0) !== 200 ||
+                !is_string($remoteCommitSha) ||
+                preg_match('/^[a-f0-9]{40}$/i', $remoteCommitSha) !== 1
+            ) {
+                $log('Update cancelled: Requested version could not be verified on GitHub.');
+                return null;
+            }
+
             return [
                 'branch' => $branch,
-                'api_url' => $apiUrl,
+                'api_url' => 'https://api.github.com/repos/' . $repo . '/zipball/' . rawurlencode($remoteCommitSha),
                 'commit_sha' => $remoteCommitSha,
                 'commit_date' => $remoteCommitDate,
             ];
@@ -33,7 +49,7 @@ final class SystemUpdateRemoteService
             if ($branch === 'master') {
                 $log('Trying fallback branch: main');
                 $branch = 'main';
-                $apiUrl = "https://api.github.com/repos/$repo/zipball/$branch";
+                $apiUrl = 'https://api.github.com/repos/' . $repo . '/zipball/' . rawurlencode($branch);
                 $branchResult = $this->githubClient->fetchBranch($repo, $branch);
             }
         }
@@ -51,8 +67,12 @@ final class SystemUpdateRemoteService
             $branchInfo = json_decode($branchResult['data'], true);
             $remoteCommitSha = $branchInfo['commit']['sha'] ?? null;
             $remoteCommitDate = $branchInfo['commit']['commit']['committer']['date'] ?? null;
-            if ($remoteCommitSha) {
+            if (is_string($remoteCommitSha) && preg_match('/^[a-f0-9]{40}$/i', $remoteCommitSha) === 1) {
                 $log('Latest branch commit: ' . substr($remoteCommitSha, 0, 12));
+                $apiUrl = 'https://api.github.com/repos/' . $repo . '/zipball/' . rawurlencode($remoteCommitSha);
+            } else {
+                $log('Update cancelled: GitHub returned an invalid commit identifier.');
+                return null;
             }
             if ($remoteCommitDate) {
                 $log('Latest branch date: ' . date('Y-m-d H:i:s', strtotime($remoteCommitDate)));

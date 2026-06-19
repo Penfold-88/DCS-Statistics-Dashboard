@@ -50,8 +50,16 @@ final class SystemUpdateService
         }
 
         $channelConfig = getUpdateChannelConfig();
-        $branch = $channelConfig['branch'];
-        $repo = $channelConfig['repo'];
+        $branch = (string)($channelConfig['branch'] ?? '');
+        $repo = (string)($channelConfig['repo'] ?? '');
+        if (!$this->githubClient->validRepository($repo) || !$this->githubClient->validRef($branch)) {
+            $log('Update cancelled: The configured GitHub repository or branch is invalid.');
+            return;
+        }
+        if ($specificVersion !== null && !$this->githubClient->validRef($specificVersion)) {
+            $log('Update cancelled: The requested version is invalid.');
+            return;
+        }
         $currentVersion = defined('ADMIN_PANEL_VERSION') ? ADMIN_PANEL_VERSION : '1.0.0';
         $currentVersionInfo = getCurrentVersionInfo();
         $currentBuildLabel = $currentVersionInfo['version'] ?? $currentVersion;
@@ -60,9 +68,9 @@ final class SystemUpdateService
         $log("Update channel: {$channelConfig['channel']}");
         $log("GitHub branch: $branch");
 
-        $apiUrl = "https://api.github.com/repos/$repo/zipball/$branch";
+        $apiUrl = 'https://api.github.com/repos/' . $repo . '/zipball/' . rawurlencode($branch);
         if ($specificVersion !== null) {
-            $apiUrl = "https://api.github.com/repos/$repo/zipball/$specificVersion";
+            $apiUrl = 'https://api.github.com/repos/' . $repo . '/zipball/' . rawurlencode($specificVersion);
             $log("Downloading specific version: $specificVersion");
         } else {
             $log("Downloading latest from branch: $branch");

@@ -14,7 +14,7 @@
         <p class="text-muted"><?= e(dcs_t('admin.install.already_installed_delete_note')) ?></p>
         <div class="installer-locked-actions">
             <a href="index.php" class="btn btn-primary"><?= e(dcs_t('admin.install.go_to_dashboard')) ?></a>
-            <a href="logout.php" class="btn btn-secondary"><?= e(dcs_t('admin.common.logout')) ?></a>
+            <?php require DCS_APP_PATH . '/Views/Admin/partials/logout_form.php'; ?>
         </div>
     </div>
 </body>

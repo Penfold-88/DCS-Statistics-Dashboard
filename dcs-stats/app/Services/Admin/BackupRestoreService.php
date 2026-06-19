@@ -34,8 +34,15 @@ final class BackupRestoreService
 
         $rootPath = DCS_ROOT_PATH;
         $backupFile = $rootPath . '/backups/' . $filename;
-        $restoreDir = $rootPath . '/RESTORE_TEMP';
-        $rollbackDir = $rootPath . '/RESTORE_ROLLBACK';
+        try {
+            $workspaceId = bin2hex(random_bytes(12));
+        } catch (\Throwable $e) {
+            $log('Error: Could not create a secure restore workspace');
+            return;
+        }
+        $workspaceRoot = $rootPath . '/site-config/data';
+        $restoreDir = $workspaceRoot . '/.restore-' . $workspaceId;
+        $rollbackDir = $workspaceRoot . '/.rollback-' . $workspaceId;
 
         if (!file_exists($backupFile)) {
             $log('Error: Backup file not found');
@@ -49,15 +56,18 @@ final class BackupRestoreService
             return;
         }
 
-        $this->filesystem->removeDirectory($restoreDir);
-        $this->filesystem->removeDirectory($rollbackDir);
-        if (!$this->filesystem->ensureDirectory($restoreDir) || !$this->filesystem->ensureDirectory($rollbackDir)) {
+        if (
+            !$this->filesystem->ensureDirectory($restoreDir, 0700) ||
+            !$this->filesystem->ensureDirectory($rollbackDir, 0700)
+        ) {
             $log('Error: Could not create restore workspace');
             return;
         }
 
         $zip = new \ZipArchive();
         if ($zip->open($backupFile) !== true) {
+            $this->filesystem->removeDirectory($restoreDir);
+            $this->filesystem->removeDirectory($rollbackDir);
             $log('Error: Failed to open backup file');
             return;
         }
@@ -82,6 +92,8 @@ final class BackupRestoreService
 
         $restoredFiles = $this->restoreFileService->restore($rootPath, $restoreDir, $rollbackDir, $log);
         if ($restoredFiles === null) {
+            $this->filesystem->removeDirectory($restoreDir);
+            $this->filesystem->removeDirectory($rollbackDir);
             return;
         }
 

@@ -40,72 +40,6 @@ class DCSStatsAPI {
         }
     }
 
-    async makeDirectAPICall(endpoint, options = {}) {
-        const config = await this.loadConfig();
-        endpoint = this.prepareScopedEndpoint(endpoint, options);
-        
-        // Determine API base URL
-        let apiUrl = config.api_base_url;
-        if (!apiUrl && config.api_host) {
-            // Auto-detect protocol
-            const protocols = ['https', 'http'];
-            for (const protocol of protocols) {
-                try {
-                    const testUrl = `${protocol}://${config.api_host}/servers`;
-                    const testResponse = await fetch(testUrl, { 
-                        method: 'HEAD',
-                        mode: 'cors',
-                        timeout: 3000 
-                    });
-                    if (testResponse.ok || testResponse.status < 500) {
-                        apiUrl = `${protocol}://${config.api_host}`;
-                        // Detected working protocol
-                        break;
-                    }
-                } catch (e) {
-                    // Protocol failed
-                }
-            }
-            if (!apiUrl) {
-                apiUrl = `https://${config.api_host}`; // Default to HTTPS
-            }
-        }
-        
-        const url = apiUrl + endpoint;
-        const method = options.method || 'GET';
-        
-        // Making direct API call
-        
-        try {
-            const fetchOptions = {
-                method: method,
-                mode: 'cors',
-                headers: {
-                    'Accept': 'application/json'
-                }
-            };
-            
-            // Add data for POST requests
-            if (method === 'POST' && options.data) {
-                fetchOptions.headers['Content-Type'] = 'application/x-www-form-urlencoded';
-                fetchOptions.body = new URLSearchParams(this.prepareScopedData(options.data, options)).toString();
-            }
-            
-            const response = await fetch(url, fetchOptions);
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
-            const data = await response.json();
-            // Direct API response received
-            return data;
-        } catch (error) {
-            // Direct API call error
-            throw error;
-        }
-    }
-    
     async makeAPICall(endpoint, options = {}) {
         const config = await this.loadConfig();
         
@@ -166,12 +100,6 @@ class DCSStatsAPI {
         } catch (error) {
             clearTimeout(timeoutId);
             // API proxy call error
-            
-            // If proxy fails, try direct API call (for sites that block PHP calls)
-            if (config.api_base_url || config.api_host) {
-                // Proxy failed, attempting direct API call
-                return this.makeDirectAPICall(endpoint, options);
-            }
             
             throw error;
         }

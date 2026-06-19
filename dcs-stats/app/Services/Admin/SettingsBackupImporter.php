@@ -6,13 +6,16 @@ final class SettingsBackupImporter
 {
     private SettingsBackupFileStore $fileStore;
     private SettingsBackupSiteConfigSanitizer $siteConfigSanitizer;
+    private CssContentValidator $cssValidator;
 
     public function __construct(
         ?SettingsBackupFileStore $fileStore = null,
-        ?SettingsBackupSiteConfigSanitizer $siteConfigSanitizer = null
+        ?SettingsBackupSiteConfigSanitizer $siteConfigSanitizer = null,
+        ?CssContentValidator $cssValidator = null
     ) {
         $this->fileStore = $fileStore ?? new SettingsBackupFileStore();
         $this->siteConfigSanitizer = $siteConfigSanitizer ?? new SettingsBackupSiteConfigSanitizer();
+        $this->cssValidator = $cssValidator ?? new CssContentValidator();
     }
 
     public function sectionLabel($section): string
@@ -69,9 +72,11 @@ final class SettingsBackupImporter
             'custom_theme_css' => DCS_ROOT_PATH . '/custom_theme.css',
             'header_custom_css' => DCS_ROOT_PATH . '/header_custom.css',
         ] as $section => $path) {
-            if (isset($data[$section]) && is_string($data[$section]) && @file_put_contents($path, $data[$section]) === false) {
-                $error = \dcs_t('admin.settings_backup.restore_section_failed', ['section' => $this->sectionLabel($section)]);
-                return false;
+            if (isset($data[$section]) && is_string($data[$section])) {
+                if (!$this->cssValidator->isSafe($data[$section]) || @file_put_contents($path, $data[$section], LOCK_EX) === false) {
+                    $error = \dcs_t('admin.settings_backup.restore_section_failed', ['section' => $this->sectionLabel($section)]);
+                    return false;
+                }
             }
         }
 

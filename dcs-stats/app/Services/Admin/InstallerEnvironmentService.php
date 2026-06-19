@@ -84,9 +84,15 @@ final class InstallerEnvironmentService
             $installerSelfDeletePath === $installerDirPath . DIRECTORY_SEPARATOR . 'install.php' &&
             is_file($installerSelfDeletePath)
         ) {
-            return @unlink($installerSelfDeletePath) ? 'removed' : 'failed';
+            if (@unlink($installerSelfDeletePath)) {
+                return 'removed';
+            }
+
+            error_log('DCS Statistics installer warning: site-config/install.php could not be removed after installation.');
+            return 'failed';
         }
 
+        error_log('DCS Statistics installer warning: site-config/install.php self-delete path could not be verified.');
         return 'not_attempted';
     }
 }

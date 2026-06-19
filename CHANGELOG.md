@@ -51,6 +51,20 @@ V1.3 remains in development. New implementation entries should include the date 
 
 ---
 
+### 🛡️ Security Hardening
+
+- 🔐 Changed admin logout and data export actions to POST-only requests protected by CSRF validation. *(19 June 2026)*
+- 🍪 Added Strict SameSite remember-me cookies, automatic Secure cookies on HTTPS, timing-safe token checks, and token rotation after successful restoration. *(19 June 2026)*
+- 📤 Prevented spreadsheet formula injection in CSV exports, restricted full exports to explicit field allowlists, and removed upstream API addresses from browser configuration. *(19 June 2026)*
+- 📡 Added public API rate limits, leaderboard and search validation, strict proxy method/body handling, and blocked upstream API redirects. *(19 June 2026)*
+- 🔑 Redacted API keys from configuration audit events and reinforced private permissions for sensitive configuration, translation, backup, update, and restore files. *(19 June 2026)*
+- 🎨 Added validation for uploaded and restored CSS, blocking executable directives and external resource references from imported backups. *(19 June 2026)*
+- 📦 Hardened updates with verified TLS, native Windows certificate support, GitHub host and repository validation, immutable commit resolution, download limits, SHA-256 audit output, strict archive structure checks, and protected workspaces. *(19 June 2026)*
+- 💾 Added randomized private restore workspaces, archive size and symlink checks, stricter language upload validation, and safer path-boundary checks. *(19 June 2026)*
+- 🛠️ Added installer CSRF and rate protection, an optional `DCS_INSTALL_TOKEN`, exclusive installation locking, race-condition checks, and explicit self-delete failure logging. *(19 June 2026)*
+
+---
+
 ### 🧹 Compatibility & Cleanup
 
 - 🗑️ Removed 23 obsolete internal compatibility wrappers after replacing filename-based bootstrap dependencies with framework support loaders. *(19 June 2026)*

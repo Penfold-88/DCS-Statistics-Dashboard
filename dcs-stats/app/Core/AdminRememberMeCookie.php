@@ -15,19 +15,23 @@ final class AdminRememberMeCookie
 
     public function issue(int $userId, string $token): void
     {
-        ($this->writer)(
-            ADMIN_COOKIE_NAME,
-            $userId . ':' . $token,
-            time() + ADMIN_COOKIE_LIFETIME,
-            '/',
-            '',
-            ENFORCE_HTTPS,
-            true
-        );
+        ($this->writer)(ADMIN_COOKIE_NAME, $userId . ':' . $token, [
+            'expires' => time() + ADMIN_COOKIE_LIFETIME,
+            'path' => '/',
+            'secure' => ENFORCE_HTTPS || AdminEnvironment::requestIsHttps(),
+            'httponly' => true,
+            'samesite' => 'Strict',
+        ]);
     }
 
     public function clear(): void
     {
-        ($this->writer)(ADMIN_COOKIE_NAME, '', time() - 3600, '/');
+        ($this->writer)(ADMIN_COOKIE_NAME, '', [
+            'expires' => time() - 3600,
+            'path' => '/',
+            'secure' => ENFORCE_HTTPS || AdminEnvironment::requestIsHttps(),
+            'httponly' => true,
+            'samesite' => 'Strict',
+        ]);
     }
 }

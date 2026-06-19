@@ -3,12 +3,14 @@
 namespace DcsStats\Controllers\Admin;
 
 use DcsStats\Core\AdminBootstrap;
+use DcsStats\Core\AdminEnvironment;
 use DcsStats\Core\SupportBootstrap;
 use DcsStats\Services\Admin\InstallerCliInputService;
 use DcsStats\Services\Admin\InstallerCompletionRenderer;
 use DcsStats\Services\Admin\InstallerConfigFactory;
 use DcsStats\Services\Admin\InstallerEnvironmentService;
 use DcsStats\Services\Admin\InstallerFileWriter;
+use DcsStats\Services\Admin\InstallerRequestGuard;
 use DcsStats\Services\Admin\InstallerSupportService;
 use DcsStats\Services\Admin\InstallerVersionInitializer;
 use DcsStats\Services\Admin\InstallerWebFormService;
@@ -22,6 +24,7 @@ final class InstallerController
     private InstallerFileWriter $fileWriter;
     private InstallerVersionInitializer $versionInitializer;
     private InstallerCompletionRenderer $completionRenderer;
+    private InstallerRequestGuard $requestGuard;
 
     public function __construct(
         ?InstallerSupportService $support = null,
@@ -31,7 +34,8 @@ final class InstallerController
         ?InstallerCliInputService $cliInput = null,
         ?InstallerFileWriter $fileWriter = null,
         ?InstallerVersionInitializer $versionInitializer = null,
-        ?InstallerCompletionRenderer $completionRenderer = null
+        ?InstallerCompletionRenderer $completionRenderer = null,
+        ?InstallerRequestGuard $requestGuard = null
     ) {
         $support = $support ?? new InstallerSupportService();
         $this->configFactory = $configFactory ?? new InstallerConfigFactory();
@@ -41,6 +45,7 @@ final class InstallerController
         $this->fileWriter = $fileWriter ?? new InstallerFileWriter();
         $this->versionInitializer = $versionInitializer ?? new InstallerVersionInitializer();
         $this->completionRenderer = $completionRenderer ?? new InstallerCompletionRenderer();
+        $this->requestGuard = $requestGuard ?? new InstallerRequestGuard();
     }
 
     public function handle(): void
@@ -51,6 +56,11 @@ final class InstallerController
         $legacyApiConfigFile = DCS_ROOT_PATH . '/api_config.json';
         $siteConfigFile = DCS_ROOT_PATH . '/site_config.json';
         $isCli = php_sapi_name() === 'cli';
+
+        if (!$isCli) {
+            AdminBootstrap::auth();
+            AdminEnvironment::startSession();
+        }
 
         SupportBootstrap::language();
         $installerLanguage = \dcs_language_code($_POST['install_language'] ?? $_GET['lang'] ?? 'en');
@@ -81,11 +91,28 @@ final class InstallerController
 
         SupportBootstrap::devMode();
         $isDev = \isDevMode();
+        $guardErrors = [];
+        if (!$isCli && ($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
+            $guardErrors = $this->requestGuard->validationErrors($_POST);
+        }
         $input = $isCli
             ? $this->cliInput->collect($isDev)
-            : $this->webInput($isDev, $dataDir, $installerLanguage);
+            : $this->webInput($isDev, $dataDir, $installerLanguage, $guardErrors);
         if ($input === null) {
             return;
+        }
+
+        if (!$this->requestGuard->acquire($dataDir)) {
+            http_response_code(409);
+            die("Error: Another installation is already in progress. Try again shortly.\n");
+        }
+        if (
+            file_exists($usersFile) ||
+            (!$isDefaultInstall && (file_exists($apiConfigFile) || file_exists($legacyApiConfigFile)))
+        ) {
+            $this->requestGuard->release();
+            http_response_code(409);
+            die("Error: The system was installed by another request. Reload the page.\n");
         }
 
         $admin = $this->configFactory->adminUser($input['username'], $input['email'], $input['password']);
@@ -124,12 +151,13 @@ final class InstallerController
         $this->cliStatus($isCli, "✓ Version tracking initialized\n");
 
         $selfDeleteStatus = $this->environment->removeInstallerFile();
+        $this->requestGuard->release();
         $this->completionRenderer->render($isCli, $input, $selfDeleteStatus);
     }
 
-    private function webInput(bool $isDev, string $dataDir, string $installerLanguage): ?array
+    private function webInput(bool $isDev, string $dataDir, string $installerLanguage, array $guardErrors): ?array
     {
-        $webFormState = $this->webForm->submissionState($_POST, $isDev);
+        $webFormState = $this->webForm->submissionState($_POST, $isDev, $guardErrors);
         if ($webFormState['ready']) {
             return $webFormState;
         }
@@ -151,6 +179,7 @@ final class InstallerController
         $permissionFolderStatuses = $permissionState['folder_statuses'];
         $permissionFileStatuses = $permissionState['file_statuses'];
         $showInstallerForm = ($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST' || !empty($errors);
+        $installTokenRequired = $this->requestGuard->tokenRequired();
         $required_extensions = ['json', 'session', 'openssl', 'mbstring'];
 
         require DCS_APP_PATH . '/Views/Admin/installer/form.php';

@@ -11,13 +11,25 @@ final class LanguageTranslationUploadService
             return ['Please choose a valid translation JSON file.', 'error'];
         }
 
+        if ((int)($file['size'] ?? 0) > 1048576 || !is_uploaded_file($file['tmp_name'])) {
+            return ['Translation files must be valid uploads no larger than 1MB.', 'error'];
+        }
+
         $upload = json_decode((string)file_get_contents($file['tmp_name']), true);
+        if (!is_array($upload) || json_last_error() !== JSON_ERROR_NONE) {
+            return ['The uploaded translation is not valid JSON.', 'error'];
+        }
+
         $languageInfo = $upload['language'] ?? [];
-        $code = \dcs_normalize_language_code($languageInfo['code'] ?? ($upload['code'] ?? ''));
+        $rawCode = trim((string)($languageInfo['code'] ?? ($upload['code'] ?? '')));
+        if (!preg_match('/^[a-z]{2}(?:-[A-Z]{2})?$/', $rawCode)) {
+            return ['Use a language code such as fr or pt-BR.', 'error'];
+        }
+        $code = \dcs_normalize_language_code($rawCode);
         $name = trim((string)($languageInfo['name'] ?? ($upload['name'] ?? '')));
         $translations = $upload['translations'] ?? [];
 
-        if ($code === '' || $name === '' || !is_array($translations)) {
+        if ($code === '' || $name === '' || strlen($name) > 80 || preg_match('/[\x00-\x1F\x7F]/', $name) || !is_array($translations)) {
             return ['Translation files need a language code, language name, and translations list.', 'error'];
         }
 
@@ -66,8 +78,9 @@ final class LanguageTranslationUploadService
     {
         $languageDir = \dcs_custom_language_dir();
         if (!is_dir($languageDir)) {
-            mkdir($languageDir, 0755, true);
+            mkdir($languageDir, 0700, true);
         }
+        @chmod($languageDir, 0700);
 
         $storedLanguage = [
             'language' => [
@@ -77,10 +90,15 @@ final class LanguageTranslationUploadService
             'translations' => $translations,
         ];
 
-        return file_put_contents(
+        $saved = file_put_contents(
             $languageDir . '/' . $fileName,
-            json_encode($storedLanguage, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)
+            json_encode($storedLanguage, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE),
+            LOCK_EX
         ) !== false;
+        if ($saved) {
+            @chmod($languageDir . '/' . $fileName, 0600);
+        }
+        return $saved;
     }
 
     private function saveLanguageRegistry(array $registry): bool
@@ -88,10 +106,14 @@ final class LanguageTranslationUploadService
         $path = \dcs_custom_language_registry_path();
         $dir = dirname($path);
         if (!is_dir($dir)) {
-            mkdir($dir, 0755, true);
+            mkdir($dir, 0700, true);
         }
 
-        return file_put_contents($path, json_encode($registry, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)) !== false;
+        $saved = file_put_contents($path, json_encode($registry, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX) !== false;
+        if ($saved) {
+            @chmod($path, 0600);
+        }
+        return $saved;
     }
 
     private function loadRawLanguageRegistry(): array

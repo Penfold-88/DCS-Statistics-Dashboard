@@ -63,15 +63,26 @@ final class AdminRememberMeService
             return false;
         }
 
-        foreach ($this->sessions->all() as $session) {
+        $sessions = $this->sessions->all();
+        foreach ($sessions as $index => $session) {
+            $storedHash = (string)($session['token_hash'] ?? '');
             if (
                 (int)($session['admin_id'] ?? 0) === $token['user_id']
-                && ($session['token_hash'] ?? '') === $token['hash']
+                && $storedHash !== ''
+                && hash_equals($storedHash, $token['hash'])
                 && strtotime((string)($session['expires_at'] ?? '')) > time()
             ) {
                 $user = ($this->findUser)($token['user_id']);
                 if ($user && !empty($user['is_active'])) {
                     ($this->applyUser)($user);
+                    $replacement = $this->tokens->create();
+                    $sessions[$index]['token_hash'] = $replacement['hash'];
+                    $sessions[$index]['ip_address'] = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+                    $sessions[$index]['user_agent'] = $_SERVER['HTTP_USER_AGENT'] ?? 'unknown';
+                    $sessions[$index]['expires_at'] = date(DATE_FORMAT, time() + ADMIN_COOKIE_LIFETIME);
+                    $sessions[$index]['rotated_at'] = date(DATE_FORMAT);
+                    $this->sessions->save($sessions);
+                    $this->cookie->issue($token['user_id'], $replacement['token']);
                     return true;
                 }
             }

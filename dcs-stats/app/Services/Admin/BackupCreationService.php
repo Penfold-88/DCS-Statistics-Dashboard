@@ -25,8 +25,9 @@ final class BackupCreationService
 
         $backupDir = DCS_ROOT_PATH . '/backups';
         if (!is_dir($backupDir)) {
-            mkdir($backupDir, 0755, true);
+            mkdir($backupDir, 0700, true);
         }
+        @chmod($backupDir, 0700);
 
         $versionInfo = \getCurrentVersionInfo();
         $currentVersion = $versionInfo['version'] ?? (defined('ADMIN_PANEL_VERSION') ? ADMIN_PANEL_VERSION : '1.0.0');
@@ -57,6 +58,7 @@ final class BackupCreationService
         ];
         $backupZip->addFromString('.backup_meta.json', json_encode($metadata, JSON_PRETTY_PRINT));
         $backupZip->close();
+        @chmod($backupFile, 0600);
 
         $sizeFormatted = $this->byteFormatter->format((int)filesize($backupFile));
         $log('Backup complete!');

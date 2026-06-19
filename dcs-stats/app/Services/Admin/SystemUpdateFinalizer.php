@@ -53,18 +53,29 @@ final class SystemUpdateFinalizer
             return;
         }
 
+        if (preg_match('/^[A-Za-z0-9][A-Za-z0-9._+-]{0,63}$/', $newVersion) !== 1) {
+            $log('Warning: The requested version label was not safe to write to local configuration.');
+            return;
+        }
+
         $configFile = DCS_ROOT_PATH . '/app/Core/AdminConfig.php';
         if (!file_exists($configFile)) {
             return;
         }
 
         $config = file_get_contents($configFile);
-        $config = preg_replace(
+        $replacement = "define('ADMIN_PANEL_VERSION', " . var_export($newVersion, true);
+        $config = preg_replace_callback(
             "/define\('ADMIN_PANEL_VERSION', '[^']+'/",
-            "define('ADMIN_PANEL_VERSION', '$newVersion'",
+            static function () use ($replacement): string {
+                return $replacement;
+            },
             $config
         );
-        file_put_contents($configFile, $config);
+        if (!is_string($config) || file_put_contents($configFile, $config, LOCK_EX) === false) {
+            $log('Warning: Could not update the local version configuration.');
+            return;
+        }
         $log("Updated version to: $newVersion");
     }
 

@@ -46,7 +46,12 @@ final class ApiProxyService
 
         $response = $this->httpClient->send($apiConfig, $request);
         if (!empty($response['error'])) {
-            $this->jsonError('API request failed: ' . $response['error'], 502);
+            $this->jsonError('Upstream API request failed', 502);
+            return;
+        }
+
+        if ((int)$response['http_code'] >= 300 && (int)$response['http_code'] < 400) {
+            $this->jsonError('Upstream API redirects are not allowed', 502);
             return;
         }
 

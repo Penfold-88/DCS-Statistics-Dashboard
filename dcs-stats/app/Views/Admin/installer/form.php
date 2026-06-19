@@ -72,7 +72,16 @@
 
             <?php if ($showInstallerForm): ?>
             <form method="POST">
+                <?= csrfField() ?>
                 <input type="hidden" name="install_language" value="<?= e($installerLanguage) ?>">
+
+                <?php if ($installTokenRequired): ?>
+                <div class="form-group">
+                    <label for="install_token">Installation token</label>
+                    <input type="password" id="install_token" name="install_token" class="form-control" required autocomplete="off">
+                    <small class="text-muted">Enter the DCS_INSTALL_TOKEN configured for this server.</small>
+                </div>
+                <?php endif; ?>
 
                 <div class="form-group">
                     <label for="username"><?= e(dcs_t('admin.install.admin_username')) ?></label>
