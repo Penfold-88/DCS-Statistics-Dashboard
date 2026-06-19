@@ -4,6 +4,67 @@ All notable changes to **DCS Statistics Dashboard** are recorded here.
 
 ---
 
+## 🚀 V1.3
+
+V1.3 is the **Squadron CMS Expansion** release. Development began by converting the existing dashboard into a cleaner internal framework while preserving the simple installation and update experience expected by Docker, XAMPP, and hosted-server users.
+
+V1.3 remains in development. New implementation entries should include the date they were completed.
+
+---
+
+### 🏗️ Framework Conversion
+
+- Moved application code into focused controllers, services, core helpers, and views under `dcs-stats/app/`.
+- Converted public pages, public APIs, admin pages, admin APIs, installation, authentication, updates, themes, settings, backup, export, and configuration workflows to framework classes.
+- Reduced 39 large mixed-responsibility facades and introduced 89 focused services.
+- Removed more than 3,000 lines from mixed-responsibility classes while retaining existing behaviour.
+- Kept thin root and `site-config/` PHP entry files as stable deployment adapters.
+- Removed obsolete internal compatibility wrappers and duplicate API aliases once framework callers no longer depended on them.
+- Retained `dcs-stats/` as the web document root. V1.3 does not require a Laravel-style `/public` directory, custom `php.ini` settings, or mandatory rewrite rules.
+
+---
+
+### 📅 Implementation Timeline
+
+#### 11 June 2026 — Framework foundations and view cleanup
+
+- Established the V1.3 framework conversion checkpoints.
+- Continued separating public rendering, shared layout state, and reusable framework views from legacy page files.
+- Reduced mixed PHP, HTML, CSS, and JavaScript responsibilities in migrated views.
+
+#### 13–14 June 2026 — Controllers, views, themes, and headers
+
+- Continued moving public and admin behaviour behind controllers and focused services.
+- Extracted framework-managed view assets and page-specific presentation files.
+- Refined theme, header, logo, preview, and appearance service boundaries.
+- Centralised theme service composition and reduced repeated per-request dependency creation.
+
+#### 17 June 2026 — Admin framework services
+
+- Extracted admin dashboard, settings, authentication, permissions, navigation, maintenance, metadata, backup, and page-state services.
+- Reduced large admin page facades to request orchestration and view rendering.
+- Improved dependency boundaries across admin workflows.
+
+#### 18 June 2026 — Core, installer, API, and public services
+
+- Decomposed core cache, localisation, API configuration, feature configuration, and storage responsibilities.
+- Extracted installer environment, input, file-writing, version-initialisation, and completion-rendering services.
+- Reduced public API controllers to endpoint facades backed by focused API services.
+- Extracted public dashboard, navigation, stylesheet, maintenance, server, and page-state services.
+- Moved header image persistence and theme preview URL construction into dedicated services.
+
+#### 19 June 2026 — Framework completion and compatibility cleanup
+
+- Completed the framework service decomposition across the existing dashboard.
+- Split theme actions into focused preset, import, menu, appearance, upload, restore, logging, and dispatch services while retaining `ThemeActionService::handle()` as the public facade.
+- Removed 23 obsolete internal compatibility wrappers after replacing filename-based bootstrap dependencies with framework support loaders.
+- Removed nine duplicate `*_api.php` aliases and retained one canonical URL for each public API endpoint.
+- Verified all 498 remaining PHP files lint cleanly after compatibility cleanup.
+- Confirmed public pages, canonical APIs, login, and protected admin routes continued to respond correctly.
+- Confirmed production compatibility requires the remaining thin PHP entry files; they are intentional deployment adapters and will not be replaced with mandatory web-server rewrites.
+
+---
+
 ## 🚀 V1.2
 
 V1.2 is a major dashboard, admin, theme, update, language, security, and performance release. It focuses on making the project easier to install, easier to customise, safer to run, and much better suited to different squadrons and server setups.
