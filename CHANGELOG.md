@@ -17,6 +17,7 @@ V1.3 remains in development. New implementation entries should include the date 
 - 🧱 Added the first optional CMS vertical slice: enable/disable control, protected page storage, page administration, publishing, public navigation integration, themed rendering, permissions, audit logging, and backup/restore support. *(20 June 2026)*
 - 🗂️ Separated CMS Settings from CMS Pages so enablement has its own admin page and page management appears as a distinct navigation item only when CMS is enabled. *(20 June 2026)*
 - 🧭 Added a standalone card-based Menu Manager that automatically discovers active statistics pages, published CMS pages, Discord, the squadron homepage, and custom links while supporting labels, visibility, drag ordering, new-tab behaviour, and one-level parent/child dropdowns. Existing menu configuration is migrated without resetting user choices. *(20 June 2026)*
+- ✍️ Added a self-hosted CMS rich-text editor with headings, emphasis, lists, quotes, links, undo/redo, safe HTML allowlisting, and automatic compatibility for existing plain-text pages. *(20 June 2026)*
 - 🏗️ **Completed the internal framework conversion** across public pages, APIs, administration, installation, updates, themes, settings, backup, export, authentication, and configuration. *(19 June 2026)*
 - 🧩 **Introduced 89 focused services** and reduced 39 large mixed-responsibility facades. *(19 June 2026)*
 - 🧹 **Removed more than 3,000 lines** from mixed-responsibility classes while retaining existing behaviour. *(19 June 2026)*

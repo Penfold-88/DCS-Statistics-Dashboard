@@ -3,14 +3,17 @@
 namespace DcsStats\Services\Admin;
 
 use DcsStats\Services\Cms\CmsPageStore;
+use DcsStats\Services\Cms\CmsHtmlSanitizer;
 
 final class CmsPagesPageService
 {
     private CmsPageStore $store;
+    private CmsHtmlSanitizer $sanitizer;
 
-    public function __construct(?CmsPageStore $store = null)
+    public function __construct(?CmsPageStore $store = null, ?CmsHtmlSanitizer $sanitizer = null)
     {
         $this->store = $store ?? new CmsPageStore();
+        $this->sanitizer = $sanitizer ?? new CmsHtmlSanitizer();
     }
 
     public function state(array $currentAdmin): array
@@ -60,9 +63,10 @@ final class CmsPagesPageService
         $title = trim((string)($_POST['title'] ?? ''));
         $slug = strtolower(trim((string)($_POST['slug'] ?? '')));
         $slug = trim((string)preg_replace('/[^a-z0-9-]+/', '-', $slug), '-');
-        $content = trim((string)($_POST['content'] ?? ''));
+        $content = $this->sanitizer->sanitize((string)($_POST['content'] ?? ''));
+        $plainContent = trim(html_entity_decode(strip_tags($content), ENT_QUOTES | ENT_HTML5, 'UTF-8'));
 
-        if ($title === '' || strlen($title) > 240 || $slug === '' || strlen($slug) > 80 || $content === '' || strlen($content) > 200000) {
+        if ($title === '' || strlen($title) > 240 || $slug === '' || strlen($slug) > 80 || $plainContent === '' || strlen($content) > 200000) {
             return [\dcs_t('admin.cms.invalid_page'), 'error'];
         }
         foreach ($this->store->all() as $page) {
@@ -77,6 +81,7 @@ final class CmsPagesPageService
             'title' => $title,
             'slug' => $slug,
             'content' => $content,
+            'content_format' => 'rich_html',
             'published' => isset($_POST['published']),
             'show_in_navigation' => isset($_POST['show_in_navigation']),
             'created_at' => $existing['created_at'] ?? $now,

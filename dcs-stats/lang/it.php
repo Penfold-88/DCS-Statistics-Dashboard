@@ -427,7 +427,26 @@ $manual = [
     'admin.menu_manager.type_discord' => 'Discord',
     'admin.menu_manager.type_squadron' => 'Squadrone',
     'admin.menu_manager.type_group' => 'Menu a discesa',
-    'admin.menu_manager.type_custom_link' => 'Link personalizzato'
+    'admin.menu_manager.type_custom_link' => 'Link personalizzato',
+    'admin.cms.editor_toolbar' => 'Formattazione del contenuto',
+    'admin.cms.text_style' => 'Stile testo',
+    'admin.cms.style_paragraph' => 'Paragrafo',
+    'admin.cms.style_heading_2' => 'Titolo 2',
+    'admin.cms.style_heading_3' => 'Titolo 3',
+    'admin.cms.style_heading_4' => 'Titolo 4',
+    'admin.cms.style_quote' => 'Citazione',
+    'admin.cms.bold' => 'Grassetto',
+    'admin.cms.italic' => 'Corsivo',
+    'admin.cms.underline' => 'Sottolineato',
+    'admin.cms.bullet_list' => 'Elenco puntato',
+    'admin.cms.numbered_list' => 'Elenco numerato',
+    'admin.cms.add_link' => 'Aggiungi link',
+    'admin.cms.clear_formatting' => 'Rimuovi formattazione',
+    'admin.cms.undo' => 'Annulla',
+    'admin.cms.redo' => 'Ripeti',
+    'admin.cms.editor_help' => 'La formattazione viene salvata in sicurezza. Script, incorporamenti, immagini, colori e HTML personalizzato vengono rimossi.',
+    'admin.cms.link_prompt' => 'Inserisci un URL che inizi con https://, http://, mailto:, / o #',
+    'admin.cms.content_required' => 'Il contenuto della pagina è obbligatorio.'
 ];
 
 $glossary = [
