@@ -24,6 +24,7 @@ V1.3 remains in development. New implementation entries should include the date 
 ### 🏗️ Framework & File Organisation
 
 - 📁 Moved application code into controllers, services, core helpers, and views under `dcs-stats/app/`. *(11–19 June 2026)*
+- 📘 Updated the README to distinguish the completed V1.3 framework and security foundation from the planned CMS phase, document the preserved deployment model, and reflect the current framework structure and cache policy. *(20 June 2026)*
 - 🎛️ Converted public pages, public APIs, admin pages, admin APIs, installation, authentication, updates, themes, settings, backup, export, and configuration workflows to framework classes. *(11–19 June 2026)*
 - 🖼️ Separated public rendering, shared layouts, page assets, and reusable views from legacy page files. *(11–14 June 2026)*
 - 🧱 Reduced controllers and page facades to request orchestration, service calls, and view rendering. *(13–19 June 2026)*

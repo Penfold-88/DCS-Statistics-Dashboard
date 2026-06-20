@@ -2,7 +2,7 @@
 
 Turn your DCSServerBot statistics into a polished, configurable, squadron-ready web dashboard.
 
-[![Version](https://img.shields.io/badge/Version-V1.2-brightgreen?style=for-the-badge)](#whats-new-in-v12)
+[![Version](https://img.shields.io/badge/Version-V1.3_Development-orange?style=for-the-badge)](#v13-development-status)
 [![DCSServerBot](https://img.shields.io/badge/Requires-DCSServerBot-green?style=for-the-badge)](https://github.com/Special-K-s-Flightsim-Bots/DCSServerBot)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-blue?style=for-the-badge)](#requirements)
 [![Mobile](https://img.shields.io/badge/Mobile-Friendly-purple?style=for-the-badge)](#frontend-features)
@@ -19,6 +19,26 @@ Turn your DCSServerBot statistics into a polished, configurable, squadron-ready 
 It gives squadrons and public DCS servers a clean place to show live server information, pilot statistics, leaderboards, squadron data, carrier trap results, custom links, credits, and configurable homepage insights.
 
 The dashboard is built for normal web hosting, XAMPP/local testing, and Docker deployments. Most setup is handled from the browser installer and admin panel.
+
+---
+
+## 🚧 V1.3 Development Status
+
+V1.3 is the **Squadron CMS Expansion** development release. Its first milestone was to move the existing dashboard into a maintainable internal framework without changing the familiar installation or deployment model. That framework conversion and its associated security hardening are complete.
+
+Completed V1.3 foundation work includes:
+
+- Controllers, services, core helpers, and views organised under `dcs-stats/app/`.
+- Public pages, APIs, administration, installation, authentication, settings, themes, backups, exports, updates, and localisation moved behind focused framework services.
+- Encrypted storage and automatic migration for saved DCSServerBot API keys.
+- Stronger request validation, API proxy controls, rate limits, session handling, exports, uploads, restores, and updates.
+- Compatibility retained for Docker, XAMPP, shared hosting, and existing installations.
+
+The statistics dashboard remains the default homepage. The planned CMS phase will add optional admin-managed pages, content blocks, menu integration, reusable dashboard widgets, media handling, and publishing permissions. These CMS features are still in development and should not be treated as available until they appear in the release notes.
+
+V1.3 deliberately keeps `dcs-stats/` as the web document root. It does not require a Laravel-style `/public` directory, URL rewriting for ordinary operation, or custom `php.ini` settings. The small PHP files in the document root and `site-config/` are stable web entry points that delegate into the framework.
+
+For the implementation history, see [CHANGELOG.md](CHANGELOG.md).
 
 ---
 
@@ -202,15 +222,23 @@ The dashboard includes file-based caching for heavier API responses.
 
 Cached endpoints include:
 
+- `/credits`
+- `/getuser`
+- `/highscore`
 - `/serverstats`
 - `/server_attendance`
 - `/leaderboard`
+- `/modulestats`
 - `/squadrons`
 - `/squadron_members`
 - `/squadron_credits`
 - `/stats`
 - `/player_info`
+- `/player_squadrons`
+- `/topkills`
+- `/topkdr`
 - `/traps`
+- `/trueskill`
 - `/weaponpk`
 
 Live status endpoints are not cached:
@@ -231,6 +259,8 @@ dcs-stats/site-config/data/api-cache/
 ```
 
 These are runtime files and should not be committed to Git.
+
+`/server_attendance` has a minimum 15-minute cache time because it performs broader attendance aggregation. Page feature settings prevent the request when no attendance or insight widgets need it.
 
 ---
 
@@ -290,11 +320,16 @@ The dashboard includes:
 - CSRF protection for admin actions.
 - Role checks for admin pages.
 - Security headers.
-- API proxy allow-listing.
+- API proxy endpoint, method, query, and request-body allow-listing.
+- Public API request validation and rate limits.
 - Optional DCSServerBot API key forwarding.
-- Sensitive API values kept server-side.
+- AES-256-GCM encryption for saved API keys with automatic plaintext migration.
+- Sensitive API values kept server-side and redacted from audit events.
 - Protected runtime data folders.
 - Safer generated file permissions.
+- CSV formula-injection protection and privacy-reduced standard exports.
+- Strict validation for imported CSS, translations, backups, and update archives.
+- Verified update downloads with archive structure and path-safety checks.
 
 Recommended production setup:
 
@@ -356,6 +391,12 @@ The dashboard sends very minimal install/version check-in data to the project ma
 ```text
 DCS-Statistics-Dashboard/
 ├── dcs-stats/                  Main web application
+│   ├── app/                    Internal V1.3 framework
+│   │   ├── Controllers/        Public, API, admin, and installer controllers
+│   │   ├── Core/               Framework, security, storage, and configuration helpers
+│   │   ├── Services/           Focused application and integration services
+│   │   ├── Views/              Public and admin view templates
+│   │   └── bootstrap.php       Framework bootstrap
 │   ├── site-config/            Admin panel and setup tools
 │   │   ├── api/                Admin API endpoints
 │   │   ├── data/               Runtime settings and admin data
@@ -363,12 +404,12 @@ DCS-Statistics-Dashboard/
 │   │   └── js/                 Admin JavaScript
 │   ├── js/                     Front-end JavaScript and vendor scripts
 │   ├── lang/                   Translation files
-│   ├── index.php               Homepage
-│   ├── leaderboard.php         Leaderboard page
-│   ├── pilot_statistics.php    Pilot search and profile page
-│   ├── pilot_credits.php       Pilot credits page
-│   ├── squadrons.php           Squadron pages
-│   └── servers.php             Server status page
+│   ├── index.php               Thin homepage entry point
+│   ├── leaderboard.php         Thin leaderboard entry point
+│   ├── pilot_statistics.php    Thin pilot profile entry point
+│   ├── pilot_credits.php       Thin pilot credits entry point
+│   ├── squadrons.php           Thin squadron entry point
+│   └── servers.php             Thin server-status entry point
 ├── docker/                      Docker image and compose files
 │   ├── Dockerfile
 │   ├── Dockerfile.dockerignore
@@ -396,6 +437,8 @@ Before opening a pull request:
 - Test on desktop and mobile widths.
 - Check PHP syntax for changed files.
 - Avoid committing runtime data from your own install.
+- Keep business logic in `app/` services and controllers; preserve the thin physical PHP entry points.
+- Do not introduce a mandatory `/public` document root or rewrite-rule dependency.
 - Update translations where new visible text is added.
 - Update documentation when behaviour changes.
 
