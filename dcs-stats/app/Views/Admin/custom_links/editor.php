@@ -11,6 +11,17 @@
         <?= csrfField() ?>
 
         <div class="form-group">
+            <div class="setting-item">
+                <input type="checkbox"
+                       id="nav_custom_links"
+                       name="nav_custom_links"
+                       value="1"
+                       <?= ($currentFeatures['nav_custom_links'] ?? true) ? 'checked' : '' ?>>
+                <label for="nav_custom_links"><?= e(dcs_t('admin.custom_links.enable_dropdown')) ?></label>
+            </div>
+        </div>
+
+        <div class="form-group">
             <label for="custom_links_menu_text"><?= e(dcs_t('admin.custom_links.menu_item_name')) ?></label>
             <input type="text"
                    id="custom_links_menu_text"

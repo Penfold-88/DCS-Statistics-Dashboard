@@ -34,7 +34,7 @@ Completed V1.3 foundation work includes:
 - Stronger request validation, API proxy controls, rate limits, session handling, exports, uploads, restores, and updates.
 - Compatibility retained for Docker, XAMPP, shared hosting, and existing installations.
 
-The statistics dashboard remains the default homepage. The planned CMS phase will add optional admin-managed pages, content blocks, menu integration, reusable dashboard widgets, media handling, and publishing permissions. These CMS features are still in development and should not be treated as available until they appear in the release notes.
+The statistics dashboard remains the default homepage. The first CMS milestone now provides optional admin-managed plain-text pages with publishing controls. A unified Menu Manager automatically brings active statistics features, published CMS pages, integrations, and custom links into one ordered navigation structure with rename, visibility, new-tab, and parent/child dropdown controls. Content blocks, reusable dashboard widgets, media handling, and advanced page layouts remain planned and should not be treated as available until they appear in the release notes.
 
 V1.3 deliberately keeps `dcs-stats/` as the web document root. It does not require a Laravel-style `/public` directory, URL rewriting for ordinary operation, or custom `php.ini` settings. The small PHP files in the document root and `site-config/` are stable web entry points that delegate into the framework.
 
@@ -115,7 +115,7 @@ For the implementation history, see [CHANGELOG.md](CHANGELOG.md).
 | 🎖️ Pilot Credits | Credit views with translated labels and themed styling |
 | 🛡️ Squadrons | Squadron overview, members, logos, leaderboard, live data panels |
 | 🛰️ Servers | Live server cards, mission, theatre, weather, slots, extensions, SRS, active players |
-| 🧭 Navigation | Custom links dropdown, configurable front-end sections, server scope selector |
+| 🧭 Navigation | Unified menu manager, automatic feature/CMS links, labels, visibility, ordering, parent/child dropdowns, server scope selector |
 | 🙌 Credits | Footer credits modal with relevant project acknowledgements |
 
 ---
@@ -127,6 +127,7 @@ For the implementation history, see [CHANGELOG.md](CHANGELOG.md).
 | 🔌 API Settings | DCSServerBot host, port, optional API key, timeout, cache TTL, refresh interval, API health |
 | ✅ Site Features | Enable/disable dashboard sections and individual feature blocks |
 | 🎨 Theme Management | Presets, colours, gradients, charts, header image, logo, CSS upload, backup/restore |
+| 🧭 Menu Manager | Order and rename public links, hide items, choose new-tab behaviour, and build one-level dropdowns |
 | 🔗 Custom Links | Add third-party squadron links to the front-end navigation |
 | 🔎 Privacy & SEO | Keywords, description, search engine crawling preference |
 | 🌍 Language | Select site language and upload translation files |

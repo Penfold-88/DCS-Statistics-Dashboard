@@ -1,7 +1,6 @@
 <script>
 window.DCS_ADMIN_THEMES_CONFIG = {
     csrfToken: <?= json_encode($csrfToken) ?>,
-    defaultMenuItems: <?= json_encode(array_values($defaultMenuItems)) ?>,
     defaultThemeColors: <?= json_encode($defaultThemeColors) ?>,
     defaultChartTheme: <?= json_encode($defaultChartTheme) ?>,
     i18n: <?= json_encode([
@@ -14,7 +13,6 @@ window.DCS_ADMIN_THEMES_CONFIG = {
         'logoWillBeRemoved' => dcs_t('admin.themes.logo_will_be_removed'),
         'updatingPreview' => dcs_t('admin.themes.updating_preview'),
         'previewUpdated' => dcs_t('admin.themes.preview_updated'),
-        'resetMenuConfirm' => dcs_t('admin.themes.reset_menu_confirm'),
         'colorsRestored' => dcs_t('admin.themes.colors_restored')
     ], JSON_UNESCAPED_UNICODE) ?>
 };

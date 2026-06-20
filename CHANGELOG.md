@@ -14,6 +14,9 @@ V1.3 remains in development. New implementation entries should include the date 
 
 ### ✨ Headline Features
 
+- 🧱 Added the first optional CMS vertical slice: enable/disable control, protected page storage, page administration, publishing, public navigation integration, themed rendering, permissions, audit logging, and backup/restore support. *(20 June 2026)*
+- 🗂️ Separated CMS Settings from CMS Pages so enablement has its own admin page and page management appears as a distinct navigation item only when CMS is enabled. *(20 June 2026)*
+- 🧭 Added a standalone card-based Menu Manager that automatically discovers active statistics pages, published CMS pages, Discord, the squadron homepage, and custom links while supporting labels, visibility, drag ordering, new-tab behaviour, and one-level parent/child dropdowns. Existing menu configuration is migrated without resetting user choices. *(20 June 2026)*
 - 🏗️ **Completed the internal framework conversion** across public pages, APIs, administration, installation, updates, themes, settings, backup, export, authentication, and configuration. *(19 June 2026)*
 - 🧩 **Introduced 89 focused services** and reduced 39 large mixed-responsibility facades. *(19 June 2026)*
 - 🧹 **Removed more than 3,000 lines** from mixed-responsibility classes while retaining existing behaviour. *(19 June 2026)*
@@ -39,11 +42,16 @@ V1.3 remains in development. New implementation entries should include the date 
 - 🔗 Moved theme preview URL construction into a dedicated service. *(18 June 2026)*
 - 🎨 Split theme actions into focused preset, import, menu, appearance, upload, restore, logging, and dispatch services. *(19 June 2026)*
 - 🧭 Retained `ThemeActionService::handle()` as the stable public facade. *(19 June 2026)*
+- 🧹 Moved navigation configuration out of Theme Management so themes now control presentation while Website Options → Menu Manager controls public navigation structure. *(20 June 2026)*
 
 ---
 
 ### 🧰 Admin, Core & Installer Services
 
+- 🧭 Split the admin navigation into permission-aware **Statistics Options**, **Website Options**, and **Global Options**, keeping existing website links available independently of the future optional CMS and adding direct API Health access. *(20 June 2026)*
+- 🧱 Added a disabled, clearly labelled **Enable CMS** preview switch so the future optional CMS has a visible navigation placeholder without activating unfinished functionality. *(20 June 2026)*
+- 🎮 Removed the duplicate Discord visibility control from Statistics Features; Discord visibility and invite URL remain managed from Website Options → Discord Link. *(20 June 2026)*
+- 🔗 Moved the Squadron Links Dropdown enable/disable control from Statistics Features to Website Options → Custom Links while preserving existing settings and public navigation behaviour. *(20 June 2026)*
 - 🔐 Extracted admin authentication, session, permission, navigation, URL, and data-initialisation services. *(17–18 June 2026)*
 - ⚙️ Extracted admin dashboard, settings, maintenance, metadata, backup, export, and page-state services. *(17–18 June 2026)*
 - 🌍 Decomposed cache, localisation, API configuration, feature configuration, and storage responsibilities. *(18 June 2026)*

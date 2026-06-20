@@ -65,6 +65,7 @@ final class PermissionsStore
             'manage_squadrons' => ['enabled' => false, 'label' => \dcs_t('admin.permissions.manage_squadrons'), 'description' => \dcs_t('admin.permissions.manage_squadrons_desc')],
             'manage_maintenance' => ['enabled' => false, 'label' => \dcs_t('admin.permissions.manage_maintenance'), 'description' => \dcs_t('admin.permissions.manage_maintenance_desc')],
             'manage_updates' => ['enabled' => false, 'label' => \dcs_t('admin.permissions.manage_updates'), 'description' => \dcs_t('admin.permissions.manage_updates_desc')],
+            'manage_pages' => ['enabled' => false, 'label' => \dcs_t('admin.permissions.manage_pages'), 'description' => \dcs_t('admin.permissions.manage_pages_desc')],
             'change_settings' => ['enabled' => false, 'label' => \dcs_t('admin.permissions.change_settings'), 'description' => \dcs_t('admin.permissions.change_settings_desc')],
         ];
     }

@@ -49,10 +49,10 @@ document.addEventListener('DOMContentLoaded', function() {
     document.addEventListener('click', function(e) {
         if (!e.target.closest('.nav-dropdown')) {
             const currentPath = window.location.pathname;
-            const settingsPages = ['settings.php', 'metadata.php', 'language_settings.php', 'custom_links.php', 'settings_backup.php', 'api_settings.php', 'api_health.php', 'themes.php', 'discord_settings.php', 'squadron_settings.php', 'admins.php', 'permissions.php', 'maintenance.php', 'update.php'];
-            const isOnSettingsPage = settingsPages.some(page => currentPath.includes(page));
+            const optionPages = ['settings.php', 'metadata.php', 'language_settings.php', 'custom_links.php', 'settings_backup.php', 'api_settings.php', 'api_health.php', 'themes.php', 'discord_settings.php', 'squadron_settings.php', 'cms_settings.php', 'cms_pages.php', 'admins.php', 'permissions.php', 'maintenance.php', 'update.php'];
+            const isOnOptionPage = optionPages.some(page => currentPath.includes(page));
 
-            if (!isOnSettingsPage) {
+            if (!isOnOptionPage) {
                 document.querySelectorAll('.nav-dropdown.open').forEach(function(dropdown) {
                     dropdown.classList.remove('open');
                     const menu = dropdown.querySelector('.nav-dropdown-menu');

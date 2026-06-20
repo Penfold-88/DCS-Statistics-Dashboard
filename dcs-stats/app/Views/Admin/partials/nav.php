@@ -16,7 +16,10 @@ $adminNavState = $adminNavigation->state($currentAdmin);
 $currentPage = $adminNavState['currentPage'];
 $demoMode = $adminNavState['demoMode'];
 $demoRestricted = $adminNavState['demoRestricted'];
-$isSettingsPage = $adminNavState['isSettingsPage'];
+$isStatisticsPage = $adminNavState['isStatisticsPage'];
+$isWebsitePage = $adminNavState['isWebsitePage'];
+$isCmsPage = $adminNavState['isCmsPage'];
+$isGlobalPage = $adminNavState['isGlobalPage'];
 $navPermissions = $adminNavState['permissions'];
 
 require DCS_APP_PATH . '/Views/Admin/nav.php';

@@ -6,9 +6,7 @@ final class ThemePageService
 {
     private ThemeAssetService $assetService;
     private ThemeColorService $colorService;
-    private ThemeMenuConfigService $menuConfigService;
     private ThemePresetService $presetService;
-    private ThemeMenuService $menuService;
     private ThemeUploadService $uploadService;
     private ThemeActionService $actionService;
     private ThemePresetStorageService $presetStorageService;
@@ -31,9 +29,7 @@ final class ThemePageService
     ) {
         $this->assetService = $assetService ?? new ThemeAssetService();
         $this->colorService = $colorService ?? new ThemeColorService();
-        $this->menuConfigService = $menuConfigService ?? new ThemeMenuConfigService();
         $this->presetService = $presetService ?? new ThemePresetService();
-        $this->menuService = $menuService ?? new ThemeMenuService();
         $this->uploadService = $uploadService ?? new ThemeUploadService($this->assetService);
         $this->actionService = $actionService ?? new ThemeActionService();
         $this->presetStorageService = $presetStorageService ?? new ThemePresetStorageService();
@@ -51,9 +47,6 @@ final class ThemePageService
         $message = '';
         $error = '';
 
-        $menuConfigFile = $this->menuConfigService->configPath();
-        $menuItems = $this->menuService->loadMenuItems($menuConfigFile);
-
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (!\verifyCSRFToken(\getRequestCSRFToken())) {
                 $error = 'Invalid request token';
@@ -63,13 +56,12 @@ final class ThemePageService
                 $actionState = $this->actionService->handle(
                     $_POST,
                     $_FILES,
-                    $menuConfigFile,
+                    '',
                     $isAirBoss,
-                    $menuItems
+                    []
                 );
                 $message = $actionState['message'];
                 $error = $actionState['error'];
-                $menuItems = $actionState['menuItems'];
             }
         }
 
@@ -90,7 +82,6 @@ final class ThemePageService
             'currentAdmin' => $currentAdmin,
             'defaultChartTheme' => \getDefaultChartTheme(),
             'defaultThemeColors' => $this->colorService->defaultColors(),
-            'defaultMenuItems' => $this->menuService->defaultMenuItems(),
             'demoRestricted' => $demoRestricted,
             'error' => $error,
             'headerImageSettings' => $headerImageSettings,
@@ -98,7 +89,6 @@ final class ThemePageService
             'headerLogoPreview' => !empty($headerImageSettings['logo']) ? '../' . ltrim($headerImageSettings['logo'], '/') : '',
             'headerPreviewImage' => '../' . ltrim($headerImageSettings['image'], '/'),
             'isAirBoss' => $isAirBoss,
-            'menuItems' => $menuItems,
             'message' => $message,
             'pageTitle' => \dcs_t('admin.themes.title'),
             'previewUrl' => $this->previewUrlBuilder->build($customColors, $themeOptions),

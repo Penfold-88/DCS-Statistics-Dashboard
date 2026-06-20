@@ -39,7 +39,7 @@ final class PublicNavigationPolicy
 
     public function shouldShow(array $item): bool
     {
-        if (empty($item['enabled'])) {
+        if (empty($item['enabled']) || empty($item['available'])) {
             return false;
         }
 

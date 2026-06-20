@@ -29,10 +29,15 @@ endif;
 $navigationService = new \DcsStats\Services\PublicNavigationService();
 $navigationState = $navigationService->state();
 $menuItems = $navigationState['menuItems'];
-$customLinks = $navigationState['customLinks'];
-$customLinksMenuText = $navigationState['customLinksMenuText'];
 $serverScopeEnabled = $navigationState['serverScopeEnabled'];
 $serverCardVisibility = $navigationState['serverCardVisibility'];
+$visibleMenuItems = array_values(array_filter($menuItems, fn(array $item): bool => $navigationService->shouldShow($item)));
+$menuChildren = [];
+foreach ($visibleMenuItems as $visibleItem) {
+    if (!empty($visibleItem['parent_id'])) {
+        $menuChildren[$visibleItem['parent_id']][] = $visibleItem;
+    }
+}
 ?>
 <nav class="nav-bar" id="navBar">
   <div class="mobile-menu-header">
@@ -42,41 +47,29 @@ $serverCardVisibility = $navigationState['serverCardVisibility'];
     </button>
   </div>
   <ul class="nav-menu">
-    <?php foreach ($menuItems as $item): ?>
-      <?php if ($navigationService->shouldShow($item)): ?>
-        <?php 
-        $itemType = $item['type'] ?? 'page';
-        ?>
-        <?php if (in_array($itemType, ['discord', 'squadron_homepage'])): ?>
-          <li><a class="nav-link" href="<?= htmlspecialchars($item['url']) ?>"><?= htmlspecialchars($navigationService->label($item)) ?></a></li>
-        <?php else: ?>
-          <li><a class="nav-link" href="<?php echo url($item['url']); ?>"><?= htmlspecialchars($navigationService->label($item)) ?></a></li>
-        <?php endif; ?>
+    <?php foreach ($visibleMenuItems as $item): if (!empty($item['parent_id'])) continue; ?>
+      <?php $children = $menuChildren[$item['id']] ?? []; ?>
+      <?php if ($children): ?>
+        <li class="public-nav-dropdown">
+          <button type="button" class="nav-link nav-dropdown-button" aria-expanded="false"><?= e($navigationService->label($item)) ?> <span class="nav-dropdown-caret">▼</span></button>
+          <ul class="public-nav-dropdown-menu">
+            <?php foreach ($children as $child):
+              $external = in_array($child['type'] ?? '', ['external', 'discord', 'squadron_homepage'], true);
+              $href = $external ? $child['url'] : url($child['url']);
+              $target = $external && !empty($child['new_tab']) ? ' target="_blank" rel="noopener noreferrer"' : '';
+            ?>
+              <li><a class="nav-link public-nav-dropdown-link" href="<?= e($href) ?>"<?= $target ?>><?= e($navigationService->label($child)) ?></a></li>
+            <?php endforeach; ?>
+          </ul>
+        </li>
+      <?php elseif (($item['type'] ?? '') !== 'group'):
+        $external = in_array($item['type'] ?? '', ['external', 'discord', 'squadron_homepage'], true);
+        $href = $external ? $item['url'] : url($item['url']);
+        $target = $external && !empty($item['new_tab']) ? ' target="_blank" rel="noopener noreferrer"' : '';
+      ?>
+        <li><a class="nav-link" href="<?= e($href) ?>"<?= $target ?>><?= e($navigationService->label($item)) ?></a></li>
       <?php endif; ?>
     <?php endforeach; ?>
-
-    <?php if (isFeatureEnabled('nav_custom_links') && !empty($customLinks)): ?>
-      <li class="public-nav-dropdown">
-        <button type="button" class="nav-link nav-dropdown-button" aria-expanded="false">
-          <?= htmlspecialchars($customLinksMenuText) ?>
-          <span class="nav-dropdown-caret">▼</span>
-        </button>
-        <ul class="public-nav-dropdown-menu">
-          <?php foreach ($customLinks as $link): ?>
-            <?php
-              $linkUrl = trim((string)$link['url']);
-              $isExternal = preg_match('#^https?://#i', $linkUrl);
-              $target = ($link['new_tab'] ?? true) ? ' target="_blank" rel="noopener noreferrer"' : '';
-            ?>
-            <li>
-              <a class="nav-link public-nav-dropdown-link" href="<?= htmlspecialchars($linkUrl) ?>"<?= $isExternal ? $target : '' ?>>
-                <?= htmlspecialchars($link['label']) ?>
-              </a>
-            </li>
-          <?php endforeach; ?>
-        </ul>
-      </li>
-    <?php endif; ?>
     
     <?php 
     // Check if user is logged in as admin

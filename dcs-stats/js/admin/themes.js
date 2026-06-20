@@ -1,7 +1,6 @@
     const themeConfig = window.DCS_ADMIN_THEMES_CONFIG || {};
     const themeText = themeConfig.i18n || {};
     const themeCsrfToken = themeConfig.csrfToken || '';
-    const defaultMenuItems = themeConfig.defaultMenuItems || [];
     const defaultThemeColors = themeConfig.defaultThemeColors || {};
     const defaultChartTheme = themeConfig.defaultChartTheme || {};
 

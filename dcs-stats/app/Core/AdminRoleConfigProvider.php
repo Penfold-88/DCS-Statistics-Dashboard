@@ -26,6 +26,7 @@ final class AdminRoleConfigProvider
                     'manage_permissions',
                     'manage_discord',
                     'manage_squadrons',
+                    'manage_pages',
                 ],
                 ROLE_LSO => [
                     'view_dashboard',

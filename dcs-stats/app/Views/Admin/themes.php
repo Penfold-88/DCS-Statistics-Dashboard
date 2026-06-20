@@ -39,8 +39,6 @@
                 
                 <?php require DCS_ROOT_PATH . '/app/Views/Admin/themes/charts_tab.php'; ?>
 
-                <?php require DCS_ROOT_PATH . '/app/Views/Admin/themes/menu_tab.php'; ?>
-                
                 <?php if ($isAirBoss): ?>
                 <?php require DCS_ROOT_PATH . '/app/Views/Admin/themes/advanced_tab.php'; ?>
                 <?php require DCS_ROOT_PATH . '/app/Views/Admin/themes/backups_tab.php'; ?>

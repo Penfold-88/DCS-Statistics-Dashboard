@@ -14,7 +14,6 @@ final class SiteFeatureCatalog
                 'nav_pilot_statistics' => 'Pilot Statistics',
                 'nav_squadrons' => 'Squadrons',
                 'nav_servers' => 'Servers',
-                'nav_custom_links' => 'Squadron Links Dropdown',
             ],
             'Homepage Sections' => [
                 'home_server_stats' => 'Server Statistics Box',
@@ -84,7 +83,6 @@ final class SiteFeatureCatalog
                 'server_scope_filter' => 'Frontend Server Filter Dropdown',
             ],
             'Global Settings' => [
-                'show_discord_link' => 'Show Discord Link',
                 'show_last_update' => 'Show Last Update Time',
             ],
         ];
@@ -165,6 +163,7 @@ final class SiteFeatureCatalog
             'server_scope_filter' => true,
             'show_discord_link' => true,
             'show_last_update' => true,
+            'cms_enabled' => false,
             'nav_custom_links' => true,
             'show_squadron_homepage' => false,
             'discord_link_url' => $siteConfig['discord_invite_url'] ?? 'https://discord.gg/DNENf6pUNX',

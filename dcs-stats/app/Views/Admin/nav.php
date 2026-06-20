@@ -7,7 +7,10 @@
     <nav class="admin-nav">
         <ul>
             <?php require DCS_ROOT_PATH . '/app/Views/Admin/nav/primary_links.php'; ?>
-            <?php require DCS_ROOT_PATH . '/app/Views/Admin/nav/settings_dropdown.php'; ?>
+            <?php require DCS_ROOT_PATH . '/app/Views/Admin/nav/statistics_dropdown.php'; ?>
+            <?php require DCS_ROOT_PATH . '/app/Views/Admin/nav/website_dropdown.php'; ?>
+            <?php require DCS_ROOT_PATH . '/app/Views/Admin/nav/cms_dropdown.php'; ?>
+            <?php require DCS_ROOT_PATH . '/app/Views/Admin/nav/global_dropdown.php'; ?>
         </ul>
     </nav>
 </aside>

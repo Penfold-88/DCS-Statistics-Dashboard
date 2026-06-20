@@ -46,6 +46,7 @@ final class CustomLinksPageService
         $message = '';
         $messageType = '';
         $allFeatures = \loadSiteFeatures();
+        $allFeatures['nav_custom_links'] = isset($_POST['nav_custom_links']);
         $menuText = trim($_POST['custom_links_menu_text'] ?? 'Squadron Links');
         $allFeatures['custom_links_menu_text'] = $menuText !== '' ? $menuText : 'Squadron Links';
         $allFeatures['custom_links'] = $this->normalizeLinks($_POST['custom_links'] ?? [], $message, $messageType);
@@ -59,6 +60,7 @@ final class CustomLinksPageService
         }
 
         \logAdminActivity('CUSTOM_LINKS_UPDATE', $_SESSION['admin_id'], 'settings', 'custom_links', [
+            'enabled' => $allFeatures['nav_custom_links'],
             'menu_text' => $allFeatures['custom_links_menu_text'],
             'link_count' => count($allFeatures['custom_links']),
         ]);
