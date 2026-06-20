@@ -804,6 +804,8 @@
     "admin.update.unknown_status_detail": "GitHub returned an unexpected response. Use Check for Updates below to view the full response.",
     "admin.update.up_to_date": "Up to Date",
     "admin.update.up_to_date_detail": "System is running the latest selected branch build.",
+    "admin.update.source_unverified": "Source Unverified",
+    "admin.update.source_unverified_detail": "This manual installation has no verified Git commit, so its update status cannot be determined automatically.",
     "admin.update.update_channel": "Update Channel",
     "admin.update.update_log": "Update Log",
     "admin.update.update_now": "Update Now",

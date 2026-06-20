@@ -29,9 +29,18 @@ final class VersionMetadataStore
             }
         }
 
+        // Older installers recorded the latest remote branch commit even though
+        // a manual source download contains no trustworthy commit identity.
+        if (($info['updated_by'] ?? null) === 'installer') {
+            $info['commit_sha'] = null;
+            $info['commit_date'] = null;
+            $info['source_unverified'] = true;
+        }
+
         if (empty($info['commit_sha']) && defined('ADMIN_PANEL_VERSION')) {
             $info['version'] = ADMIN_PANEL_VERSION;
             $info['manual_download'] = true;
+            $info['source_unverified'] = true;
         }
 
         if (!empty($channelConfig['is_dev'])) {
@@ -62,14 +71,32 @@ final class VersionMetadataStore
         $info['updated_at'] = date('Y-m-d H:i:s');
         $info['updated_by'] = $username ?? 'system';
 
-        file_put_contents($this->path(), json_encode([
+        $this->write([
             'version' => $info['version'],
             'branch' => $info['branch'],
             'commit_sha' => $info['commit_sha'],
             'commit_date' => $info['commit_date'],
             'updated_at' => $info['updated_at'],
             'updated_by' => $info['updated_by'],
-        ], JSON_PRETTY_PRINT));
+        ]);
+
+        return $info;
+    }
+
+    public function recordManualInstall(string $version, string $branch, string $username = 'installer'): array
+    {
+        $info = [
+            'version' => $version,
+            'branch' => $branch,
+            'commit_sha' => null,
+            'commit_date' => null,
+            'updated_at' => date('Y-m-d H:i:s'),
+            'updated_by' => $username,
+        ];
+
+        $this->write($info);
+        $info['manual_download'] = true;
+        $info['source_unverified'] = true;
 
         return $info;
     }
@@ -87,5 +114,10 @@ final class VersionMetadataStore
     private function path(): string
     {
         return DCS_ROOT_PATH . '/.version_meta.json';
+    }
+
+    private function write(array $info): void
+    {
+        file_put_contents($this->path(), json_encode($info, JSON_PRETTY_PRINT), LOCK_EX);
     }
 }

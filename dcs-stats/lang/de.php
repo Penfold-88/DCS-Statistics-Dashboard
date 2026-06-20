@@ -438,6 +438,8 @@ return [
     'admin.update.latest_code_available' => 'Neuester Code ist verfügbar von',
     'admin.update.up_to_date' => 'Aktuell',
     'admin.update.up_to_date_detail' => 'Das System nutzt den neuesten Build des ausgewählten Branches.',
+    'admin.update.source_unverified' => 'Quelle nicht verifiziert',
+    'admin.update.source_unverified_detail' => 'Diese manuelle Installation enthält keinen verifizierten Git-Commit. Der Update-Status kann daher nicht automatisch ermittelt werden.',
     'admin.update.github_check_failed' => 'GitHub-Prüfung fehlgeschlagen',
     'admin.update.github_failed_detail' => 'Der ausgewählte GitHub-Branch konnte nicht geprüft werden. Nutze Nach Updates suchen, um die vollständige Antwort zu sehen.',
     'admin.update.unknown_status' => 'Update-Status unbekannt',

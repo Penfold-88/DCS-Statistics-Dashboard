@@ -438,6 +438,8 @@ return [
     'admin.update.latest_code_available' => 'Latest code is available from',
     'admin.update.up_to_date' => 'Up to Date',
     'admin.update.up_to_date_detail' => 'System is running the latest selected branch build.',
+    'admin.update.source_unverified' => 'Source Unverified',
+    'admin.update.source_unverified_detail' => 'This manual installation has no verified Git commit, so its update status cannot be determined automatically.',
     'admin.update.github_check_failed' => 'GitHub Check Failed',
     'admin.update.github_failed_detail' => 'Could not check the selected GitHub branch. Use Check for Updates below to view the full response.',
     'admin.update.unknown_status' => 'Update Status Unknown',

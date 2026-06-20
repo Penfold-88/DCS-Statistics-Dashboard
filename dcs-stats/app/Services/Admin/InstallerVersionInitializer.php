@@ -16,14 +16,11 @@ final class InstallerVersionInitializer
         \DcsStats\Core\AdminConfig::load();
         $channelConfig = \getUpdateChannelConfig();
         $installBranch = $channelConfig['branch'] ?? 'main';
-        $githubVersionInfo = \getGitHubBranchVersionInfo($channelConfig['repo'] ?? '', $installBranch);
 
-        \updateVersionMetadata(
+        (new \DcsStats\Core\VersionMetadataStore())->recordManualInstall(
             ADMIN_PANEL_VERSION,
             $installBranch,
-            'installer',
-            $githubVersionInfo['commit_sha'] ?? null,
-            $githubVersionInfo['commit_date'] ?? null
+            'installer'
         );
     }
 }

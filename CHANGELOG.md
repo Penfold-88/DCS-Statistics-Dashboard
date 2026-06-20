@@ -75,6 +75,7 @@ V1.3 remains in development. New implementation entries should include the date 
 
 ### 🧹 Compatibility & Cleanup
 
+- 🧭 Stopped fresh installers from assigning an unverified remote commit to manually copied source files, and treat older installer-generated commit metadata as unknown to prevent false “Up to Date” results. *(20 June 2026)*
 - 🗑️ Removed 23 obsolete internal compatibility wrappers after replacing filename-based bootstrap dependencies with framework support loaders. *(19 June 2026)*
 - 🔌 Removed nine duplicate `*_api.php` aliases and retained one canonical URL for each public API endpoint. *(19 June 2026)*
 - 🧭 Kept thin root and `site-config/` PHP entry files as stable deployment adapters. *(19 June 2026)*

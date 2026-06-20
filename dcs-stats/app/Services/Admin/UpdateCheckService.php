@@ -58,7 +58,11 @@ final class UpdateCheckService
                     $lines[] = "Latest Date: " . date('Y-m-d H:i:s', strtotime($commitDate));
                 }
 
-                if (!empty($versionInfo['commit_sha']) && strtolower($versionInfo['commit_sha']) === strtolower($sha)) {
+                if (!empty($versionInfo['source_unverified'])) {
+                    $lines[] = "";
+                    $lines[] = "⚠ Installed source commit is unverified.";
+                    $lines[] = "The updater cannot determine whether this manual installation matches $branch.";
+                } elseif (!empty($versionInfo['commit_sha']) && strtolower($versionInfo['commit_sha']) === strtolower($sha)) {
                     $lines[] = "";
                     $lines[] = "✓ You are running the latest $branch build.";
                 } else {
