@@ -10,6 +10,7 @@ window.DCS_ADMIN_UPDATE_CONFIG = {
         'updateReady' => dcs_t('admin.update.update_ready'),
         'latestCodeAvailable' => dcs_t('admin.update.latest_code_available'),
         'updateNow' => dcs_t('admin.update.update_now'),
+        'installLatest' => dcs_t('admin.update.install_latest'),
         'upToDate' => dcs_t('admin.update.up_to_date'),
         'upToDateDetail' => dcs_t('admin.update.up_to_date_detail'),
         'sourceUnverified' => dcs_t('admin.update.source_unverified'),

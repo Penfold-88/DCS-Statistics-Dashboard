@@ -436,6 +436,7 @@ return [
     'admin.update.unavailable' => 'Nicht verfügbar',
     'admin.update.update_ready' => 'Update bereit',
     'admin.update.latest_code_available' => 'Neuester Code ist verfügbar von',
+    'admin.update.install_latest' => 'Neueste Version installieren',
     'admin.update.up_to_date' => 'Aktuell',
     'admin.update.up_to_date_detail' => 'Das System nutzt den neuesten Build des ausgewählten Branches.',
     'admin.update.source_unverified' => 'Quelle nicht verifiziert',

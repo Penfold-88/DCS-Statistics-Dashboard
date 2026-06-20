@@ -436,6 +436,7 @@ return [
     'admin.update.unavailable' => 'Unavailable',
     'admin.update.update_ready' => 'Update Ready',
     'admin.update.latest_code_available' => 'Latest code is available from',
+    'admin.update.install_latest' => 'Install Latest',
     'admin.update.up_to_date' => 'Up to Date',
     'admin.update.up_to_date_detail' => 'System is running the latest selected branch build.',
     'admin.update.source_unverified' => 'Source Unverified',

@@ -306,7 +306,7 @@ The updater supports:
 
 Stable is the default update channel. A hidden `.dev` file enables the configured development branch.
 
-Manual source installations are recorded without a commit SHA because the installer cannot verify which Git commit produced the copied files. The updater records a verified commit after it successfully installs a selected branch build.
+Manual source installations are recorded without a commit SHA because the installer cannot verify which Git commit produced the copied files. They can still install the latest build from the selected stable or development channel, after which the updater records the verified commit.
 
 Runtime settings and admin-managed customisations are preserved during normal updates, including uploaded branding under `uploads/`, generated theme files, menu settings, API settings, and local data. Manual edits made directly to core dashboard/template files may be replaced by the updater, so keep custom work in the admin theme tools, `uploads/`, or `custom/` where possible.
 

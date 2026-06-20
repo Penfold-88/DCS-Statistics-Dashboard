@@ -50,7 +50,7 @@ function checkUpdateStatus() {
             // Parse the response to check if update is available
             if (data.includes('⚠ Installed source commit is unverified.')) {
                 statusTitle.textContent = updateText.sourceUnverified;
-                statusDiv.innerHTML = `<span class="text-warning">${updateText.sourceUnverifiedDetail}</span>`;
+                statusDiv.innerHTML = `<span class="text-warning">${updateText.sourceUnverifiedDetail}</span> <button class="btn btn-primary btn-small" onclick="performUpdate()" style="margin-left: 10px;">${updateText.installLatest}</button>`;
             } else if (data.includes('✅ Update Available!')) {
                 updateAvailable = true;
                 // Extract version from response

@@ -800,6 +800,7 @@
     "admin.update.support_copied": "Support info copied. Paste it into the issue report.",
     "admin.update.title": "Update Dashboard",
     "admin.update.unavailable": "Unavailable",
+    "admin.update.install_latest": "Install Latest",
     "admin.update.unknown_status": "Update Status Unknown",
     "admin.update.unknown_status_detail": "GitHub returned an unexpected response. Use Check for Updates below to view the full response.",
     "admin.update.up_to_date": "Up to Date",

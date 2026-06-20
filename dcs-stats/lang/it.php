@@ -297,6 +297,7 @@ $manual = [
     'admin.update.github_branch' => 'Branch GitHub',
     'admin.update.installed_commit' => 'Commit installato',
     'admin.update.installed_date' => 'Data installazione',
+    'admin.update.install_latest' => 'Installa l\'ultima versione',
     'admin.update.source_unverified' => 'Origine non verificata',
     'admin.update.source_unverified_detail' => 'Questa installazione manuale non contiene un commit Git verificato, quindi lo stato dell\'aggiornamento non può essere determinato automaticamente.',
 
