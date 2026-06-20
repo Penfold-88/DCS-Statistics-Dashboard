@@ -5,7 +5,7 @@
 
     <div class="export-option">
         <h3>Player Data</h3>
-        <p>Export player information including names, UCIDs, and statistics.</p>
+        <p>Export player names and statistics without private identifiers.</p>
 
         <form method="POST" action="api/export_data.php">
             <?= csrfField() ?>
@@ -110,7 +110,7 @@
             <h3 style="color: var(--accent-danger);">Full Data Export</h3>
             <p style="color: var(--accent-warning);">
                 <strong>Warning:</strong> This will export ALL data from the system.
-                Large exports may take significant time.
+                It may include player identifiers and other administrative records. Large exports may take significant time.
             </p>
 
             <form method="POST" action="api/export_data.php" onsubmit="return confirm('Are you sure you want to export ALL data?');">

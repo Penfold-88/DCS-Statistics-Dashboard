@@ -4,6 +4,10 @@ namespace DcsStats\Services\Api;
 
 final class PublicLeaderboardService
 {
+    public const ALLOWED_SORTS = [
+        'kills', 'deaths', 'kdr', 'kills_pvp', 'deaths_pvp', 'kdr_pvp', 'credits', 'playtime',
+    ];
+
     private PublicStatsFormatter $formatter;
     private PublicMissionStatsService $missionStatsService;
     private PublicCreditsService $creditsService;
@@ -24,8 +28,7 @@ final class PublicLeaderboardService
         \DcsStats\Core\SupportBootstrap::apiConfig();
 
         try {
-            $allowedSorts = ['kills', 'deaths', 'kdr', 'kills_pvp', 'deaths_pvp', 'kdr_pvp', 'credits', 'playtime'];
-            if (!in_array($sortBy, $allowedSorts, true)) {
+            if (!self::isAllowedSort($sortBy)) {
                 $sortBy = 'kills';
             }
 
@@ -65,5 +68,10 @@ final class PublicLeaderboardService
     public function getCredits(): array
     {
         return $this->creditsService->get();
+    }
+
+    public static function isAllowedSort(string $sortBy): bool
+    {
+        return in_array($sortBy, self::ALLOWED_SORTS, true);
     }
 }

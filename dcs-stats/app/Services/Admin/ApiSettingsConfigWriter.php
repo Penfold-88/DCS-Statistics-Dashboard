@@ -13,7 +13,7 @@ final class ApiSettingsConfigWriter
         $cacheTtl = intval($post['cache_ttl'] ?? 300);
         $refreshInterval = intval($post['refresh_interval'] ?? 300);
         $useApi = isset($post['use_api']);
-        $saveResult = \createApiConfigFromHost($apiHost, $configFile);
+        $saveResult = \DcsStats\Core\ApiConfig::createFromHost($apiHost, $configFile);
 
         if (!$saveResult['success']) {
             return [$apiConfig, $saveResult['message'], 'error', null];

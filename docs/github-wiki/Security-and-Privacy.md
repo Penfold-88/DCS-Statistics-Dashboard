@@ -22,6 +22,8 @@ The dashboard includes:
 
 API settings are managed server-side.
 
+The API proxy remains publicly reachable by design so unauthenticated visitors can load public dashboard statistics. It is constrained by endpoint, method, parameter, body-size, redirect, and rate-limit policies; administrative endpoints are not exposed through it.
+
 The public frontend config endpoint only returns harmless browser settings needed by the dashboard.
 
 The DCSServerBot API key, API host details, and sensitive settings stay server-side.

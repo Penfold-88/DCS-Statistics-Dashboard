@@ -172,6 +172,8 @@ your-api-domain.com:9876
 
 The dashboard will try to handle HTTP/HTTPS safely depending on the install environment.
 
+HTTP remains the default for newly entered DCSServerBot hosts because many bot installations expose their REST API only over HTTP on a private network. HTTPS is preserved whenever it is configured or detected. Browser pages use the dashboard's server-side, allowlisted PHP proxy rather than connecting directly to an HTTP API.
+
 If DCSServerBot has an API key configured, add it in:
 
 ```text

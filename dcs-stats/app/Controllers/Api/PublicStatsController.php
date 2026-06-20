@@ -4,6 +4,7 @@ namespace DcsStats\Controllers\Api;
 
 use DcsStats\Core\ApiResponse;
 use DcsStats\Services\Api\PublicApiRequestGuard;
+use DcsStats\Services\Api\PublicLeaderboardService;
 use DcsStats\Services\Api\PublicStatsService;
 
 final class PublicStatsController
@@ -39,8 +40,14 @@ final class PublicStatsController
             return;
         }
 
+        $sort = (string)($_GET['sort'] ?? 'kills');
+        if (!PublicLeaderboardService::isAllowedSort($sort)) {
+            ApiResponse::json(['error' => 'Invalid leaderboard sort value'], 400);
+            return;
+        }
+
         ApiResponse::json($this->stats->getLeaderboard(
-            $_GET['sort'] ?? 'kills',
+            $sort,
             (int)($_GET['limit'] ?? 10)
         ));
     }

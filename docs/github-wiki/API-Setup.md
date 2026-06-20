@@ -64,7 +64,11 @@ Some DCSServerBot installs run over HTTP only.
 
 The dashboard is designed to remain backwards compatible with HTTP API hosts while still supporting HTTPS where available.
 
+HTTP is intentionally the default for a newly entered host without a scheme because many DCSServerBot APIs run on private networks without TLS. Existing and detected HTTPS URLs remain HTTPS.
+
 If the website is HTTPS and the API is HTTP, browser-side calls can fail due to mixed-content rules. The dashboard avoids this by routing API requests through the server-side PHP proxy.
+
+That proxy is intentionally public because it supplies the public statistics pages. It accepts only explicitly allowlisted endpoints, methods, query parameters, and POST fields, applies rate limits, rejects redirects, and never exposes the configured upstream address or API key to browsers.
 
 ---
 

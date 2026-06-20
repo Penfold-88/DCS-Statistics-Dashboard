@@ -4,14 +4,13 @@ namespace DcsStats\Services\Admin;
 
 final class DataExportBuilder
 {
-    public function players(): array
+    public function players(bool $includeIdentifiers = false): array
     {
         $data = [];
         foreach (getPlayers() as $player) {
             $stats = getPlayerStats($player['ucid']);
-            $data[] = [
+            $row = [
                 'name' => $player['name'],
-                'ucid' => $player['ucid'],
                 'kills' => $stats['kills'],
                 'deaths' => $stats['deaths'],
                 'kd_ratio' => $stats['kd_ratio'],
@@ -19,6 +18,10 @@ final class DataExportBuilder
                 'last_seen' => $stats['last_seen'],
                 'is_banned' => isPlayerBanned($player['ucid']) ? 'Yes' : 'No',
             ];
+            if ($includeIdentifiers) {
+                $row = ['name' => $row['name'], 'ucid' => $player['ucid']] + array_slice($row, 1, null, true);
+            }
+            $data[] = $row;
         }
 
         return $data;
@@ -44,7 +47,6 @@ final class DataExportBuilder
                     'action' => LOG_ACTIONS[$log['action']] ?? $log['action'],
                     'target_type' => $log['target_type'] ?? '',
                     'target_id' => $log['target_id'] ?? '',
-                    'ip_address' => $log['ip_address'] ?? '',
                     'details' => is_array($log['details'] ?? null) ? json_encode($log['details']) : ($log['details'] ?? ''),
                 ];
             }
@@ -76,7 +78,7 @@ final class DataExportBuilder
             ];
         }
 
-        return $this->players();
+        return $this->players(true);
     }
 
     private function allowFields(array $records, array $allowedFields): array

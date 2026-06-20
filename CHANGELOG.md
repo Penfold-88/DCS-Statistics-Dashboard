@@ -65,6 +65,10 @@ V1.3 remains in development. New implementation entries should include the date 
 - 🔐 Replaced plaintext non-Docker API-key storage with AES-256-GCM encryption, automatic migration, protected local key material, and optional `DCS_CONFIG_ENCRYPTION_KEY` support. *(19 June 2026)*
 - 🧾 Replaced silent remember-me session-store failures with explicit validation and server-side error logging. *(19 June 2026)*
 - 🐳 Clarified Docker PHP memory headroom, increased multipart POST capacity above the upload ceiling, and retained production OPcache timestamp validation settings. *(19 June 2026)*
+- 🕵️ Removed UCIDs and administrator IP addresses from ordinary data exports while retaining identifiers in Air Boss full exports. *(20 June 2026)*
+- ✅ Added controller-level leaderboard sort validation and retained service-layer validation as defence in depth. *(20 June 2026)*
+- 🧹 Removed the unused wildcard `ALLOWED_ORIGINS` Docker variable and made API settings call encrypted configuration storage directly. *(20 June 2026)*
+- 🌐 Documented HTTP DCSServerBot support and the allowlisted public API proxy as intentional compatibility architecture. *(20 June 2026)*
 
 ---
 
