@@ -1141,6 +1141,7 @@ return [
     'admin.cms.homepage_label' => 'Startseite der Website',
     'admin.cms.homepage_dashboard' => 'Statistik-Dashboard (Standard)',
     'admin.cms.homepage_help' => 'Legt fest, was index.php anzeigt. Nur veröffentlichte CMS-Seiten sind verfügbar; das Statistik-Dashboard bleibt die sichere Ausweichseite.',
+    'admin.cms.homepage_menu_help' => 'Wenn eine CMS-Seite gewählt wird, erscheint automatisch ein eigener Statistik-Dashboard-Eintrag in der Menüverwaltung.',
     'admin.cms.homepage_invalid' => 'Die gewählte Startseite ist nicht veröffentlicht oder existiert nicht mehr.',
     'admin.cms.homepage_fallback' => 'Die gespeicherte Startseite ist nicht verfügbar. Besucher sehen derzeit das Statistik-Dashboard.',
     'admin.cms.add_image' => 'Bild hinzufügen',

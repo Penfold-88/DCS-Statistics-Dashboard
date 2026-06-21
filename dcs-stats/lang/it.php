@@ -451,6 +451,7 @@ $manual = [
     'admin.cms.homepage_label' => 'Pagina Iniziale del Sito',
     'admin.cms.homepage_dashboard' => 'Dashboard Statistiche (Predefinita)',
     'admin.cms.homepage_help' => 'Scegli cosa mostra index.php. Sono disponibili solo pagine CMS pubblicate e la dashboard rimane il ripiego sicuro.',
+    'admin.cms.homepage_menu_help' => 'Quando scegli una pagina CMS, viene aggiunta automaticamente una voce Dashboard Statistiche alla Gestione Menu.',
     'admin.cms.homepage_invalid' => 'La pagina iniziale selezionata non è pubblicata o non esiste più.',
     'admin.cms.homepage_fallback' => 'La pagina iniziale salvata non è disponibile; i visitatori vedono la Dashboard Statistiche.',
     'admin.cms.add_image' => 'Aggiungi immagine',

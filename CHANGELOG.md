@@ -15,7 +15,7 @@ V1.3 remains in development. New implementation entries should include the date 
 ### ✨ Headline Features
 
 - 🖼️ Added a protected CMS page media library with verified JPG/PNG/WebP uploads, image dimensions and size limits, random filenames, alt text, captions, alignment options, editor insertion, usage-aware deletion, and responsive public rendering. *(21 June 2026)*
-- 🏠 Added a CMS landing-page selector that can make any published page the `index.php` homepage while preserving the Statistics Dashboard as the default and automatic fallback. A separate Statistics Dashboard menu source appears when a CMS landing page is active. *(21 June 2026)*
+- 🏠 Added a CMS landing-page selector that can make any published page the `index.php` homepage while preserving the Statistics Dashboard as the default and automatic fallback. A separate Statistics Dashboard menu source appears directly after Home by default when a CMS landing page is active. *(21 June 2026)*
 - 🧱 Added the first optional CMS vertical slice: enable/disable control, protected page storage, page administration, publishing, public navigation integration, themed rendering, permissions, audit logging, and backup/restore support. *(20 June 2026)*
 - 🗂️ Separated CMS Settings from CMS Pages so enablement has its own admin page and page management appears as a distinct navigation item only when CMS is enabled. *(20 June 2026)*
 - 🧭 Added a standalone card-based Menu Manager that automatically discovers active statistics pages, published CMS pages, Discord, the squadron homepage, and custom links while supporting labels, visibility, drag ordering, new-tab behaviour, and one-level parent/child dropdowns. Existing menu configuration is migrated without resetting user choices. *(20 June 2026)*

@@ -45,7 +45,20 @@ final class MenuManagerService
         }
 
         foreach ($candidates as $candidate) {
-            $merged[] = $candidate;
+            $afterId = (string)($candidate['after_id'] ?? '');
+            $inserted = false;
+            if ($afterId !== '') {
+                foreach ($merged as $position => $mergedItem) {
+                    if (($mergedItem['id'] ?? '') === $afterId) {
+                        array_splice($merged, $position + 1, 0, [$candidate]);
+                        $inserted = true;
+                        break;
+                    }
+                }
+            }
+            if (!$inserted) {
+                $merged[] = $candidate;
+            }
         }
 
         return $this->normalizeParents(array_values($merged));

@@ -31,6 +31,7 @@
                             <?php endforeach; ?>
                         </select>
                         <div class="help-text"><?= e(dcs_t('admin.cms.homepage_help')) ?></div>
+                        <div class="help-text"><?= e(dcs_t('admin.cms.homepage_menu_help')) ?></div>
                         <?php if ($homepageFallback): ?><div class="alert alert-warning mt-1"><?= e(dcs_t('admin.cms.homepage_fallback')) ?></div><?php endif; ?>
                     </div>
                     <div class="settings-actions"><button class="btn btn-primary" type="submit"><?= e(dcs_t('admin.cms.save_settings')) ?></button><?php if ($cmsEnabled): ?><a class="btn btn-secondary" href="cms_pages.php"><?= e(dcs_t('admin.cms.manage_pages')) ?></a><?php endif; ?></div>

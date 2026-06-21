@@ -1139,6 +1139,7 @@
     "admin.cms.homepage_label": "Website Landing Page",
     "admin.cms.homepage_dashboard": "Statistics Dashboard (Default)",
     "admin.cms.homepage_help": "Choose what index.php displays. Only published CMS pages are available, and the statistics dashboard remains the safe fallback.",
+    "admin.cms.homepage_menu_help": "When a CMS page is selected, a separate Statistics Dashboard item is added automatically to the Menu Manager.",
     "admin.cms.homepage_invalid": "The selected landing page is not published or no longer exists.",
     "admin.cms.homepage_fallback": "The saved landing page is unavailable, so visitors currently see the Statistics Dashboard.",
     "admin.cms.add_image": "Add image",

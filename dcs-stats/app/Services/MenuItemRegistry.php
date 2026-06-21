@@ -27,6 +27,7 @@ final class MenuItemRegistry
             'type' => 'page',
             'label_key' => 'nav.statistics_dashboard',
             'new_tab' => false,
+            'after_id' => 'stats-home',
         ];
 
         $items[] = [
