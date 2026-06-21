@@ -41,11 +41,12 @@ final class MenuItemRegistry
         ];
         $items[] = [
             'id' => 'integration-squadron-homepage',
-            'name' => (string)\getFeatureValue('squadron_homepage_text', 'Squadron'),
+            'name' => $this->squadronHomepageLabel(),
             'url' => (string)\getFeatureValue('squadron_homepage_url', ''),
             'enabled' => true,
             'available' => \isFeatureEnabled('show_squadron_homepage') && trim((string)\getFeatureValue('squadron_homepage_url', '')) !== '',
             'type' => 'squadron_homepage',
+            'legacy_names' => ['Squadron'],
             'new_tab' => false,
         ];
 
@@ -109,5 +110,11 @@ final class MenuItemRegistry
             'label_key' => $labelKey,
             'new_tab' => false,
         ];
+    }
+
+    private function squadronHomepageLabel(): string
+    {
+        $label = trim((string)\getFeatureValue('squadron_homepage_text', ''));
+        return $label === '' || strcasecmp($label, 'Squadron') === 0 ? 'Squadron Homepage' : $label;
     }
 }

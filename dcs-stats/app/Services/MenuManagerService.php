@@ -35,8 +35,12 @@ final class MenuManagerService
                 continue;
             }
             $candidate = $candidates[$candidateIndex];
+            $savedName = trim((string)($item['name'] ?? ''));
+            if (in_array($savedName, $candidate['legacy_names'] ?? [], true)) {
+                $savedName = (string)$candidate['name'];
+            }
             $merged[] = array_merge($candidate, [
-                'name' => trim((string)($item['name'] ?? '')) ?: $candidate['name'],
+                'name' => $savedName ?: $candidate['name'],
                 'enabled' => (bool)($item['enabled'] ?? true),
                 'parent_id' => (string)($item['parent_id'] ?? ($candidate['parent_id'] ?? '')),
                 'new_tab' => (bool)($item['new_tab'] ?? ($candidate['new_tab'] ?? false)),

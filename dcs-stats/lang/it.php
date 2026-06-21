@@ -425,7 +425,7 @@ $manual = [
     'admin.menu_manager.type_statistics' => 'Statistiche',
     'admin.menu_manager.type_cms_page' => 'Pagina CMS',
     'admin.menu_manager.type_discord' => 'Discord',
-    'admin.menu_manager.type_squadron' => 'Squadrone',
+    'admin.menu_manager.type_squadron' => 'Homepage Squadrone',
     'admin.menu_manager.type_group' => 'Menu a discesa',
     'admin.menu_manager.type_custom_link' => 'Link personalizzato',
     'admin.cms.editor_toolbar' => 'Formattazione del contenuto',
@@ -510,7 +510,10 @@ $manual = [
     'admin.cms.enable_help' => 'Attiva o disattiva pagine personalizzate e navigazione CMS.',
     'admin.cms.homepage_choice' => 'Pagina Iniziale Selezionata',
     'admin.cms.settings_actions' => 'Salva o Gestisci Pagine',
-    'admin.cms.settings_actions_help' => 'Salva queste opzioni prima di aprire la gestione pagine.'
+    'admin.cms.settings_actions_help' => 'Salva queste opzioni prima di aprire la gestione pagine.',
+    'admin.cms.align_text_left' => 'Allinea testo a sinistra',
+    'admin.cms.align_text_center' => 'Centra testo',
+    'admin.cms.align_text_right' => 'Allinea testo a destra'
 ];
 
 $glossary = [

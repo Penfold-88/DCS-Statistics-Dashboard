@@ -690,6 +690,7 @@ code {
 .cms-editor-toolbar button, .cms-editor-format { background: transparent; border: 1px solid transparent; border-radius: 4px; color: var(--text-primary); cursor: pointer; font: inherit; min-height: 32px; padding: 5px 9px; }
 .cms-editor-toolbar button:hover, .cms-editor-toolbar button:focus, .cms-editor-format:hover, .cms-editor-format:focus { background: rgba(255,255,255,.08); border-color: var(--border-color); outline: none; }
 .cms-editor-format { background: var(--bg-secondary); border-color: var(--border-color); min-width: 130px; }
+.cms-editor-format option { background-color: var(--bg-secondary); color: var(--text-primary); }
 .cms-editor-divider { align-self: stretch; background: var(--border-color); margin: 3px 4px; width: 1px; }
 .cms-editor-content { color: var(--text-primary); line-height: 1.7; min-height: 320px; outline: none; overflow-y: auto; padding: 18px; }
 .cms-editor-content h2, .cms-editor-content h3, .cms-editor-content h4 { margin: 1em 0 .4em; }
@@ -697,6 +698,9 @@ code {
 .cms-editor-content ul, .cms-editor-content ol { margin: 0 0 1em 1.6em; }
 .cms-editor-content blockquote { border-left: 4px solid var(--accent-primary); color: var(--text-muted); margin: 1em 0; padding: .4em 1em; }
 .cms-editor-content a { color: #64b5f6; text-decoration: underline; }
+.cms-editor-content .cms-text-left { text-align: left; }
+.cms-editor-content .cms-text-center { text-align: center; }
+.cms-editor-content .cms-text-right { text-align: right; }
 .cms-editor-content figure { margin: 1.25em 0; max-width: 100%; }
 .cms-editor-content figure img { display: block; height: auto; max-width: 100%; }
 .cms-editor-content figcaption { color: var(--text-muted); font-size: 12px; margin-top: 6px; text-align: center; }

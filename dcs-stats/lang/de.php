@@ -1115,7 +1115,7 @@ return [
     'admin.menu_manager.type_statistics' => 'Statistik',
     'admin.menu_manager.type_cms_page' => 'CMS-Seite',
     'admin.menu_manager.type_discord' => 'Discord',
-    'admin.menu_manager.type_squadron' => 'Staffel',
+    'admin.menu_manager.type_squadron' => 'Staffel-Homepage',
     'admin.menu_manager.type_group' => 'Dropdown',
     'admin.menu_manager.type_custom_link' => 'Eigener Link',
     'admin.cms.editor_toolbar' => 'Formatierung des Seiteninhalts',
@@ -1200,5 +1200,8 @@ return [
     'admin.cms.enable_help' => 'Eigene Website-Seiten und CMS-Navigation ein- oder ausschalten.',
     'admin.cms.homepage_choice' => 'Gewählte Startseite',
     'admin.cms.settings_actions' => 'Speichern oder Seiten verwalten',
-    'admin.cms.settings_actions_help' => 'Diese Optionen vor dem Öffnen der Seitenverwaltung speichern.'
+    'admin.cms.settings_actions_help' => 'Diese Optionen vor dem Öffnen der Seitenverwaltung speichern.',
+    'admin.cms.align_text_left' => 'Text linksbündig',
+    'admin.cms.align_text_center' => 'Text zentrieren',
+    'admin.cms.align_text_right' => 'Text rechtsbündig'
 ];

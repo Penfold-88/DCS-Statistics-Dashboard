@@ -17,6 +17,9 @@ V1.3 remains in development. New implementation entries should include the date 
 - 📄 Split CMS page management into a dedicated page list and editor, added authenticated draft previews, page duplication, publication/navigation/landing badges, and per-page browser title, meta description, and social sharing image fields. *(21 June 2026)*
 - 🧩 Reorganised CMS Settings into separate availability, landing-page, and action cards for clearer administration. *(21 June 2026)*
 - 👁️ Moved authenticated draft rendering to a protected root preview adapter so previews use the same stylesheets, scripts, navigation assets, and media paths as public CMS pages. *(21 June 2026)*
+- 🎨 Corrected the CMS editor style dropdown contrast on native Windows select menus. *(21 June 2026)*
+- ↔️ Added safe left, centre, and right text alignment controls to CMS pages. *(21 June 2026)*
+- 🏠 Renamed the legacy Squadron menu source and default label to Squadron Homepage to distinguish it from squadron statistics. *(21 June 2026)*
 - 🖼️ Added a protected CMS page media library with verified JPG/PNG/WebP uploads, image dimensions and size limits, random filenames, alt text, captions, alignment options, editor insertion, usage-aware deletion, and responsive public rendering. *(21 June 2026)*
 - 🏠 Added a CMS landing-page selector that can make any published page the `index.php` homepage while preserving the Statistics Dashboard as the default and automatic fallback. A separate Statistics Dashboard menu source appears directly after Home by default when a CMS landing page is active. *(21 June 2026)*
 - 🧱 Added the first optional CMS vertical slice: enable/disable control, protected page storage, page administration, publishing, public navigation integration, themed rendering, permissions, audit logging, and backup/restore support. *(20 June 2026)*

@@ -85,6 +85,7 @@ final class CmsHtmlSanitizer
             $width = $tag === 'img' ? (int)$node->getAttribute('width') : 0;
             $height = $tag === 'img' ? (int)$node->getAttribute('height') : 0;
             $figureClass = $tag === 'figure' ? trim($node->getAttribute('class')) : '';
+            $textAlignment = $this->textAlignment($node, $tag);
             foreach (iterator_to_array($node->attributes) as $attribute) {
                 $node->removeAttribute($attribute->name);
             }
@@ -116,6 +117,9 @@ final class CmsHtmlSanitizer
             if ($tag === 'figure' && in_array($figureClass, ['cms-image-left', 'cms-image-center', 'cms-image-right', 'cms-image-wide'], true)) {
                 $node->setAttribute('class', $figureClass);
             }
+            if ($textAlignment !== '') {
+                $node->setAttribute('class', 'cms-text-' . $textAlignment);
+            }
         }
     }
 
@@ -134,5 +138,25 @@ final class CmsHtmlSanitizer
     private function safeImageSource(string $src): bool
     {
         return preg_match('#^/?uploads/pages/[a-f0-9]{32}\.(jpg|png|webp)$#', $src) === 1;
+    }
+
+    private function textAlignment(\DOMElement $node, string $tag): string
+    {
+        if (!in_array($tag, ['p', 'h2', 'h3', 'h4', 'blockquote', 'li'], true)) {
+            return '';
+        }
+        $class = trim($node->getAttribute('class'));
+        if (preg_match('/(?:^|\s)cms-text-(left|center|right)(?:\s|$)/', $class, $match)) {
+            return $match[1];
+        }
+        $align = strtolower(trim($node->getAttribute('align')));
+        if (in_array($align, ['left', 'center', 'right'], true)) {
+            return $align;
+        }
+        $style = strtolower($node->getAttribute('style'));
+        if (preg_match('/(?:^|;)\s*text-align\s*:\s*(left|center|right)\s*(?:;|$)/', $style, $match)) {
+            return $match[1];
+        }
+        return '';
     }
 }

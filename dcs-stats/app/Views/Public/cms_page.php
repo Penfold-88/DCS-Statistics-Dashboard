@@ -23,6 +23,9 @@
 .cms-public-page ul, .cms-public-page ol { margin: 0 0 1em 1.6em; }
 .cms-public-page blockquote { border-left: 4px solid var(--accent_color, #4caf50); color: var(--text_muted, #aaa); margin: 1em 0; padding: .5em 1em; }
 .cms-public-page a { color: var(--link_color, #64b5f6); text-decoration: underline; }
+.cms-public-page .cms-text-left { text-align: left; }
+.cms-public-page .cms-text-center { text-align: center; }
+.cms-public-page .cms-text-right { text-align: right; }
 .cms-public-page figure { box-sizing: border-box; clear: both; margin: 1.5em auto; max-width: 100%; }
 .cms-public-page figure img { border-radius: 10px; display: block; height: auto; max-width: 100%; }
 .cms-public-page figcaption { color: var(--text_muted, #aaa); font-size: .9em; margin-top: .55em; text-align: center; }

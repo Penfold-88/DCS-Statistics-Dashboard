@@ -1116,7 +1116,7 @@ return [
     'admin.menu_manager.type_statistics' => 'Statistics',
     'admin.menu_manager.type_cms_page' => 'CMS Page',
     'admin.menu_manager.type_discord' => 'Discord',
-    'admin.menu_manager.type_squadron' => 'Squadron',
+    'admin.menu_manager.type_squadron' => 'Squadron Homepage',
     'admin.menu_manager.type_group' => 'Dropdown',
     'admin.menu_manager.type_custom_link' => 'Custom Link',
     'admin.cms.editor_toolbar' => 'Page content formatting',
@@ -1201,5 +1201,8 @@ return [
     'admin.cms.enable_help' => 'Turn custom website pages and CMS navigation on or off.',
     'admin.cms.homepage_choice' => 'Selected Landing Page',
     'admin.cms.settings_actions' => 'Save or Manage Pages',
-    'admin.cms.settings_actions_help' => 'Save these options before opening page management.'
+    'admin.cms.settings_actions_help' => 'Save these options before opening page management.',
+    'admin.cms.align_text_left' => 'Align text left',
+    'admin.cms.align_text_center' => 'Centre text',
+    'admin.cms.align_text_right' => 'Align text right'
 ];
