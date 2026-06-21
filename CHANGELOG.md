@@ -14,6 +14,8 @@ V1.3 remains in development. New implementation entries should include the date 
 
 ### ✨ Headline Features
 
+- 🖼️ Added a protected CMS page media library with verified JPG/PNG/WebP uploads, image dimensions and size limits, random filenames, alt text, captions, alignment options, editor insertion, usage-aware deletion, and responsive public rendering. *(21 June 2026)*
+- 🏠 Added a CMS landing-page selector that can make any published page the `index.php` homepage while preserving the Statistics Dashboard as the default and automatic fallback. A separate Statistics Dashboard menu source appears when a CMS landing page is active. *(21 June 2026)*
 - 🧱 Added the first optional CMS vertical slice: enable/disable control, protected page storage, page administration, publishing, public navigation integration, themed rendering, permissions, audit logging, and backup/restore support. *(20 June 2026)*
 - 🗂️ Separated CMS Settings from CMS Pages so enablement has its own admin page and page management appears as a distinct navigation item only when CMS is enabled. *(20 June 2026)*
 - 🧭 Added a standalone card-based Menu Manager that automatically discovers active statistics pages, published CMS pages, Discord, the squadron homepage, and custom links while supporting labels, visibility, drag ordering, new-tab behaviour, and one-level parent/child dropdowns. Existing menu configuration is migrated without resetting user choices. *(20 June 2026)*
@@ -63,6 +65,7 @@ V1.3 remains in development. New implementation entries should include the date 
 
 ### 🛡️ Security Hardening
 
+- 🖼️ Restricted CMS media to verified image MIME signatures, bounded file sizes and dimensions, allowlisted random filenames, CSRF-protected admin actions, non-executable upload storage, sanitised image markup, and deletion checks for images used by saved pages. *(21 June 2026)*
 - 🔐 Changed admin logout and data export actions to POST-only requests protected by CSRF validation. *(19 June 2026)*
 - 🍪 Added Strict SameSite remember-me cookies, automatic Secure cookies on HTTPS, timing-safe token checks, and token rotation after successful restoration. *(19 June 2026)*
 - 📤 Prevented spreadsheet formula injection in CSV exports, restricted full exports to explicit field allowlists, and removed upstream API addresses from browser configuration. *(19 June 2026)*
@@ -84,6 +87,8 @@ V1.3 remains in development. New implementation entries should include the date 
 
 ### 🧹 Compatibility & Cleanup
 
+- 🖼️ Corrected the CMS media API bootstrap for the PHP preview server, made Fileinfo optional, added structured endpoint exception handling, and exposed useful HTTP/network errors instead of a generic browser failure. *(21 June 2026)*
+- 🖼️ Corrected CMS editor image preview paths while retaining portable public-page image paths in saved content. *(21 June 2026)*
 - 🔄 Kept the selected-channel **Install Latest** action available when a manual installation's exact source commit cannot be verified. *(20 June 2026)*
 - 🧭 Stopped fresh installers from assigning an unverified remote commit to manually copied source files, and treat older installer-generated commit metadata as unknown to prevent false “Up to Date” results. *(20 June 2026)*
 - 🗑️ Removed 23 obsolete internal compatibility wrappers after replacing filename-based bootstrap dependencies with framework support loaders. *(19 June 2026)*

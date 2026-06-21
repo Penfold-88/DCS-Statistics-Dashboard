@@ -6,6 +6,7 @@ final class PublicNavigationPolicy
 {
     private const LABELS = [
         'index.php' => ['Home', 'nav.home'],
+        'index.php?view=statistics' => ['Statistics Dashboard', 'nav.statistics_dashboard'],
         'leaderboard.php' => ['Leaderboard', 'nav.leaderboard'],
         'pilot_statistics.php' => ['Pilot Statistics', 'nav.pilot_statistics'],
         'pilot_credits.php' => ['Pilot Credits', 'nav.pilot_credits'],
@@ -15,6 +16,7 @@ final class PublicNavigationPolicy
 
     private const PAGE_FEATURES = [
         'index.php' => 'nav_home',
+        'index.php?view=statistics' => 'nav_home',
         'leaderboard.php' => 'nav_leaderboard',
         'pilot_statistics.php' => 'nav_pilot_statistics',
         'pilot_credits.php' => 'nav_pilot_credits',

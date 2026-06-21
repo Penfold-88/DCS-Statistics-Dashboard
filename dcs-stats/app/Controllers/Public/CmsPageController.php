@@ -5,7 +5,7 @@ namespace DcsStats\Controllers\Public;
 use DcsStats\Core\Installation;
 use DcsStats\Core\View;
 use DcsStats\Services\Cms\CmsPageStore;
-use DcsStats\Services\Cms\CmsHtmlSanitizer;
+use DcsStats\Services\Cms\CmsPageViewService;
 
 final class CmsPageController
 {
@@ -22,13 +22,6 @@ final class CmsPageController
         if ($page === null) {
             http_response_code(404);
         }
-        $contentHtml = '';
-        if ($page !== null) {
-            $content = (string)($page['content'] ?? '');
-            $contentHtml = ($page['content_format'] ?? 'plain_text') === 'rich_html'
-                ? (new CmsHtmlSanitizer())->sanitize($content)
-                : nl2br(\e($content));
-        }
-        View::render('Public/cms_page.php', ['page' => $page, 'contentHtml' => $contentHtml]);
+        View::render('Public/cms_page.php', (new CmsPageViewService())->state($page));
     }
 }

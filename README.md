@@ -34,7 +34,7 @@ Completed V1.3 foundation work includes:
 - Stronger request validation, API proxy controls, rate limits, session handling, exports, uploads, restores, and updates.
 - Compatibility retained for Docker, XAMPP, shared hosting, and existing installations.
 
-The statistics dashboard remains the default homepage. The first CMS milestone now provides optional admin-managed pages with a self-hosted safe rich-text editor and publishing controls. A unified Menu Manager automatically brings active statistics features, published CMS pages, integrations, and custom links into one ordered navigation structure with rename, visibility, new-tab, and parent/child dropdown controls. Content blocks, reusable dashboard widgets, media handling, and advanced page layouts remain planned and should not be treated as available until they appear in the release notes.
+The statistics dashboard remains the default homepage. The first CMS milestone now provides optional admin-managed pages with a self-hosted safe rich-text editor, protected image uploads, publishing controls, and a choice of any published CMS page as the website landing page. A unified Menu Manager automatically brings active statistics features, published CMS pages, integrations, and custom links into one ordered navigation structure with rename, visibility, new-tab, and parent/child dropdown controls. Reusable dashboard widgets and advanced page layouts remain planned and should not be treated as available until they appear in the release notes.
 
 V1.3 deliberately keeps `dcs-stats/` as the web document root. It does not require a Laravel-style `/public` directory, URL rewriting for ordinary operation, or custom `php.ini` settings. The small PHP files in the document root and `site-config/` are stable web entry points that delegate into the framework.
 
@@ -128,6 +128,7 @@ For the implementation history, see [CHANGELOG.md](CHANGELOG.md).
 | ✅ Site Features | Enable/disable dashboard sections and individual feature blocks |
 | 🎨 Theme Management | Presets, colours, gradients, charts, header image, logo, CSS upload, backup/restore |
 | 🧭 Menu Manager | Order and rename public links, hide items, choose new-tab behaviour, and build one-level dropdowns |
+| 📄 CMS Pages | Safe rich-text pages, JPG/PNG/WebP media library, image captions/alignment, publishing, navigation and landing-page selection |
 | 🔗 Custom Links | Add third-party squadron links to the front-end navigation |
 | 🔎 Privacy & SEO | Keywords, description, search engine crawling preference |
 | 🌍 Language | Select site language and upload translation files |

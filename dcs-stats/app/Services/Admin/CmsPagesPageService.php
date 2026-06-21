@@ -4,6 +4,7 @@ namespace DcsStats\Services\Admin;
 
 use DcsStats\Services\Cms\CmsPageStore;
 use DcsStats\Services\Cms\CmsHtmlSanitizer;
+use DcsStats\Services\Cms\CmsMediaService;
 
 final class CmsPagesPageService
 {
@@ -32,6 +33,7 @@ final class CmsPagesPageService
             'messageType' => $messageType,
             'pageTitle' => \dcs_t('admin.cms.pages_title'),
             'pages' => $this->store->all(),
+            'mediaItems' => (new CmsMediaService())->items(),
         ];
     }
 
@@ -49,6 +51,11 @@ final class CmsPagesPageService
             $id = preg_replace('/[^a-f0-9]/', '', (string)($_POST['page_id'] ?? ''));
             if ($id === '' || $this->store->find($id) === null || !$this->store->delete($id)) {
                 return [\dcs_t('admin.cms.delete_failed'), 'error'];
+            }
+            $features = \loadSiteFeatures();
+            if (($features['cms_homepage_page_id'] ?? '') === $id) {
+                $features['cms_homepage_page_id'] = '';
+                \saveSiteFeatures($features);
             }
             \logAdminActivity('CMS_PAGE_DELETE', $_SESSION['admin_id'], 'cms', $id, []);
             return [\dcs_t('admin.cms.page_deleted'), 'success'];

@@ -23,6 +23,7 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
     RewriteRule ^(data|backups|site-config/data|site-config/theme_backups|admin/data|admin/theme_backups)/.*$ - [F,L]
+    RewriteRule ^uploads/pages/.*\.(php|phtml|phar|cgi|pl|py|sh)(\.|$) - [F,L,NC]
 </IfModule>
 
 # Custom error pages (optional)

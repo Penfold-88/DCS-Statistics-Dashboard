@@ -17,6 +17,18 @@ final class MenuItemRegistry
             $this->page('stats-servers', 'Servers', 'servers.php', 'nav.servers', 'nav_servers'),
         ];
 
+        $cmsLandingActive = (new \DcsStats\Services\Cms\CmsLandingPageService())->hasCmsLandingPage();
+        $items[] = [
+            'id' => 'stats-dashboard',
+            'name' => 'Statistics Dashboard',
+            'url' => 'index.php?view=statistics',
+            'enabled' => true,
+            'available' => $cmsLandingActive && \isFeatureEnabled('nav_home'),
+            'type' => 'page',
+            'label_key' => 'nav.statistics_dashboard',
+            'new_tab' => false,
+        ];
+
         $items[] = [
             'id' => 'integration-discord',
             'name' => 'Discord',

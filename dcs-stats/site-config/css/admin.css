@@ -697,3 +697,20 @@ code {
 .cms-editor-content ul, .cms-editor-content ol { margin: 0 0 1em 1.6em; }
 .cms-editor-content blockquote { border-left: 4px solid var(--accent-primary); color: var(--text-muted); margin: 1em 0; padding: .4em 1em; }
 .cms-editor-content a { color: #64b5f6; text-decoration: underline; }
+.cms-editor-content figure { margin: 1.25em 0; max-width: 100%; }
+.cms-editor-content figure img { display: block; height: auto; max-width: 100%; }
+.cms-editor-content figcaption { color: var(--text-muted); font-size: 12px; margin-top: 6px; text-align: center; }
+.cms-media-panel { background: rgba(255,255,255,.025); border: 1px solid var(--border-color); border-radius: 8px; margin-top: 10px; padding: 14px; }
+.cms-media-panel-header, .cms-media-upload-row { align-items: center; display: flex; gap: 12px; justify-content: space-between; }
+.cms-media-panel-header p { margin: 2px 0 0; }
+.cms-media-insert-options { display: grid; gap: 12px; grid-template-columns: 1.4fr 1.4fr 1fr; margin: 14px 0; }
+.cms-media-insert-options label { display: grid; gap: 5px; }
+.cms-media-insert-options label > span { color: var(--text-secondary); font-size: 12px; font-weight: 600; }
+.cms-media-upload-row { justify-content: flex-start; margin-bottom: 14px; }
+.cms-media-upload-row input { max-width: 420px; }
+.cms-media-grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); }
+.cms-media-card { background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 7px; display: grid; gap: 8px; min-width: 0; overflow: hidden; padding: 8px; }
+.cms-media-card > img { aspect-ratio: 16/10; background: var(--bg-primary); border-radius: 4px; height: 100%; object-fit: cover; width: 100%; }
+.cms-media-card small { color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cms-media-card-actions { display: flex; gap: 6px; }
+@media (max-width: 760px) { .cms-media-insert-options { grid-template-columns: 1fr; } .cms-media-upload-row { align-items: stretch; flex-direction: column; } }

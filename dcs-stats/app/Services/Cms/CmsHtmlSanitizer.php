@@ -4,7 +4,7 @@ namespace DcsStats\Services\Cms;
 
 final class CmsHtmlSanitizer
 {
-    private const ALLOWED_TAGS = ['p', 'br', 'h2', 'h3', 'h4', 'strong', 'b', 'em', 'i', 'u', 'ul', 'ol', 'li', 'blockquote', 'a'];
+    private const ALLOWED_TAGS = ['p', 'br', 'h2', 'h3', 'h4', 'strong', 'b', 'em', 'i', 'u', 'ul', 'ol', 'li', 'blockquote', 'a', 'figure', 'figcaption', 'img'];
     private const DROP_WITH_CONTENT = ['script', 'style', 'iframe', 'object', 'embed', 'svg', 'math', 'form', 'input', 'button', 'textarea', 'select', 'option'];
 
     public function sanitize(string $html): string
@@ -80,6 +80,11 @@ final class CmsHtmlSanitizer
         if ($node instanceof \DOMElement) {
             $href = $tag === 'a' ? trim($node->getAttribute('href')) : '';
             $targetBlank = $tag === 'a' && $node->getAttribute('target') === '_blank';
+            $src = $tag === 'img' ? trim($node->getAttribute('src')) : '';
+            $alt = $tag === 'img' ? trim($node->getAttribute('alt')) : '';
+            $width = $tag === 'img' ? (int)$node->getAttribute('width') : 0;
+            $height = $tag === 'img' ? (int)$node->getAttribute('height') : 0;
+            $figureClass = $tag === 'figure' ? trim($node->getAttribute('class')) : '';
             foreach (iterator_to_array($node->attributes) as $attribute) {
                 $node->removeAttribute($attribute->name);
             }
@@ -89,6 +94,27 @@ final class CmsHtmlSanitizer
                     $node->setAttribute('target', '_blank');
                     $node->setAttribute('rel', 'noopener noreferrer');
                 }
+            }
+            if ($tag === 'img') {
+                if (!$this->safeImageSource($src)) {
+                    if ($node->parentNode) {
+                        $node->parentNode->removeChild($node);
+                    }
+                    return;
+                }
+                $node->setAttribute('src', $src);
+                $node->setAttribute('alt', substr($alt, 0, 300));
+                if ($width > 0 && $width <= 6000) {
+                    $node->setAttribute('width', (string)$width);
+                }
+                if ($height > 0 && $height <= 6000) {
+                    $node->setAttribute('height', (string)$height);
+                }
+                $node->setAttribute('loading', 'lazy');
+                $node->setAttribute('decoding', 'async');
+            }
+            if ($tag === 'figure' && in_array($figureClass, ['cms-image-left', 'cms-image-center', 'cms-image-right', 'cms-image-wide'], true)) {
+                $node->setAttribute('class', $figureClass);
             }
         }
     }
@@ -103,5 +129,10 @@ final class CmsHtmlSanitizer
         }
         $scheme = strtolower((string)parse_url($href, PHP_URL_SCHEME));
         return in_array($scheme, ['http', 'https', 'mailto'], true);
+    }
+
+    private function safeImageSource(string $src): bool
+    {
+        return preg_match('#^/?uploads/pages/[a-f0-9]{32}\.(jpg|png|webp)$#', $src) === 1;
     }
 }

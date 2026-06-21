@@ -12,6 +12,7 @@ $storedContent = (string)($editPage['content'] ?? '');
 $editorContent = ($editPage['content_format'] ?? 'plain_text') === 'rich_html'
     ? (new \DcsStats\Services\Cms\CmsHtmlSanitizer())->sanitize($storedContent)
     : ($storedContent !== '' ? '<p>' . nl2br(e($storedContent)) . '</p>' : '<p><br></p>');
+$editorContent = preg_replace('#src="/?uploads/pages/#', 'src="../uploads/pages/', $editorContent);
 ?>
 <div class="admin-wrapper">
     <?php require DCS_APP_PATH . '/Views/Admin/partials/nav.php'; ?>
@@ -53,6 +54,7 @@ $editorContent = ($editPage['content_format'] ?? 'plain_text') === 'rich_html'
                                 <button type="button" data-editor-command="insertUnorderedList" title="<?= e(dcs_t('admin.cms.bullet_list')) ?>" aria-label="<?= e(dcs_t('admin.cms.bullet_list')) ?>">• ≡</button>
                                 <button type="button" data-editor-command="insertOrderedList" title="<?= e(dcs_t('admin.cms.numbered_list')) ?>" aria-label="<?= e(dcs_t('admin.cms.numbered_list')) ?>">1. ≡</button>
                                 <button type="button" data-editor-link title="<?= e(dcs_t('admin.cms.add_link')) ?>" aria-label="<?= e(dcs_t('admin.cms.add_link')) ?>">🔗</button>
+                                <button type="button" data-editor-media title="<?= e(dcs_t('admin.cms.add_image')) ?>" aria-label="<?= e(dcs_t('admin.cms.add_image')) ?>">🖼️</button>
                                 <button type="button" data-editor-command="removeFormat" title="<?= e(dcs_t('admin.cms.clear_formatting')) ?>" aria-label="<?= e(dcs_t('admin.cms.clear_formatting')) ?>">Tx</button>
                                 <span class="cms-editor-divider"></span>
                                 <button type="button" data-editor-command="undo" title="<?= e(dcs_t('admin.cms.undo')) ?>" aria-label="<?= e(dcs_t('admin.cms.undo')) ?>">↶</button>
@@ -60,6 +62,23 @@ $editorContent = ($editPage['content_format'] ?? 'plain_text') === 'rich_html'
                             </div>
                             <div class="cms-editor-content" id="cms_content_editor" contenteditable="true" role="textbox" aria-multiline="true"><?= $editorContent ?></div>
                             <textarea id="cms_content" name="content" maxlength="200000" hidden><?= e($storedContent) ?></textarea>
+                        </div>
+                        <div class="cms-media-panel" data-media-panel hidden>
+                            <div class="cms-media-panel-header">
+                                <div><strong><?= e(dcs_t('admin.cms.media_library')) ?></strong><p class="text-muted"><?= e(dcs_t('admin.cms.media_help')) ?></p></div>
+                                <button type="button" class="btn btn-secondary btn-small" data-media-close><?= e(dcs_t('admin.cms.close')) ?></button>
+                            </div>
+                            <div class="cms-media-insert-options">
+                                <label><span><?= e(dcs_t('admin.cms.image_alt')) ?></span><input class="form-control" type="text" maxlength="300" data-media-alt placeholder="<?= e(dcs_t('admin.cms.image_alt_placeholder')) ?>"></label>
+                                <label><span><?= e(dcs_t('admin.cms.image_caption')) ?></span><input class="form-control" type="text" maxlength="300" data-media-caption></label>
+                                <label><span><?= e(dcs_t('admin.cms.image_alignment')) ?></span><select class="form-control" data-media-alignment><option value="cms-image-center"><?= e(dcs_t('admin.cms.align_center')) ?></option><option value="cms-image-left"><?= e(dcs_t('admin.cms.align_left')) ?></option><option value="cms-image-right"><?= e(dcs_t('admin.cms.align_right')) ?></option><option value="cms-image-wide"><?= e(dcs_t('admin.cms.align_wide')) ?></option></select></label>
+                            </div>
+                            <div class="cms-media-upload-row">
+                                <input class="form-control" type="file" accept="image/jpeg,image/png,image/webp" data-media-file>
+                                <button type="button" class="btn btn-primary" data-media-upload><?= e(dcs_t('admin.cms.upload_image')) ?></button>
+                                <span class="text-muted" data-media-status></span>
+                            </div>
+                            <div class="cms-media-grid" data-media-grid></div>
                         </div>
                         <small class="text-muted"><?= e(dcs_t('admin.cms.editor_help')) ?></small>
                     </div>
@@ -87,6 +106,21 @@ $editorContent = ($editPage['content_format'] ?? 'plain_text') === 'rich_html'
 window.DCS_CMS_EDITOR_TEXT = <?= json_encode([
     'linkPrompt' => dcs_t('admin.cms.link_prompt'),
     'contentRequired' => dcs_t('admin.cms.content_required'),
+    'altRequired' => dcs_t('admin.cms.image_alt_required'),
+    'insertImage' => dcs_t('admin.cms.insert_image'),
+    'deleteImage' => dcs_t('admin.cms.delete_image'),
+    'deleteConfirm' => dcs_t('admin.cms.media_delete_confirm'),
+    'imageInEditor' => dcs_t('admin.cms.media_in_use_editor'),
+    'emptyLibrary' => dcs_t('admin.cms.media_empty'),
+    'uploading' => dcs_t('admin.cms.media_uploading'),
+    'requestFailed' => dcs_t('admin.cms.media_request_failed'),
+    'networkFailed' => dcs_t('admin.cms.media_network_failed'),
+    'tooLarge' => dcs_t('admin.cms.media_proxy_too_large'),
+], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
+window.DCS_CMS_MEDIA = <?= json_encode([
+    'csrfToken' => getCSRFToken(),
+    'endpoint' => 'api/cms_media.php',
+    'items' => array_values($mediaItems),
 ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
 </script>
 <script src="../js/admin/cms-editor.js"></script>

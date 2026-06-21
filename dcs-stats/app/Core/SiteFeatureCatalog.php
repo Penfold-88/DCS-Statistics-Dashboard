@@ -164,6 +164,7 @@ final class SiteFeatureCatalog
             'show_discord_link' => true,
             'show_last_update' => true,
             'cms_enabled' => false,
+            'cms_homepage_page_id' => '',
             'nav_custom_links' => true,
             'show_squadron_homepage' => false,
             'discord_link_url' => $siteConfig['discord_invite_url'] ?? 'https://discord.gg/DNENf6pUNX',

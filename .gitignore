@@ -22,6 +22,9 @@ dcs-stats/custom_theme.css
 dcs-stats/header_custom.css
 dcs-stats/uploads/*
 !dcs-stats/uploads/.gitkeep
+!dcs-stats/uploads/pages/
+dcs-stats/uploads/pages/*
+!dcs-stats/uploads/pages/.gitkeep
 *.pdf
 php-preview.err.log
 php-preview.out.log

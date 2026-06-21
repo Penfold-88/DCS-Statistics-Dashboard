@@ -22,6 +22,17 @@
                 <form method="POST">
                     <?= csrfField() ?>
                     <div class="setting-item"><input type="checkbox" id="cms_enabled" name="cms_enabled" value="1" <?= $cmsEnabled ? 'checked' : '' ?>><label for="cms_enabled"><?= e(dcs_t('admin.nav.enable_cms')) ?></label></div>
+                    <div class="form-group">
+                        <label for="cms_homepage_page_id"><?= e(dcs_t('admin.cms.homepage_label')) ?></label>
+                        <select class="form-control" id="cms_homepage_page_id" name="cms_homepage_page_id">
+                            <option value=""><?= e(dcs_t('admin.cms.homepage_dashboard')) ?></option>
+                            <?php foreach ($publishedPages as $publishedPage): ?>
+                                <option value="<?= e($publishedPage['id']) ?>" <?= $homepagePageId === $publishedPage['id'] ? 'selected' : '' ?>><?= e($publishedPage['title']) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                        <div class="help-text"><?= e(dcs_t('admin.cms.homepage_help')) ?></div>
+                        <?php if ($homepageFallback): ?><div class="alert alert-warning mt-1"><?= e(dcs_t('admin.cms.homepage_fallback')) ?></div><?php endif; ?>
+                    </div>
                     <div class="settings-actions"><button class="btn btn-primary" type="submit"><?= e(dcs_t('admin.cms.save_settings')) ?></button><?php if ($cmsEnabled): ?><a class="btn btn-secondary" href="cms_pages.php"><?= e(dcs_t('admin.cms.manage_pages')) ?></a><?php endif; ?></div>
                 </form>
             </div>
