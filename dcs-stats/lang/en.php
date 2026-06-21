@@ -1196,5 +1196,10 @@ return [
     'admin.cms.seo_title' => 'Browser and Sharing Title',
     'admin.cms.seo_description' => 'Meta Description',
     'admin.cms.seo_image' => 'Social Sharing Image',
-    'admin.cms.seo_image_none' => 'No sharing image'
+    'admin.cms.seo_image_none' => 'No sharing image',
+    'admin.cms.availability' => 'CMS Availability',
+    'admin.cms.enable_help' => 'Turn custom website pages and CMS navigation on or off.',
+    'admin.cms.homepage_choice' => 'Selected Landing Page',
+    'admin.cms.settings_actions' => 'Save or Manage Pages',
+    'admin.cms.settings_actions_help' => 'Save these options before opening page management.'
 ];

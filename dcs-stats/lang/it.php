@@ -505,7 +505,12 @@ $manual = [
     'admin.cms.seo_title' => 'Titolo Browser e Condivisione',
     'admin.cms.seo_description' => 'Meta Descrizione',
     'admin.cms.seo_image' => 'Immagine Social',
-    'admin.cms.seo_image_none' => 'Nessuna immagine social'
+    'admin.cms.seo_image_none' => 'Nessuna immagine social',
+    'admin.cms.availability' => 'Disponibilità CMS',
+    'admin.cms.enable_help' => 'Attiva o disattiva pagine personalizzate e navigazione CMS.',
+    'admin.cms.homepage_choice' => 'Pagina Iniziale Selezionata',
+    'admin.cms.settings_actions' => 'Salva o Gestisci Pagine',
+    'admin.cms.settings_actions_help' => 'Salva queste opzioni prima di aprire la gestione pagine.'
 ];
 
 $glossary = [

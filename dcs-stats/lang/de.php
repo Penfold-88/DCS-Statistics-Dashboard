@@ -1195,5 +1195,10 @@ return [
     'admin.cms.seo_title' => 'Browser- und Freigabetitel',
     'admin.cms.seo_description' => 'Meta-Beschreibung',
     'admin.cms.seo_image' => 'Bild für soziale Netzwerke',
-    'admin.cms.seo_image_none' => 'Kein Freigabebild'
+    'admin.cms.seo_image_none' => 'Kein Freigabebild',
+    'admin.cms.availability' => 'CMS-Verfügbarkeit',
+    'admin.cms.enable_help' => 'Eigene Website-Seiten und CMS-Navigation ein- oder ausschalten.',
+    'admin.cms.homepage_choice' => 'Gewählte Startseite',
+    'admin.cms.settings_actions' => 'Speichern oder Seiten verwalten',
+    'admin.cms.settings_actions_help' => 'Diese Optionen vor dem Öffnen der Seitenverwaltung speichern.'
 ];

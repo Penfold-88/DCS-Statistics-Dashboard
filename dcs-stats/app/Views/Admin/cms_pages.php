@@ -20,7 +20,7 @@
 <?php if (($cmsPage['id'] ?? '') === $landingPageId): ?><span class="cms-badge is-homepage"><?= e(dcs_t('admin.cms.landing_badge')) ?></span><?php endif; ?>
 </div>
 <div class="cms-page-actions">
-<a class="btn btn-secondary btn-small" href="cms_page_preview.php?id=<?= e($cmsPage['id']) ?>" target="_blank" rel="noopener"><?= e(dcs_t('admin.cms.preview')) ?></a>
+<a class="btn btn-secondary btn-small" href="../page_preview.php?id=<?= e($cmsPage['id']) ?>" target="_blank" rel="noopener"><?= e(dcs_t('admin.cms.preview')) ?></a>
 <a class="btn btn-secondary btn-small" href="cms_page_edit.php?edit=<?= e($cmsPage['id']) ?>"><?= e(dcs_t('admin.cms.edit')) ?></a>
 <form method="POST"><?= csrfField() ?><input type="hidden" name="action" value="duplicate_page"><input type="hidden" name="page_id" value="<?= e($cmsPage['id']) ?>"><button class="btn btn-secondary btn-small" type="submit"><?= e(dcs_t('admin.cms.duplicate')) ?></button></form>
 <form method="POST" onsubmit="return confirm(<?= e(json_encode(dcs_t('admin.cms.confirm_delete'))) ?>);">
