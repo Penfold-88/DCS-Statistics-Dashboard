@@ -9,24 +9,33 @@ $showHeaderText = $headerState['showHeaderText'];
 $hasPageBackgroundImage = $headerState['hasPageBackgroundImage'];
 $previewColors = $headerState['previewColors'];
 $frontendDemoMode = $headerState['frontendDemoMode'];
+$pageSeo = isset($pageSeo) && is_array($pageSeo) ? $pageSeo : [];
+$documentTitle = !empty($pageSeo['title']) ? $pageSeo['title'] . ' - ' . $siteName : $siteName . ' Dashboard';
+$metaDescription = !empty($pageSeo['description']) ? $pageSeo['description'] : ($siteMetadata['description'] ?? '');
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo htmlspecialchars(dcs_default_language(), ENT_QUOTES); ?>">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <?php if (!empty($siteMetadata['description'])): ?>
-  <meta name="description" content="<?php echo htmlspecialchars($siteMetadata['description'], ENT_QUOTES); ?>" />
+  <?php if ($metaDescription !== ''): ?>
+  <meta name="description" content="<?php echo htmlspecialchars($metaDescription, ENT_QUOTES); ?>" />
   <?php endif; ?>
   <?php if (!empty($siteMetadata['keywords'])): ?>
   <meta name="keywords" content="<?php echo htmlspecialchars($siteMetadata['keywords'], ENT_QUOTES); ?>" />
   <?php endif; ?>
-  <?php if (!empty($siteMetadata['block_search_engines'])): ?>
+  <?php if (!empty($isPreview) || !empty($siteMetadata['block_search_engines'])): ?>
   <meta name="robots" content="noindex,nofollow,noarchive" />
   <?php else: ?>
   <meta name="robots" content="index,follow" />
   <?php endif; ?>
-  <title><?php echo htmlspecialchars($siteName); ?> Dashboard</title>
+  <title><?php echo htmlspecialchars($documentTitle); ?></title>
+  <?php if (!empty($pageSeo)): ?>
+  <meta property="og:title" content="<?= e($pageSeo['title'] ?? '') ?>" />
+  <?php if ($metaDescription !== ''): ?><meta property="og:description" content="<?= e($metaDescription) ?>" /><?php endif; ?>
+  <?php if (!empty($pageSeo['image'])): ?><meta property="og:image" content="<?= e(url($pageSeo['image'])) ?>" /><?php endif; ?>
+  <meta property="og:type" content="website" />
+  <?php endif; ?>
   <link rel="stylesheet" href="<?php echo htmlspecialchars(assetUrl('styles.php')); ?>" />
   <link rel="stylesheet" href="<?php echo htmlspecialchars(assetUrl('styles-mobile.css')); ?>" />
   <link rel="stylesheet" href="<?php echo htmlspecialchars(assetUrl('theme_overrides.css')); ?>" />

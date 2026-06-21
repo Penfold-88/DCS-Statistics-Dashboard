@@ -488,7 +488,24 @@ $manual = [
     'admin.cms.media_delete_failed' => 'Impossibile eliminare l’immagine.',
     'admin.cms.media_deleted' => 'Immagine eliminata.',
     'admin.cms.media_unauthorized' => 'Accesso amministratore richiesto.',
-    'admin.cms.media_forbidden' => 'Non hai il permesso di gestire i media delle pagine.'
+    'admin.cms.media_forbidden' => 'Non hai il permesso di gestire i media delle pagine.',
+    'admin.cms.pages_help' => 'Crea, visualizza e gestisci le pagine del sito.',
+    'admin.cms.add_new_page' => 'Aggiungi Pagina',
+    'admin.cms.updated' => 'Aggiornata',
+    'admin.cms.navigation_badge' => 'Navigazione',
+    'admin.cms.landing_badge' => 'Pagina Iniziale',
+    'admin.cms.preview' => 'Anteprima',
+    'admin.cms.preview_banner' => 'Anteprima privata della bozza — visibile solo agli amministratori.',
+    'admin.cms.duplicate' => 'Duplica',
+    'admin.cms.duplicate_failed' => 'Impossibile duplicare la pagina.',
+    'admin.cms.page_duplicated' => 'Pagina duplicata come bozza.',
+    'admin.cms.copy_suffix' => '(Copia)',
+    'admin.cms.back_to_pages' => 'Torna alle Pagine',
+    'admin.cms.seo_settings' => 'Ricerca e Condivisione',
+    'admin.cms.seo_title' => 'Titolo Browser e Condivisione',
+    'admin.cms.seo_description' => 'Meta Descrizione',
+    'admin.cms.seo_image' => 'Immagine Social',
+    'admin.cms.seo_image_none' => 'Nessuna immagine social'
 ];
 
 $glossary = [

@@ -128,7 +128,7 @@ For the implementation history, see [CHANGELOG.md](CHANGELOG.md).
 | ✅ Site Features | Enable/disable dashboard sections and individual feature blocks |
 | 🎨 Theme Management | Presets, colours, gradients, charts, header image, logo, CSS upload, backup/restore |
 | 🧭 Menu Manager | Order and rename public links, hide items, choose new-tab behaviour, and build one-level dropdowns |
-| 📄 CMS Pages | Safe rich-text pages, JPG/PNG/WebP media library, image captions/alignment, publishing, navigation and landing-page selection |
+| 📄 CMS Pages | Dedicated page list/editor, draft previews, duplication, safe rich text, media library, publishing, landing-page selection and per-page SEO/social fields |
 | 🔗 Custom Links | Add third-party squadron links to the front-end navigation |
 | 🔎 Privacy & SEO | Keywords, description, search engine crawling preference |
 | 🌍 Language | Select site language and upload translation files |

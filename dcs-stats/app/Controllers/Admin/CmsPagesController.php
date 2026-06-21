@@ -14,6 +14,10 @@ final class CmsPagesController extends AdminPageController
             header('Location: cms_settings.php');
             exit;
         }
+        if (!empty($_GET['edit'])) {
+            header('Location: cms_page_edit.php?edit=' . rawurlencode((string)$_GET['edit']));
+            exit;
+        }
         $this->render('cms_pages.php', (new CmsPagesPageService())->state($currentAdmin));
     }
 }

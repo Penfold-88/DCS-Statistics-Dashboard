@@ -1178,5 +1178,22 @@ return [
     'admin.cms.media_delete_failed' => 'Das Bild konnte nicht gelöscht werden.',
     'admin.cms.media_deleted' => 'Bild gelöscht.',
     'admin.cms.media_unauthorized' => 'Admin-Anmeldung erforderlich.',
-    'admin.cms.media_forbidden' => 'Keine Berechtigung zur Verwaltung von Seitenmedien.'
+    'admin.cms.media_forbidden' => 'Keine Berechtigung zur Verwaltung von Seitenmedien.',
+    'admin.cms.pages_help' => 'Website-Seiten erstellen, ansehen und verwalten.',
+    'admin.cms.add_new_page' => 'Neue Seite',
+    'admin.cms.updated' => 'Aktualisiert',
+    'admin.cms.navigation_badge' => 'Navigation',
+    'admin.cms.landing_badge' => 'Startseite',
+    'admin.cms.preview' => 'Vorschau',
+    'admin.cms.preview_banner' => 'Private Entwurfsvorschau — nur Administratoren können diese Seite sehen.',
+    'admin.cms.duplicate' => 'Duplizieren',
+    'admin.cms.duplicate_failed' => 'Die Seite konnte nicht dupliziert werden.',
+    'admin.cms.page_duplicated' => 'Seite als Entwurf dupliziert.',
+    'admin.cms.copy_suffix' => '(Kopie)',
+    'admin.cms.back_to_pages' => 'Zurück zu Seiten',
+    'admin.cms.seo_settings' => 'Suche & Teilen',
+    'admin.cms.seo_title' => 'Browser- und Freigabetitel',
+    'admin.cms.seo_description' => 'Meta-Beschreibung',
+    'admin.cms.seo_image' => 'Bild für soziale Netzwerke',
+    'admin.cms.seo_image_none' => 'Kein Freigabebild'
 ];

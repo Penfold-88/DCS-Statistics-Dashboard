@@ -1176,5 +1176,22 @@
     "admin.cms.media_delete_failed": "The image could not be deleted.",
     "admin.cms.media_deleted": "Image deleted.",
     "admin.cms.media_unauthorized": "Admin login required.",
-    "admin.cms.media_forbidden": "You do not have permission to manage page media."
+    "admin.cms.media_forbidden": "You do not have permission to manage page media.",
+    "admin.cms.pages_help": "Create, preview and manage your website pages.",
+    "admin.cms.add_new_page": "Add New Page",
+    "admin.cms.updated": "Updated",
+    "admin.cms.navigation_badge": "Navigation",
+    "admin.cms.landing_badge": "Landing Page",
+    "admin.cms.preview": "Preview",
+    "admin.cms.preview_banner": "Private draft preview — only administrators can see this page.",
+    "admin.cms.duplicate": "Duplicate",
+    "admin.cms.duplicate_failed": "The page could not be duplicated.",
+    "admin.cms.page_duplicated": "Page duplicated as a draft.",
+    "admin.cms.copy_suffix": "(Copy)",
+    "admin.cms.back_to_pages": "Back to Pages",
+    "admin.cms.seo_settings": "Search & Sharing",
+    "admin.cms.seo_title": "Browser and Sharing Title",
+    "admin.cms.seo_description": "Meta Description",
+    "admin.cms.seo_image": "Social Sharing Image",
+    "admin.cms.seo_image_none": "No sharing image"
 }

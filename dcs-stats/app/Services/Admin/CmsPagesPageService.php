@@ -3,18 +3,14 @@
 namespace DcsStats\Services\Admin;
 
 use DcsStats\Services\Cms\CmsPageStore;
-use DcsStats\Services\Cms\CmsHtmlSanitizer;
-use DcsStats\Services\Cms\CmsMediaService;
 
 final class CmsPagesPageService
 {
     private CmsPageStore $store;
-    private CmsHtmlSanitizer $sanitizer;
 
-    public function __construct(?CmsPageStore $store = null, ?CmsHtmlSanitizer $sanitizer = null)
+    public function __construct(?CmsPageStore $store = null)
     {
         $this->store = $store ?? new CmsPageStore();
-        $this->sanitizer = $sanitizer ?? new CmsHtmlSanitizer();
     }
 
     public function state(array $currentAdmin): array
@@ -25,15 +21,12 @@ final class CmsPagesPageService
             [$message, $messageType] = $this->handlePost($currentAdmin);
         }
 
-        $editPage = !empty($_GET['edit']) ? $this->store->find((string)$_GET['edit']) : null;
-
         return [
-            'editPage' => $editPage,
+            'landingPageId' => (string)\getFeatureValue('cms_homepage_page_id', ''),
             'message' => $message,
             'messageType' => $messageType,
             'pageTitle' => \dcs_t('admin.cms.pages_title'),
             'pages' => $this->store->all(),
-            'mediaItems' => (new CmsMediaService())->items(),
         ];
     }
 
@@ -61,43 +54,40 @@ final class CmsPagesPageService
             return [\dcs_t('admin.cms.page_deleted'), 'success'];
         }
 
-        if ($action !== 'save_page') {
+        if ($action !== 'duplicate_page') {
             return [\dcs_t('admin.cms.invalid_action'), 'error'];
         }
-
         $id = preg_replace('/[^a-f0-9]/', '', (string)($_POST['page_id'] ?? ''));
-        $existing = $id !== '' ? $this->store->find($id) : null;
-        $title = trim((string)($_POST['title'] ?? ''));
-        $slug = strtolower(trim((string)($_POST['slug'] ?? '')));
-        $slug = trim((string)preg_replace('/[^a-z0-9-]+/', '-', $slug), '-');
-        $content = $this->sanitizer->sanitize((string)($_POST['content'] ?? ''));
-        $plainContent = trim(html_entity_decode(strip_tags($content), ENT_QUOTES | ENT_HTML5, 'UTF-8'));
-
-        if ($title === '' || strlen($title) > 240 || $slug === '' || strlen($slug) > 80 || $plainContent === '' || strlen($content) > 200000) {
-            return [\dcs_t('admin.cms.invalid_page'), 'error'];
+        $source = $id !== '' ? $this->store->find($id) : null;
+        if (!$source) {
+            return [\dcs_t('admin.cms.duplicate_failed'), 'error'];
         }
-        foreach ($this->store->all() as $page) {
-            if (($page['slug'] ?? '') === $slug && ($page['id'] ?? '') !== $id) {
-                return [\dcs_t('admin.cms.slug_exists'), 'error'];
-            }
-        }
-
         $now = gmdate('c');
-        $page = [
-            'id' => $existing['id'] ?? bin2hex(random_bytes(8)),
-            'title' => $title,
-            'slug' => $slug,
-            'content' => $content,
-            'content_format' => 'rich_html',
-            'published' => isset($_POST['published']),
-            'show_in_navigation' => isset($_POST['show_in_navigation']),
-            'created_at' => $existing['created_at'] ?? $now,
-            'updated_at' => $now,
-        ];
-        if (!$this->store->save($page)) {
-            return [\dcs_t('admin.cms.save_failed'), 'error'];
+        $copy = $source;
+        $copy['id'] = bin2hex(random_bytes(8));
+        $suffix = ' ' . \dcs_t('admin.cms.copy_suffix');
+        $copy['title'] = substr(trim((string)$source['title']), 0, 120 - strlen($suffix)) . $suffix;
+        $copy['slug'] = $this->uniqueCopySlug((string)$source['slug']);
+        $copy['published'] = false;
+        $copy['show_in_navigation'] = false;
+        $copy['created_at'] = $now;
+        $copy['updated_at'] = $now;
+        if (!$this->store->save($copy)) {
+            return [\dcs_t('admin.cms.duplicate_failed'), 'error'];
         }
-        \logAdminActivity('CMS_PAGE_SAVE', $_SESSION['admin_id'], 'cms', $page['id'], ['slug' => $slug, 'published' => $page['published']]);
-        return [\dcs_t('admin.cms.page_saved'), 'success'];
+        \logAdminActivity('CMS_PAGE_DUPLICATE', $_SESSION['admin_id'], 'cms', $copy['id'], ['source_id' => $id]);
+        return [\dcs_t('admin.cms.page_duplicated'), 'success'];
+    }
+
+    private function uniqueCopySlug(string $slug): string
+    {
+        $used = array_column($this->store->all(), 'slug');
+        $base = substr(trim($slug, '-') . '-copy', 0, 75);
+        $candidate = $base;
+        $counter = 2;
+        while (in_array($candidate, $used, true)) {
+            $candidate = substr($base, 0, 74) . '-' . $counter++;
+        }
+        return $candidate;
     }
 }

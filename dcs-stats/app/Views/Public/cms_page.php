@@ -1,6 +1,8 @@
 <?php include DCS_APP_PATH . '/Views/Layout/header.php'; ?>
 <?php include DCS_APP_PATH . '/Views/Layout/nav.php'; ?>
 
+<?php if (!empty($isPreview)): ?><div class="cms-preview-banner"><?= e(dcs_t('admin.cms.preview_banner')) ?></div><?php endif; ?>
+
 <main>
     <div class="dashboard-header">
         <h1><?= e($page['title'] ?? dcs_t('cms.not_found')) ?></h1>
@@ -30,6 +32,7 @@
 .cms-public-page .cms-image-wide { width: 100%; }
 .cms-public-page .cms-image-wide img { width: 100%; }
 @media (max-width: 700px) { .cms-public-page .cms-image-left, .cms-public-page .cms-image-right { float: none; margin: 1.5em auto; max-width: 100%; } }
+.cms-preview-banner { background: #ff9800; color: #111; font-weight: 700; padding: 10px; text-align: center; }
 </style>
 
 <?php include DCS_APP_PATH . '/Views/Layout/footer.php'; ?>

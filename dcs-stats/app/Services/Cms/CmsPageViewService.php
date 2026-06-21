@@ -20,6 +20,14 @@ final class CmsPageViewService
                 ? $this->sanitizer->sanitize($content)
                 : nl2br(\e($content));
         }
-        return ['page' => $page, 'contentHtml' => $contentHtml];
+        return [
+            'page' => $page,
+            'contentHtml' => $contentHtml,
+            'pageSeo' => $page ? [
+                'title' => trim((string)($page['seo_title'] ?? '')) ?: (string)($page['title'] ?? ''),
+                'description' => trim((string)($page['seo_description'] ?? '')),
+                'image' => trim((string)($page['seo_image'] ?? '')),
+            ] : [],
+        ];
     }
 }

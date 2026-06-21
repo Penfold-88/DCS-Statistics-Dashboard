@@ -96,7 +96,7 @@ final class CmsMediaService
         }
         $path = (string)($item['path'] ?? '');
         foreach ($this->pageStore->all() as $page) {
-            if ($path !== '' && strpos((string)($page['content'] ?? ''), $path) !== false) {
+            if ($path !== '' && (strpos((string)($page['content'] ?? ''), $path) !== false || ($page['seo_image'] ?? '') === $path)) {
                 return ['success' => false, 'message' => \dcs_t('admin.cms.media_in_use'), 'in_use' => true];
             }
         }

@@ -31,6 +31,8 @@ final class AdminNavigationService
     private const CMS_PAGES = [
         'cms_settings.php',
         'cms_pages.php',
+        'cms_page_edit.php',
+        'cms_page_preview.php',
     ];
 
     private const NAV_PERMISSIONS = [

@@ -714,3 +714,23 @@ code {
 .cms-media-card small { color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .cms-media-card-actions { display: flex; gap: 6px; }
 @media (max-width: 760px) { .cms-media-insert-options { grid-template-columns: 1fr; } .cms-media-upload-row { align-items: stretch; flex-direction: column; } }
+.cms-pages-header, .cms-editor-page-header { align-items: center; display: flex; gap: 16px; justify-content: space-between; }
+.cms-pages-header p { margin: 4px 0 0; }
+.cms-page-list { display: grid; gap: 10px; margin-top: 18px; }
+.cms-page-row { align-items: center; background: rgba(255,255,255,.025); border: 1px solid var(--border-color); border-radius: 8px; display: grid; gap: 14px; grid-template-columns: minmax(220px,1fr) auto auto; padding: 14px; }
+.cms-page-summary { display: grid; gap: 3px; min-width: 0; }
+.cms-page-summary code { color: var(--text-muted); }
+.cms-page-badges, .cms-page-actions, .cms-publish-options { align-items: center; display: flex; flex-wrap: wrap; gap: 7px; }
+.cms-page-actions form { margin: 0; }
+.cms-badge { border-radius: 999px; font-size: 11px; font-weight: 700; padding: 4px 9px; }
+.cms-badge.is-published { background: rgba(76,175,80,.15); color: #7ed982; }
+.cms-badge.is-draft { background: rgba(255,152,0,.15); color: #ffb74d; }
+.cms-badge.is-navigation { background: rgba(33,150,243,.15); color: #8ac9ff; }
+.cms-badge.is-homepage { background: rgba(156,39,176,.18); color: #dc8deb; }
+.cms-empty-state { padding: 40px; text-align: center; }
+.cms-editor-details-grid, .cms-seo-fields { display: grid; gap: 14px; grid-template-columns: 1fr 1fr; }
+.cms-seo-panel { border: 1px solid var(--border-color); border-radius: 7px; margin: 18px 0; padding: 12px; }
+.cms-seo-panel summary { cursor: pointer; font-weight: 700; margin-bottom: 14px; }
+.cms-seo-fields .form-group:last-child { grid-column: 1 / -1; }
+.cms-publish-options { margin: 16px 0; }
+@media (max-width: 900px) { .cms-page-row { grid-template-columns: 1fr; } .cms-editor-details-grid, .cms-seo-fields { grid-template-columns: 1fr; } .cms-seo-fields .form-group:last-child { grid-column: auto; } }
