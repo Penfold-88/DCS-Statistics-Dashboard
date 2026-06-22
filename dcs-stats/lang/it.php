@@ -353,8 +353,8 @@ $manual = [
     'admin.cms.edit' => 'Modifica',
     'admin.cms.delete' => 'Elimina',
     'admin.cms.confirm_delete' => 'Eliminare questa pagina?',
-    'admin.permissions.manage_pages' => 'Gestisci pagine CMS',
-    'admin.permissions.manage_pages_desc' => 'Abilita il CMS e crea, modifica, pubblica o elimina pagine CMS',
+    'admin.permissions.manage_pages' => 'Gestisci CMS',
+    'admin.permissions.manage_pages_desc' => 'Gestisci impostazioni CMS, pagine, gallerie, media, anteprime, widget e incorporamenti',
     'cms.not_found' => 'Pagina non trovata',
     'cms.not_found_message' => 'Questa pagina non è disponibile o non è stata pubblicata.',
 

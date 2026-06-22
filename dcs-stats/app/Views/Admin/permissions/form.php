@@ -48,7 +48,7 @@
 
     <div class="permissions-grid" id="mgmt-permissions">
         <?php
-        $mgmtPerms = ['manage_api', 'manage_features', 'manage_themes', 'manage_discord', 'manage_squadrons', 'manage_maintenance', 'manage_updates', 'change_settings'];
+        $mgmtPerms = ['manage_api', 'manage_features', 'manage_themes', 'manage_pages', 'manage_discord', 'manage_squadrons', 'manage_maintenance', 'manage_updates', 'change_settings'];
         foreach ($mgmtPerms as $key):
             if (isset($lsoPermissions[$key])):
                 $perm = $lsoPermissions[$key];
