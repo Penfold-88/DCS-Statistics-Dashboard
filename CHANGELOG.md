@@ -14,6 +14,7 @@ V1.3 remains in development. New implementation entries should include the date 
 
 ### ✨ Headline Features
 
+- 🟢 Added the first reusable CMS data widget: a lazy-loading Server Status block available from the editor’s Widgets dropdown, with live All/individual-server targeting and support for multiple independently targeted blocks per page. Added a dedicated Embeds admin page with matching server selection, responsive iframe preview, and one-click code copying for external websites. *(22 June 2026)*
 - 📄 Split CMS page management into a dedicated page list and editor, added authenticated draft previews, page duplication, publication/navigation/landing badges, and per-page browser title, meta description, and social sharing image fields. *(21 June 2026)*
 - 🧩 Reorganised CMS Settings into separate availability, landing-page, and action cards for clearer administration. *(21 June 2026)*
 - 👁️ Moved authenticated draft rendering to a protected root preview adapter so previews use the same stylesheets, scripts, navigation assets, and media paths as public CMS pages. *(21 June 2026)*

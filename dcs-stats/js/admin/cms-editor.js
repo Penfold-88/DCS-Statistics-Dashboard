@@ -8,6 +8,7 @@
     const format = wrapper.querySelector('[data-editor-format]');
     const text = window.DCS_CMS_EDITOR_TEXT || {};
     const mediaConfig = window.DCS_CMS_MEDIA || {};
+    const widgetConfig = window.DCS_CMS_WIDGET_CONFIG || {};
     let mediaItems = Array.isArray(mediaConfig.items) ? mediaConfig.items : [];
     let savedRange = null;
 
@@ -74,6 +75,132 @@
     const altInput = document.querySelector('[data-media-alt]');
     const captionInput = document.querySelector('[data-media-caption]');
     const alignmentInput = document.querySelector('[data-media-alignment]');
+
+    function insertNodeAtSelection(node) {
+        focusEditor();
+        restoreSelection();
+        const selection = window.getSelection();
+        if (selection && selection.rangeCount && editor.contains(selection.getRangeAt(0).commonAncestorContainer)) {
+            const range = selection.getRangeAt(0);
+            range.deleteContents();
+            range.insertNode(node);
+            range.setStartAfter(node);
+            range.collapse(true);
+            selection.removeAllRanges();
+            selection.addRange(range);
+        } else {
+            editor.appendChild(node);
+        }
+        sync();
+    }
+
+    const widgetSelect = wrapper.querySelector('[data-editor-widget]');
+    let serverNamesPromise = null;
+
+    function widgetLabel(server) {
+        return `${text.serverStatus || 'Server Status'} — ${server || text.allServers || 'All Servers'}`;
+    }
+
+    function decorateWidget(widget) {
+        widget.replaceChildren();
+        widget.contentEditable = 'false';
+        const server = widget.dataset.server || '';
+        widget.setAttribute('aria-label', widgetLabel(server));
+        const label = document.createElement('strong');
+        label.textContent = widgetLabel(server);
+        const controls = document.createElement('span');
+        controls.className = 'cms-widget-controls';
+        const serverSelect = document.createElement('select');
+        serverSelect.className = 'cms-editor-format';
+        serverSelect.setAttribute('aria-label', text.selectServer || 'Server');
+        const allServers = document.createElement('option');
+        allServers.value = '';
+        allServers.textContent = text.allServers || 'All Servers';
+        serverSelect.appendChild(allServers);
+        const save = document.createElement('button');
+        save.type = 'button';
+        save.className = 'cms-widget-save';
+        save.textContent = text.saveWidget || 'Save Widget';
+        const saved = document.createElement('small');
+        saved.className = 'cms-widget-saved';
+        const remove = document.createElement('button');
+        remove.type = 'button';
+        remove.className = 'cms-widget-remove';
+        remove.textContent = text.removeWidget || 'Remove widget';
+        save.addEventListener('mousedown', event => event.preventDefault());
+        save.addEventListener('click', () => {
+            if (serverSelect.value) {
+                widget.dataset.server = serverSelect.value;
+            } else {
+                delete widget.dataset.server;
+            }
+            label.textContent = widgetLabel(serverSelect.value);
+            widget.setAttribute('aria-label', widgetLabel(serverSelect.value));
+            saved.textContent = text.widgetSaving || 'Saving…';
+            sync();
+            if (!form.checkValidity()) {
+                saved.textContent = '';
+                form.reportValidity();
+                return;
+            }
+            form.requestSubmit();
+        });
+        remove.addEventListener('mousedown', event => event.preventDefault());
+        remove.addEventListener('click', () => {
+            widget.remove();
+            sync();
+            focusEditor();
+        });
+        serverSelect.addEventListener('change', () => { saved.textContent = ''; });
+        controls.append(serverSelect, save, remove, saved);
+        widget.append(label, controls);
+        loadWidgetServers().then(names => {
+            if (names === null) {
+                const unavailable = document.createElement('option');
+                unavailable.disabled = true;
+                unavailable.textContent = text.serversUnavailable || 'Servers unavailable';
+                serverSelect.appendChild(unavailable);
+                return;
+            }
+            if (server && !names.includes(server)) names.unshift(server);
+            names.forEach(name => {
+                const option = document.createElement('option');
+                option.value = name;
+                option.textContent = name;
+                serverSelect.appendChild(option);
+            });
+            serverSelect.value = server;
+        });
+    }
+
+    editor.querySelectorAll('.cms-widget-server-status').forEach(decorateWidget);
+
+    function loadWidgetServers() {
+        if (serverNamesPromise) return serverNamesPromise;
+        serverNamesPromise = (async () => {
+            try {
+                const response = await fetch(widgetConfig.serversEndpoint || '../get_servers.php', {credentials: 'same-origin'});
+                if (!response.ok) throw new Error('Request failed');
+                const result = await response.json();
+                const data = result && Object.prototype.hasOwnProperty.call(result, 'data') ? result.data : result;
+                const servers = Array.isArray(data) ? data : (data && Array.isArray(data.servers) ? data.servers : []);
+                return [...new Set(servers.map(item => String(item.name || item.server_name || '').trim()).filter(Boolean))];
+            } catch (error) {
+                return null;
+            }
+        })();
+        return serverNamesPromise;
+    }
+
+    widgetSelect.addEventListener('mousedown', rememberSelection);
+    widgetSelect.addEventListener('change', () => {
+        if (widgetSelect.value !== 'server-status') return;
+        widgetSelect.value = '';
+        const marker = document.createElement('div');
+        marker.className = 'cms-widget-server-status';
+        decorateWidget(marker);
+        insertNodeAtSelection(marker);
+    });
 
     function setMediaStatus(message, isError) {
         mediaStatus.textContent = message || '';
@@ -232,7 +359,7 @@
     });
     form.addEventListener('submit', event => {
         sync();
-        if (!editor.textContent.trim()) {
+        if (!editor.textContent.trim() && !editor.querySelector('.cms-widget-server-status')) {
             event.preventDefault();
             window.alert(text.contentRequired || 'Page content is required.');
             focusEditor();

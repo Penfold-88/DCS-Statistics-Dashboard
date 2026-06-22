@@ -38,4 +38,18 @@
 .cms-preview-banner { background: #ff9800; color: #111; font-weight: 700; padding: 10px; text-align: center; }
 </style>
 
+<?php if (!empty($hasServerStatusWidget)): ?>
+<link rel="stylesheet" href="<?= e(assetUrl('css/widgets/server-status.css')) ?>">
+<script>window.DCS_SERVER_STATUS_WIDGET=<?= json_encode([
+    'loading' => dcs_t('widget.server_status.loading'),
+    'unavailable' => dcs_t('widget.server_status.unavailable'),
+    'unknownServer' => dcs_t('servers.unknown_server'),
+    'unknown' => dcs_t('servers.unknown'),
+    'mission' => dcs_t('servers.mission'),
+    'theatre' => dcs_t('servers.theatre'),
+    'players' => dcs_t('widget.server_status.players'),
+], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;</script>
+<script src="<?= e(assetUrl('js/widgets/server-status.js')) ?>"></script>
+<?php endif; ?>
+
 <?php include DCS_APP_PATH . '/Views/Layout/footer.php'; ?>

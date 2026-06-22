@@ -53,7 +53,8 @@ final class CmsPageEditorService
         $seoTitle = trim((string)($_POST['seo_title'] ?? ''));
         $seoDescription = trim((string)($_POST['seo_description'] ?? ''));
         $seoImage = trim((string)($_POST['seo_image'] ?? ''));
-        if ($title === '' || strlen($title) > 120 || $slug === '' || strlen($slug) > 80 || $plainContent === '' || strlen($content) > 200000 || strlen($seoTitle) > 70 || strlen($seoDescription) > 160) {
+        $hasWidget = preg_match('#<div class="cms-widget-server-status"(?: data-server=(["\']).*?\1)?></div>#', $content) === 1;
+        if ($title === '' || strlen($title) > 120 || $slug === '' || strlen($slug) > 80 || ($plainContent === '' && !$hasWidget) || strlen($content) > 200000 || strlen($seoTitle) > 70 || strlen($seoDescription) > 160) {
             return [\dcs_t('admin.cms.invalid_page'), 'error', null];
         }
         foreach ($this->store->all() as $page) {

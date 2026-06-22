@@ -11,7 +11,7 @@ final class CmsPageController
 {
     public function show(): void
     {
-        \DcsStats\Core\SupportBootstrap::siteFeatures();
+        \DcsStats\Core\SupportBootstrap::load('siteFeatures', 'language');
         if (!Installation::isConfigured()) {
             Installation::redirectToInstaller();
         }

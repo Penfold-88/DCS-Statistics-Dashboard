@@ -4,7 +4,7 @@ namespace DcsStats\Services\Cms;
 
 final class CmsHtmlSanitizer
 {
-    private const ALLOWED_TAGS = ['p', 'br', 'h2', 'h3', 'h4', 'strong', 'b', 'em', 'i', 'u', 'ul', 'ol', 'li', 'blockquote', 'a', 'figure', 'figcaption', 'img'];
+    private const ALLOWED_TAGS = ['p', 'br', 'h2', 'h3', 'h4', 'strong', 'b', 'em', 'i', 'u', 'ul', 'ol', 'li', 'blockquote', 'a', 'figure', 'figcaption', 'img', 'div'];
     private const DROP_WITH_CONTENT = ['script', 'style', 'iframe', 'object', 'embed', 'svg', 'math', 'form', 'input', 'button', 'textarea', 'select', 'option'];
 
     public function sanitize(string $html): string
@@ -85,6 +85,8 @@ final class CmsHtmlSanitizer
             $width = $tag === 'img' ? (int)$node->getAttribute('width') : 0;
             $height = $tag === 'img' ? (int)$node->getAttribute('height') : 0;
             $figureClass = $tag === 'figure' ? trim($node->getAttribute('class')) : '';
+            $widgetClass = $tag === 'div' ? trim($node->getAttribute('class')) : '';
+            $widgetServer = $tag === 'div' ? trim($node->getAttribute('data-server')) : '';
             $textAlignment = $this->textAlignment($node, $tag);
             foreach (iterator_to_array($node->attributes) as $attribute) {
                 $node->removeAttribute($attribute->name);
@@ -116,6 +118,26 @@ final class CmsHtmlSanitizer
             }
             if ($tag === 'figure' && in_array($figureClass, ['cms-image-left', 'cms-image-center', 'cms-image-right', 'cms-image-wide'], true)) {
                 $node->setAttribute('class', $figureClass);
+            }
+            if ($tag === 'div') {
+                if ($widgetClass !== 'cms-widget-server-status') {
+                    $parent = $node->parentNode;
+                    if ($parent) {
+                        while ($node->firstChild) {
+                            $parent->insertBefore($node->firstChild, $node);
+                        }
+                        $parent->removeChild($node);
+                    }
+                    return;
+                }
+                while ($node->firstChild) {
+                    $node->removeChild($node->firstChild);
+                }
+                $node->setAttribute('class', 'cms-widget-server-status');
+                $widgetServer = (string)preg_replace('/[\x00-\x1F\x7F]/u', '', $widgetServer);
+                if ($widgetServer !== '') {
+                    $node->setAttribute('data-server', substr($widgetServer, 0, 120));
+                }
             }
             if ($textAlignment !== '') {
                 $node->setAttribute('class', 'cms-text-' . $textAlignment);

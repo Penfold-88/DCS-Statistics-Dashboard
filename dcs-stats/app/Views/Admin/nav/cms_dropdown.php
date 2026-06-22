@@ -9,6 +9,7 @@
         <li><a href="cms_settings.php" <?= $currentPage === 'cms_settings.php' ? 'class="active"' : '' ?>><span class="nav-icon">⚙️</span><?= e(dcs_t('admin.cms.settings')) ?></a></li>
         <?php if ($adminNavState['cmsEnabled']): ?>
         <li><a href="cms_pages.php" <?= $currentPage === 'cms_pages.php' ? 'class="active"' : '' ?>><span class="nav-icon">📄</span><?= e(dcs_t('admin.cms.pages_title')) ?></a></li>
+        <li><a href="cms_embeds.php" <?= $currentPage === 'cms_embeds.php' ? 'class="active"' : '' ?>><span class="nav-icon">&lt;/&gt;</span><?= e(dcs_t('admin.cms.embeds')) ?></a></li>
         <?php endif; ?>
     </ul>
 </li>
