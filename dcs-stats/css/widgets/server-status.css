@@ -1,5 +1,6 @@
 .dcs-server-status-widget { box-sizing: border-box; display: block; inline-size: 100%; margin: 1.5rem 0; max-inline-size: 100%; min-width: 0; }
-.dcs-server-widget-card { background: var(--card_color, #14283c); background: color-mix(in srgb, var(--card_color, #14283c) 92%, #fff 8%); border: 1px solid var(--border_color, rgba(255,255,255,.15)); border-radius: 12px; box-sizing: border-box; color: var(--text_color, #fff); max-width: 100%; min-width: 0; overflow: hidden; padding: clamp(14px, 3vw, 24px); }
+.dcs-server-widget-card { background: linear-gradient(135deg,var(--card_color,#14283c) 0%,var(--card_alt_color,var(--card_color,#14283c)) 100%); border: 1px solid color-mix(in srgb,var(--accent_color,#4caf50) 36%,transparent); border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,.3); box-sizing: border-box; color: var(--text_color, #fff); max-width: 100%; min-width: 0; overflow: hidden; padding: clamp(14px, 3vw, 24px); transition: border-color .3s ease,box-shadow .3s ease; }
+.dcs-server-widget-card:hover { border-color: var(--accent_color,#4caf50); box-shadow: 0 12px 40px color-mix(in srgb,var(--accent_color,#4caf50) 25%,transparent); }
 .dcs-server-widget-card + .dcs-server-widget-card { margin-top: 14px; }
 .dcs-server-widget-card * { box-sizing: border-box; min-width: 0; }
 .dcs-server-widget-card header { align-items: flex-start; display: flex; gap: 12px; justify-content: space-between; }
