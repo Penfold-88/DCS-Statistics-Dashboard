@@ -1,13 +1,15 @@
-.dcs-server-status-widget { display: grid; gap: 14px; margin: 1.5rem 0; }
-.dcs-server-widget-card { background: var(--card_color, #14283c); background: color-mix(in srgb, var(--card_color, #14283c) 92%, #fff 8%); border: 1px solid var(--border_color, rgba(255,255,255,.15)); border-radius: 12px; box-sizing: border-box; color: var(--text_color, #fff); padding: clamp(16px, 3vw, 24px); }
-.dcs-server-widget-card header { align-items: center; display: flex; gap: 12px; justify-content: space-between; }
-.dcs-server-widget-card h3 { color: inherit; font-size: clamp(1rem, 2.2vw, 1.25rem); margin: 0; }
-.dcs-server-widget-status { background: rgba(158,158,158,.2); border: 1px solid currentColor; border-radius: 999px; color: #ddd; flex: 0 0 auto; font-size: .75rem; font-weight: 700; padding: 4px 9px; text-transform: uppercase; }
+.dcs-server-status-widget { box-sizing: border-box; display: block; inline-size: 100%; margin: 1.5rem 0; max-inline-size: 100%; min-width: 0; }
+.dcs-server-widget-card { background: var(--card_color, #14283c); background: color-mix(in srgb, var(--card_color, #14283c) 92%, #fff 8%); border: 1px solid var(--border_color, rgba(255,255,255,.15)); border-radius: 12px; box-sizing: border-box; color: var(--text_color, #fff); max-width: 100%; min-width: 0; overflow: hidden; padding: clamp(14px, 3vw, 24px); }
+.dcs-server-widget-card + .dcs-server-widget-card { margin-top: 14px; }
+.dcs-server-widget-card * { box-sizing: border-box; min-width: 0; }
+.dcs-server-widget-card header { align-items: flex-start; display: flex; gap: 12px; justify-content: space-between; }
+.dcs-server-widget-card h3 { color: inherit; flex: 1 1 auto; font-size: clamp(1rem, 2.2vw, 1.25rem); margin: 0; overflow-wrap: anywhere; }
+.dcs-server-widget-status { background: rgba(158,158,158,.2); border: 1px solid currentColor; border-radius: 999px; color: #ddd; flex: 0 0 auto; font-size: .75rem; font-weight: 700; padding: 4px 9px; text-transform: uppercase; white-space: nowrap; }
 .dcs-server-widget-status.status-online, .dcs-server-widget-status.status-running { color: #71db78; }
 .dcs-server-widget-status.status-offline, .dcs-server-widget-status.status-stopped, .dcs-server-widget-status.status-shutdown { color: #ff7b72; }
-.dcs-server-widget-metrics { display: grid; gap: 10px; grid-template-columns: 2fr 1fr 1fr; margin-top: 18px; }
+.dcs-server-widget-metrics { display: grid; gap: clamp(6px,1.5vw,12px); grid-template-columns: minmax(0,2.5fr) minmax(0,1fr) minmax(44px,.7fr); margin-top: 18px; max-width: 100%; min-width: 0; width: 100%; }
 .dcs-server-widget-metrics > div { min-width: 0; }
 .dcs-server-widget-metrics span { color: var(--text_muted, #aaa); display: block; font-size: .75rem; margin-bottom: 3px; text-transform: uppercase; }
-.dcs-server-widget-metrics strong { display: block; overflow-wrap: anywhere; }
+.dcs-server-widget-metrics strong { display: block; font-size: clamp(.78rem,2.2vw,1rem); overflow-wrap: anywhere; }
 .dcs-widget-loading, .dcs-widget-unavailable { color: var(--text_muted, #aaa); margin: 0; padding: 18px; text-align: center; }
-@media (max-width: 620px) { .dcs-server-widget-metrics { grid-template-columns: 1fr; } }
+@media (max-width: 480px) { .dcs-server-widget-status { font-size: .65rem; padding: 3px 7px; } .dcs-server-widget-metrics span { font-size: .62rem; } .dcs-server-widget-metrics strong { font-size: .7rem; letter-spacing: -.01em; } }

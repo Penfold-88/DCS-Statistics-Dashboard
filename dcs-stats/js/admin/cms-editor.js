@@ -82,8 +82,18 @@
         const selection = window.getSelection();
         if (selection && selection.rangeCount && editor.contains(selection.getRangeAt(0).commonAncestorContainer)) {
             const range = selection.getRangeAt(0);
+            let insertionPoint = range.commonAncestorContainer.nodeType === Node.ELEMENT_NODE
+                ? range.commonAncestorContainer
+                : range.commonAncestorContainer.parentElement;
+            while (insertionPoint && insertionPoint.parentElement && insertionPoint.parentElement !== editor) {
+                insertionPoint = insertionPoint.parentElement;
+            }
             range.deleteContents();
-            range.insertNode(node);
+            if (insertionPoint && insertionPoint.parentElement === editor) {
+                insertionPoint.after(node);
+            } else {
+                range.insertNode(node);
+            }
             range.setStartAfter(node);
             range.collapse(true);
             selection.removeAllRanges();
@@ -96,6 +106,7 @@
 
     const widgetSelect = wrapper.querySelector('[data-editor-widget]');
     const galleries = Array.isArray(widgetConfig.galleries) ? widgetConfig.galleries : [];
+    const dashboardWidgets = widgetConfig.dashboardWidgets || {};
     let serverNamesPromise = null;
 
     function widgetLabel(server) {
@@ -230,8 +241,119 @@
         widget.append(label, controls);
     }
 
+    function decorateDashboardWidget(widget) {
+        widget.replaceChildren();
+        widget.contentEditable = 'false';
+        const type = widget.dataset.widget || 'summary';
+        const title = dashboardWidgets[type] || type;
+        const controls = document.createElement('span');
+        controls.className = 'cms-widget-controls';
+        const label = document.createElement('strong');
+        const serverSelect = document.createElement('select');
+        serverSelect.className = 'cms-editor-format';
+        serverSelect.setAttribute('aria-label', text.selectServer || 'Server');
+        const all = document.createElement('option');
+        all.value = '';
+        all.textContent = text.allServers || 'All Servers';
+        serverSelect.appendChild(all);
+        const savedServer = widget.dataset.server || '';
+        const updateLabel = () => {
+            label.textContent = `${title} — ${serverSelect.value || text.allServers || 'All Servers'}`;
+            widget.setAttribute('aria-label', label.textContent);
+        };
+        loadWidgetServers().then(names => {
+            if (names === null) {
+                const unavailable = document.createElement('option');
+                unavailable.disabled = true;
+                unavailable.textContent = text.serversUnavailable || 'Servers unavailable';
+                serverSelect.appendChild(unavailable);
+                return;
+            }
+            const available = [...names];
+            if (savedServer && !available.includes(savedServer)) available.unshift(savedServer);
+            available.forEach(name => {
+                const option = document.createElement('option');
+                option.value = name;
+                option.textContent = name;
+                serverSelect.appendChild(option);
+            });
+            serverSelect.value = savedServer;
+            updateLabel();
+        });
+        serverSelect.value = savedServer;
+        updateLabel();
+        controls.appendChild(serverSelect);
+
+        let metricSelect = null;
+        if (type === 'top-pilots') {
+            metricSelect = document.createElement('select');
+            metricSelect.className = 'cms-editor-format';
+            metricSelect.setAttribute('aria-label', text.metric || 'Metric');
+            Object.entries(widgetConfig.metrics || {}).forEach(([value, labelText]) => {
+                const option = document.createElement('option');
+                option.value = value;
+                option.textContent = labelText;
+                metricSelect.appendChild(option);
+            });
+            metricSelect.value = widget.dataset.metric || 'kills';
+            controls.appendChild(metricSelect);
+        }
+
+        let limitSelect = null;
+        if (['top-pilots', 'top-squadrons', 'player-activity', 'top-theatres', 'top-missions', 'top-modules'].includes(type)) {
+            limitSelect = document.createElement('select');
+            limitSelect.className = 'cms-editor-format cms-widget-limit';
+            limitSelect.setAttribute('aria-label', text.limit || 'Items');
+            [3, 5, 10].forEach(value => {
+                const option = document.createElement('option');
+                option.value = String(value);
+                option.textContent = String(value);
+                limitSelect.appendChild(option);
+            });
+            limitSelect.value = widget.dataset.limit || '5';
+            controls.appendChild(limitSelect);
+        }
+
+        const save = document.createElement('button');
+        save.type = 'button';
+        save.className = 'cms-widget-save';
+        save.textContent = text.saveWidget || 'Save Widget';
+        const remove = document.createElement('button');
+        remove.type = 'button';
+        remove.className = 'cms-widget-remove';
+        remove.textContent = text.removeWidget || 'Remove Widget';
+        const saving = document.createElement('small');
+        saving.className = 'cms-widget-saved';
+        save.addEventListener('mousedown', event => event.preventDefault());
+        save.addEventListener('click', () => {
+            if (serverSelect.value) widget.dataset.server = serverSelect.value;
+            else delete widget.dataset.server;
+            if (metricSelect) widget.dataset.metric = metricSelect.value;
+            if (limitSelect) widget.dataset.limit = limitSelect.value;
+            updateLabel();
+            saving.textContent = text.widgetSaving || 'Saving page…';
+            sync();
+            if (!form.checkValidity()) {
+                saving.textContent = '';
+                form.reportValidity();
+                return;
+            }
+            form.requestSubmit();
+        });
+        remove.addEventListener('mousedown', event => event.preventDefault());
+        remove.addEventListener('click', () => {
+            widget.remove();
+            sync();
+            focusEditor();
+        });
+        [serverSelect, metricSelect, limitSelect].filter(Boolean).forEach(select => select.addEventListener('change', () => { saving.textContent = ''; }));
+        controls.append(save, remove, saving);
+        widget.append(label, controls);
+    }
+
     editor.querySelectorAll('.cms-widget-server-status').forEach(decorateWidget);
     editor.querySelectorAll('.cms-widget-image-gallery').forEach(decorateGalleryWidget);
+    editor.querySelectorAll('.cms-widget-dashboard').forEach(decorateDashboardWidget);
 
     function loadWidgetServers() {
         if (serverNamesPromise) return serverNamesPromise;
@@ -262,6 +384,12 @@
             marker.className = 'cms-widget-image-gallery';
             marker.dataset.gallery = galleries[0].id;
             decorateGalleryWidget(marker);
+        } else if (type.startsWith('dashboard:')) {
+            marker.className = 'cms-widget-dashboard';
+            marker.dataset.widget = type.slice('dashboard:'.length);
+            if (marker.dataset.widget === 'top-pilots') marker.dataset.metric = 'kills';
+            if (['top-pilots', 'top-squadrons', 'player-activity', 'top-theatres', 'top-missions', 'top-modules'].includes(marker.dataset.widget)) marker.dataset.limit = '5';
+            decorateDashboardWidget(marker);
         } else {
             return;
         }
@@ -323,23 +451,9 @@
             figcaption.textContent = caption;
             figure.appendChild(figcaption);
         }
-        focusEditor();
-        restoreSelection();
-        const selection = window.getSelection();
-        if (selection && selection.rangeCount) {
-            const range = selection.getRangeAt(0);
-            range.deleteContents();
-            range.insertNode(figure);
-            range.setStartAfter(figure);
-            range.collapse(true);
-            selection.removeAllRanges();
-            selection.addRange(range);
-        } else {
-            editor.appendChild(figure);
-        }
+        insertNodeAtSelection(figure);
         altInput.value = '';
         captionInput.value = '';
-        sync();
         mediaPanel.hidden = true;
     }
 

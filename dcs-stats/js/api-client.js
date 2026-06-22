@@ -342,7 +342,7 @@ class DCSStatsAPI {
         };
     }
 
-    async getTopPilots(metric = 'kills', limit = 5) {
+    async getTopPilots(metric = 'kills', limit = 5, options = {}) {
         const config = await this.loadConfig();
 
         if (!config.use_api) {
@@ -377,12 +377,12 @@ class DCSStatsAPI {
         };
 
         try {
-            const leaderboard = await this.makeAPICall(`/leaderboard?what=${encodeURIComponent(what)}&limit=${Number(limit) || 5}`);
+            const leaderboard = await this.makeAPICall(`/leaderboard?what=${encodeURIComponent(what)}&limit=${Number(limit) || 5}`, options);
             const items = Array.isArray(leaderboard) ? leaderboard : (leaderboard.items || []);
             return items.map(normalize);
         } catch (error) {
             if (what === 'kills') throw error;
-            const fallback = await this.makeAPICall('/leaderboard?what=kills&limit=100');
+            const fallback = await this.makeAPICall('/leaderboard?what=kills&limit=100', options);
             const items = Array.isArray(fallback) ? fallback : (fallback.items || []);
             return items.map(normalize)
                 .sort((a, b) => valueForMetric(b) - valueForMetric(a))
@@ -426,13 +426,13 @@ class DCSStatsAPI {
 
         const [stats, attendance, topkills] = await Promise.all([
             options.loadServerStats !== false
-                ? this.makeAPICall('/serverstats', { data: {} }).catch(() => ({}))
+                ? this.makeAPICall('/serverstats', { ...options, data: {} }).catch(() => ({}))
                 : Promise.resolve({}),
             options.loadAttendance !== false
                 ? this.getServerAttendance(options).catch(() => ({}))
                 : Promise.resolve({}),
             options.loadTopPilots !== false
-                ? this.getTopPilots('kills', 5).catch(() => [])
+                ? this.getTopPilots('kills', 5, options).catch(() => [])
                 : Promise.resolve([])
         ]);
 

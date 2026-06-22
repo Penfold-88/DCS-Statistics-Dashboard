@@ -573,7 +573,24 @@ $manual = [
     'admin.cms.gallery_batch_help' => 'Seleziona fino a 20 immagini JPG, PNG o WebP. Il limite di 2 MB vale per ogni immagine.',
     'admin.cms.gallery_batch_limit' => 'Seleziona non più di 20 immagini alla volta.',
     'admin.cms.gallery_images_uploaded' => '{count} immagini caricate.',
-    'admin.cms.gallery_images_partially_uploaded' => 'Caricate {uploaded} immagini su {total}. {error}'
+    'admin.cms.gallery_images_partially_uploaded' => 'Caricate {uploaded} immagini su {total}. {error}',
+    'admin.cms.widget_group_general' => 'Widget Generali',
+    'admin.cms.widget_group_statistics' => 'Widget Statistiche',
+    'admin.cms.widget_summary' => 'Statistiche Riepilogative',
+    'admin.cms.widget_attendance' => 'Presenza Giocatori',
+    'admin.cms.widget_top_pilots' => 'Migliori Piloti',
+    'admin.cms.widget_combat_stats' => 'Statistiche di Combattimento',
+    'admin.cms.widget_top_squadrons' => 'Migliori Squadriglie',
+    'admin.cms.widget_player_activity' => 'Attività Giocatori',
+    'admin.cms.widget_top_theatres' => 'Teatri Principali',
+    'admin.cms.widget_top_missions' => 'Missioni Principali',
+    'admin.cms.widget_top_modules' => 'Moduli Principali',
+    'admin.cms.widget_metric' => 'Metrica classifica',
+    'admin.cms.widget_limit' => 'Numero di elementi',
+    'widget.dashboard.loading' => 'Caricamento statistiche…',
+    'widget.dashboard.unavailable' => 'Le statistiche non sono al momento disponibili.',
+    'admin.cms.embed_type' => 'Tipo di Embed',
+    'admin.cms.widget_embed_help' => 'Configura e copia un widget live responsivo per un altro sito.'
 ];
 
 $glossary = [

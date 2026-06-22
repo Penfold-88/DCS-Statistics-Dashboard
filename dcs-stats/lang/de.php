@@ -1263,5 +1263,22 @@ return [
     'admin.cms.gallery_batch_help' => 'Bis zu 20 JPG-, PNG- oder WebP-Bilder auswählen. Die Grenze von 2 MB gilt pro Bild.',
     'admin.cms.gallery_batch_limit' => 'Maximal 20 Bilder gleichzeitig auswählen.',
     'admin.cms.gallery_images_uploaded' => '{count} Bilder hochgeladen.',
-    'admin.cms.gallery_images_partially_uploaded' => '{uploaded} von {total} Bildern hochgeladen. {error}'
+    'admin.cms.gallery_images_partially_uploaded' => '{uploaded} von {total} Bildern hochgeladen. {error}',
+    'admin.cms.widget_group_general' => 'Allgemeine Widgets',
+    'admin.cms.widget_group_statistics' => 'Statistik-Widgets',
+    'admin.cms.widget_summary' => 'Zusammenfassende Statistiken',
+    'admin.cms.widget_attendance' => 'Spieleraktivität',
+    'admin.cms.widget_top_pilots' => 'Top-Piloten',
+    'admin.cms.widget_combat_stats' => 'Kampfstatistiken',
+    'admin.cms.widget_top_squadrons' => 'Top-Staffeln',
+    'admin.cms.widget_player_activity' => 'Spieleraktivität im Zeitverlauf',
+    'admin.cms.widget_top_theatres' => 'Top-Karten',
+    'admin.cms.widget_top_missions' => 'Top-Missionen',
+    'admin.cms.widget_top_modules' => 'Top-Module',
+    'admin.cms.widget_metric' => 'Ranglistenmetrik',
+    'admin.cms.widget_limit' => 'Anzahl der Einträge',
+    'widget.dashboard.loading' => 'Statistiken werden geladen…',
+    'widget.dashboard.unavailable' => 'Statistiken sind derzeit nicht verfügbar.',
+    'admin.cms.embed_type' => 'Einbettungstyp',
+    'admin.cms.widget_embed_help' => 'Ein responsives Live-Widget für eine andere Website konfigurieren und kopieren.'
 ];

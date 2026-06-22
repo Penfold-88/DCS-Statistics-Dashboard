@@ -36,12 +36,31 @@ final class CmsHtmlSanitizer
         foreach (iterator_to_array($root->childNodes) as $child) {
             $this->cleanNode($child);
         }
+        $this->moveWidgetsOutsideFigures($root);
 
         $safe = '';
         foreach ($root->childNodes as $child) {
             $safe .= $document->saveHTML($child);
         }
         return trim($safe);
+    }
+
+    private function moveWidgetsOutsideFigures(\DOMElement $root): void
+    {
+        $xpath = new \DOMXPath($root->ownerDocument);
+        $widgets = $xpath->query('.//figure//div[contains(concat(" ", normalize-space(@class), " "), " cms-widget-")]', $root);
+        if ($widgets === false) {
+            return;
+        }
+        foreach (iterator_to_array($widgets) as $widget) {
+            $figure = $widget->parentNode;
+            while ($figure && strtolower($figure->nodeName) !== 'figure') {
+                $figure = $figure->parentNode;
+            }
+            if ($figure && $figure->parentNode) {
+                $figure->parentNode->insertBefore($widget, $figure);
+            }
+        }
     }
 
     private function cleanNode(\DOMNode $node): void
@@ -88,6 +107,9 @@ final class CmsHtmlSanitizer
             $widgetClass = $tag === 'div' ? trim($node->getAttribute('class')) : '';
             $widgetServer = $tag === 'div' ? trim($node->getAttribute('data-server')) : '';
             $galleryId = $tag === 'div' ? trim($node->getAttribute('data-gallery')) : '';
+            $dashboardWidget = $tag === 'div' ? trim($node->getAttribute('data-widget')) : '';
+            $widgetMetric = $tag === 'div' ? trim($node->getAttribute('data-metric')) : '';
+            $widgetLimit = $tag === 'div' ? (int)$node->getAttribute('data-limit') : 0;
             $textAlignment = $this->textAlignment($node, $tag);
             foreach (iterator_to_array($node->attributes) as $attribute) {
                 $node->removeAttribute($attribute->name);
@@ -121,7 +143,7 @@ final class CmsHtmlSanitizer
                 $node->setAttribute('class', $figureClass);
             }
             if ($tag === 'div') {
-                if (!in_array($widgetClass, ['cms-widget-server-status', 'cms-widget-image-gallery'], true)) {
+                if (!in_array($widgetClass, ['cms-widget-server-status', 'cms-widget-image-gallery', 'cms-widget-dashboard'], true)) {
                     $parent = $node->parentNode;
                     if ($parent) {
                         while ($node->firstChild) {
@@ -138,8 +160,14 @@ final class CmsHtmlSanitizer
                 if ($widgetClass === 'cms-widget-server-status') {
                     $widgetServer = (string)preg_replace('/[\x00-\x1F\x7F]/u', '', $widgetServer);
                     if ($widgetServer !== '') $node->setAttribute('data-server', substr($widgetServer, 0, 120));
-                } elseif (preg_match('/^[a-f0-9]{16}$/', $galleryId)) {
+                } elseif ($widgetClass === 'cms-widget-image-gallery' && preg_match('/^[a-f0-9]{16}$/', $galleryId)) {
                     $node->setAttribute('data-gallery', $galleryId);
+                } elseif ($widgetClass === 'cms-widget-dashboard' && in_array($dashboardWidget, ['summary', 'attendance', 'top-pilots', 'combat-stats', 'top-squadrons', 'player-activity', 'top-theatres', 'top-missions', 'top-modules'], true)) {
+                    $node->setAttribute('data-widget', $dashboardWidget);
+                    $widgetServer = (string)preg_replace('/[\x00-\x1F\x7F]/u', '', $widgetServer);
+                    if ($widgetServer !== '') $node->setAttribute('data-server', substr($widgetServer, 0, 120));
+                    if ($dashboardWidget === 'top-pilots') $node->setAttribute('data-metric', in_array($widgetMetric, ['kills', 'kdr', 'kdr_pvp'], true) ? $widgetMetric : 'kills');
+                    if (in_array($dashboardWidget, ['top-pilots', 'top-squadrons', 'top-theatres', 'top-missions', 'top-modules', 'player-activity'], true)) $node->setAttribute('data-limit', in_array($widgetLimit, [3, 5, 10], true) ? (string)$widgetLimit : '5');
                 } else {
                     if ($node->parentNode) $node->parentNode->removeChild($node);
                     return;

@@ -16,6 +16,7 @@ final class CmsPageViewService
         $contentHtml = '';
         $hasServerStatusWidget = false;
         $hasImageGallery = false;
+        $hasDashboardWidgets = false;
         if ($page !== null) {
             $content = (string)($page['content'] ?? '');
             $contentHtml = ($page['content_format'] ?? 'plain_text') === 'rich_html'
@@ -43,12 +44,22 @@ final class CmsPageViewService
             } else {
                 $contentHtml = (string)preg_replace($galleryPattern, '', $contentHtml);
             }
+            $dashboardPattern = '#<div class="cms-widget-dashboard" data-widget="([a-z-]+)"(?: data-server=(["\'])(.*?)\2)?(?: data-metric="([a-z_]+)")?(?: data-limit="(\d+)")?></div>#';
+            $hasDashboardWidgets = preg_match($dashboardPattern, $contentHtml) === 1;
+            if ($hasDashboardWidgets) {
+                $loading = \e(\dcs_t('widget.dashboard.loading'));
+                $contentHtml = (string)preg_replace_callback($dashboardPattern, static function (array $match) use ($loading): string {
+                    $server = html_entity_decode((string)($match[3] ?? ''), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                    return '<section class="cms-dashboard-widget" data-dashboard-widget="' . \e((string)$match[1]) . '" data-server-filter="' . \e($server) . '" data-metric="' . \e((string)($match[4] ?? '')) . '" data-limit="' . (int)($match[5] ?? 5) . '" aria-live="polite"><p class="cms-widget-message">' . $loading . '</p></section>';
+                }, $contentHtml);
+            }
         }
         return [
             'page' => $page,
             'contentHtml' => $contentHtml,
             'hasServerStatusWidget' => $hasServerStatusWidget,
             'hasImageGallery' => $hasImageGallery,
+            'hasDashboardWidgets' => $hasDashboardWidgets,
             'pageSeo' => $page ? [
                 'title' => trim((string)($page['seo_title'] ?? '')) ?: (string)($page['title'] ?? ''),
                 'description' => trim((string)($page['seo_description'] ?? '')),

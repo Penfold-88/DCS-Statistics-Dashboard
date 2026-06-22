@@ -5,23 +5,43 @@
     const serverSelect = document.querySelector('[data-embed-server]');
     const preview = document.querySelector('[data-embed-preview]');
     const openEmbed = document.querySelector('[data-open-embed]');
+    const typeSelect = document.querySelector('[data-embed-type]');
+    const metricSelect = document.querySelector('[data-embed-metric]');
+    const limitSelect = document.querySelector('[data-embed-limit]');
+    const metricRow = document.querySelector('[data-embed-metric-row]');
+    const limitRow = document.querySelector('[data-embed-limit-row]');
+    const heading = document.querySelector('[data-embed-heading]');
     const config = window.DCS_EMBED_CONFIG || {};
-    if (!button || !code || !status || !serverSelect || !preview || !openEmbed) return;
+    if (!button || !code || !status || !serverSelect || !preview || !openEmbed || !typeSelect || !metricSelect || !limitSelect || !metricRow || !limitRow || !heading) return;
 
     function attribute(value) {
         return String(value).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     }
 
     function updateEmbed() {
-        const url = new URL(config.embedUrl, window.location.href);
+        const type = typeSelect.value;
+        const isServerStatus = type === 'server-status';
+        const supportsMetric = type === 'top-pilots';
+        const supportsLimit = ['top-pilots', 'top-squadrons', 'player-activity', 'top-theatres', 'top-missions', 'top-modules'].includes(type);
+        metricRow.hidden = !supportsMetric;
+        limitRow.hidden = !supportsLimit;
+        const url = new URL(isServerStatus ? config.embedUrl : config.dashboardEmbedUrl, window.location.href);
+        if (!isServerStatus) url.searchParams.set('widget', type);
         if (serverSelect.value) {
             url.searchParams.set('server', serverSelect.value);
         } else {
             url.searchParams.delete('server');
         }
+        if (supportsMetric) url.searchParams.set('metric', metricSelect.value);
+        if (supportsLimit) url.searchParams.set('limit', limitSelect.value);
+        const title = (config.types || {})[type] || 'DCS Statistics';
+        const height = isServerStatus ? 360 : (['summary', 'attendance'].includes(type) ? 230 : (type === 'combat-stats' ? 190 : 390));
         preview.src = url.href;
+        preview.title = title;
+        preview.style.height = `${height}px`;
         openEmbed.href = url.href;
-        code.value = `<iframe src="${attribute(url.href)}" title="${attribute(config.title || 'Server Status')}" width="100%" height="360" loading="lazy" style="border:0" referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
+        heading.textContent = title;
+        code.value = `<iframe src="${attribute(url.href)}" title="${attribute(title)}" width="100%" height="${height}" loading="lazy" style="border:0" referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
         status.textContent = '';
     }
 
@@ -48,6 +68,9 @@
     }
 
     serverSelect.addEventListener('change', updateEmbed);
+    typeSelect.addEventListener('change', updateEmbed);
+    metricSelect.addEventListener('change', updateEmbed);
+    limitSelect.addEventListener('change', updateEmbed);
 
     button.addEventListener('click', async () => {
         let copied = false;

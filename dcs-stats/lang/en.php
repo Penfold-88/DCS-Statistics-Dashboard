@@ -1264,5 +1264,22 @@ return [
     'admin.cms.gallery_batch_help' => 'Select up to 20 JPG, PNG or WebP images. The 2 MB limit applies to each image.',
     'admin.cms.gallery_batch_limit' => 'Select no more than 20 images at once.',
     'admin.cms.gallery_images_uploaded' => 'Uploaded {count} images.',
-    'admin.cms.gallery_images_partially_uploaded' => 'Uploaded {uploaded} of {total} images. {error}'
+    'admin.cms.gallery_images_partially_uploaded' => 'Uploaded {uploaded} of {total} images. {error}',
+    'admin.cms.widget_group_general' => 'General Widgets',
+    'admin.cms.widget_group_statistics' => 'Statistics Widgets',
+    'admin.cms.widget_summary' => 'Summary Statistics',
+    'admin.cms.widget_attendance' => 'Player Attendance',
+    'admin.cms.widget_top_pilots' => 'Top Pilots',
+    'admin.cms.widget_combat_stats' => 'Combat Statistics',
+    'admin.cms.widget_top_squadrons' => 'Top Squadrons',
+    'admin.cms.widget_player_activity' => 'Player Activity',
+    'admin.cms.widget_top_theatres' => 'Top Theatres',
+    'admin.cms.widget_top_missions' => 'Top Missions',
+    'admin.cms.widget_top_modules' => 'Top Modules',
+    'admin.cms.widget_metric' => 'Ranking metric',
+    'admin.cms.widget_limit' => 'Number of items',
+    'widget.dashboard.loading' => 'Loading statistics…',
+    'widget.dashboard.unavailable' => 'Statistics are currently unavailable.',
+    'admin.cms.embed_type' => 'Embed Type',
+    'admin.cms.widget_embed_help' => 'Configure and copy a responsive live widget for another website.'
 ];
