@@ -52,4 +52,10 @@
 <script src="<?= e(assetUrl('js/widgets/server-status.js')) ?>"></script>
 <?php endif; ?>
 
+<?php if (!empty($hasImageGallery)): ?>
+<link rel="stylesheet" href="<?= e(assetUrl('css/widgets/image-gallery.css')) ?>">
+<script>window.DCS_GALLERY_TEXT=<?= json_encode(['close'=>dcs_t('cms.gallery.close')], JSON_UNESCAPED_UNICODE) ?>;</script>
+<script src="<?= e(assetUrl('js/widgets/image-gallery.js')) ?>"></script>
+<?php endif; ?>
+
 <?php include DCS_APP_PATH . '/Views/Layout/footer.php'; ?>

@@ -10,6 +10,7 @@
         <?php if ($adminNavState['cmsEnabled']): ?>
         <li><a href="cms_pages.php" <?= $currentPage === 'cms_pages.php' ? 'class="active"' : '' ?>><span class="nav-icon">📄</span><?= e(dcs_t('admin.cms.pages_title')) ?></a></li>
         <li><a href="cms_embeds.php" <?= $currentPage === 'cms_embeds.php' ? 'class="active"' : '' ?>><span class="nav-icon">&lt;/&gt;</span><?= e(dcs_t('admin.cms.embeds')) ?></a></li>
+        <li><a href="cms_galleries.php" <?= $currentPage === 'cms_galleries.php' ? 'class="active"' : '' ?>><span class="nav-icon">🖼️</span><?= e(dcs_t('admin.cms.galleries')) ?></a></li>
         <?php endif; ?>
     </ul>
 </li>

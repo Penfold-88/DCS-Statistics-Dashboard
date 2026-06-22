@@ -34,6 +34,7 @@ final class AdminNavigationService
         'cms_page_edit.php',
         'cms_page_preview.php',
         'cms_embeds.php',
+        'cms_galleries.php',
     ];
 
     private const NAV_PERMISSIONS = [

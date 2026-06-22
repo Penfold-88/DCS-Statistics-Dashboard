@@ -14,6 +14,7 @@ V1.3 remains in development. New implementation entries should include the date 
 
 ### ✨ Headline Features
 
+- 🖼️ Added optional locally hosted CMS image galleries with their own Galleries administration page, reusable named collections, media-library uploads for up to 20 images at once, alt text and captions, page-editor widgets, a large featured image with a horizontally scrolling thumbnail selector, accessible lightbox viewing, usage-aware deletion, and settings backup support. *(22 June 2026)*
 - 🟢 Added the first reusable CMS data widget: a lazy-loading Server Status block available from the editor’s Widgets dropdown, with live All/individual-server targeting and support for multiple independently targeted blocks per page. Added a dedicated Embeds admin page with matching server selection, responsive iframe preview, and one-click code copying for external websites. *(22 June 2026)*
 - 📄 Split CMS page management into a dedicated page list and editor, added authenticated draft previews, page duplication, publication/navigation/landing badges, and per-page browser title, meta description, and social sharing image fields. *(21 June 2026)*
 - 🧩 Reorganised CMS Settings into separate availability, landing-page, and action cards for clearer administration. *(21 June 2026)*

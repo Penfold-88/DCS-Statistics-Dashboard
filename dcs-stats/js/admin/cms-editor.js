@@ -95,6 +95,7 @@
     }
 
     const widgetSelect = wrapper.querySelector('[data-editor-widget]');
+    const galleries = Array.isArray(widgetConfig.galleries) ? widgetConfig.galleries : [];
     let serverNamesPromise = null;
 
     function widgetLabel(server) {
@@ -173,7 +174,64 @@
         });
     }
 
+    function decorateGalleryWidget(widget) {
+        widget.replaceChildren();
+        widget.contentEditable = 'false';
+        const controls = document.createElement('span');
+        controls.className = 'cms-widget-controls';
+        const label = document.createElement('strong');
+        const gallerySelect = document.createElement('select');
+        gallerySelect.className = 'cms-editor-format';
+        gallerySelect.setAttribute('aria-label', text.selectGallery || 'Gallery');
+        galleries.forEach(gallery => {
+            const option = document.createElement('option');
+            option.value = gallery.id;
+            option.textContent = gallery.title;
+            gallerySelect.appendChild(option);
+        });
+        if (widget.dataset.gallery) gallerySelect.value = widget.dataset.gallery;
+        const updateLabel = () => {
+            const selected = galleries.find(gallery => gallery.id === gallerySelect.value);
+            label.textContent = `${text.imageGallery || 'Image Gallery'} — ${selected ? selected.title : ''}`;
+            widget.setAttribute('aria-label', label.textContent);
+        };
+        updateLabel();
+        const save = document.createElement('button');
+        save.type = 'button';
+        save.className = 'cms-widget-save';
+        save.textContent = text.saveWidget || 'Save Widget';
+        const remove = document.createElement('button');
+        remove.type = 'button';
+        remove.className = 'cms-widget-remove';
+        remove.textContent = text.removeWidget || 'Remove Widget';
+        const saving = document.createElement('small');
+        saving.className = 'cms-widget-saved';
+        save.addEventListener('mousedown', event => event.preventDefault());
+        save.addEventListener('click', () => {
+            widget.dataset.gallery = gallerySelect.value;
+            updateLabel();
+            saving.textContent = text.widgetSaving || 'Saving page…';
+            sync();
+            if (!form.checkValidity()) {
+                saving.textContent = '';
+                form.reportValidity();
+                return;
+            }
+            form.requestSubmit();
+        });
+        remove.addEventListener('mousedown', event => event.preventDefault());
+        remove.addEventListener('click', () => {
+            widget.remove();
+            sync();
+            focusEditor();
+        });
+        gallerySelect.addEventListener('change', () => { saving.textContent = ''; updateLabel(); });
+        controls.append(gallerySelect, save, remove, saving);
+        widget.append(label, controls);
+    }
+
     editor.querySelectorAll('.cms-widget-server-status').forEach(decorateWidget);
+    editor.querySelectorAll('.cms-widget-image-gallery').forEach(decorateGalleryWidget);
 
     function loadWidgetServers() {
         if (serverNamesPromise) return serverNamesPromise;
@@ -194,11 +252,19 @@
 
     widgetSelect.addEventListener('mousedown', rememberSelection);
     widgetSelect.addEventListener('change', () => {
-        if (widgetSelect.value !== 'server-status') return;
+        const type = widgetSelect.value;
         widgetSelect.value = '';
         const marker = document.createElement('div');
-        marker.className = 'cms-widget-server-status';
-        decorateWidget(marker);
+        if (type === 'server-status') {
+            marker.className = 'cms-widget-server-status';
+            decorateWidget(marker);
+        } else if (type === 'image-gallery' && galleries.length) {
+            marker.className = 'cms-widget-image-gallery';
+            marker.dataset.gallery = galleries[0].id;
+            decorateGalleryWidget(marker);
+        } else {
+            return;
+        }
         insertNodeAtSelection(marker);
     });
 

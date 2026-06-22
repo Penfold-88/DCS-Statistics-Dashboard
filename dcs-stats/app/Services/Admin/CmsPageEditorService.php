@@ -3,6 +3,7 @@
 namespace DcsStats\Services\Admin;
 
 use DcsStats\Services\Cms\CmsHtmlSanitizer;
+use DcsStats\Services\Cms\CmsGalleryStore;
 use DcsStats\Services\Cms\CmsMediaService;
 use DcsStats\Services\Cms\CmsPageStore;
 
@@ -32,6 +33,8 @@ final class CmsPageEditorService
         return [
             'editPage' => $editPage,
             'mediaItems' => (new CmsMediaService())->items(),
+            'galleryEnabled' => \isFeatureEnabled('cms_gallery_enabled'),
+            'galleries' => (new CmsGalleryStore())->enabled(),
             'message' => $message,
             'messageType' => $messageType,
             'pageTitle' => $editPage ? \dcs_t('admin.cms.edit_page') : \dcs_t('admin.cms.create_page'),
@@ -53,7 +56,7 @@ final class CmsPageEditorService
         $seoTitle = trim((string)($_POST['seo_title'] ?? ''));
         $seoDescription = trim((string)($_POST['seo_description'] ?? ''));
         $seoImage = trim((string)($_POST['seo_image'] ?? ''));
-        $hasWidget = preg_match('#<div class="cms-widget-server-status"(?: data-server=(["\']).*?\1)?></div>#', $content) === 1;
+        $hasWidget = preg_match('#<div class="cms-widget-(?:server-status|image-gallery)"#', $content) === 1;
         if ($title === '' || strlen($title) > 120 || $slug === '' || strlen($slug) > 80 || ($plainContent === '' && !$hasWidget) || strlen($content) > 200000 || strlen($seoTitle) > 70 || strlen($seoDescription) > 160) {
             return [\dcs_t('admin.cms.invalid_page'), 'error', null];
         }

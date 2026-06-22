@@ -4,6 +4,7 @@ namespace DcsStats\Services\Cms;
 
 final class CmsMediaService
 {
+    private const MAX_BATCH_FILES = 20;
     private const MAX_BYTES = 2097152;
     private const MAX_DIMENSION = 6000;
     private const TYPES = [
@@ -85,6 +86,43 @@ final class CmsMediaService
         return ['success' => true, 'item' => $item];
     }
 
+    public function uploadMany(?array $files): array
+    {
+        if (!$files || !isset($files['name']) || !is_array($files['name'])) {
+            return ['success' => false, 'message' => \dcs_t('admin.cms.media_upload_failed')];
+        }
+        $total = count($files['name']);
+        if ($total < 1) {
+            return ['success' => false, 'message' => \dcs_t('admin.cms.media_upload_failed')];
+        }
+        if ($total > self::MAX_BATCH_FILES) {
+            return ['success' => false, 'message' => \dcs_t('admin.cms.gallery_batch_limit')];
+        }
+
+        $uploaded = 0;
+        $firstError = '';
+        foreach (range(0, $total - 1) as $index) {
+            $file = [];
+            foreach (['name', 'type', 'tmp_name', 'error', 'size'] as $key) {
+                $file[$key] = $files[$key][$index] ?? null;
+            }
+            $result = $this->upload($file);
+            if (!empty($result['success'])) {
+                $uploaded++;
+            } elseif ($firstError === '') {
+                $firstError = (string)($result['message'] ?? \dcs_t('admin.cms.media_upload_failed'));
+            }
+        }
+
+        if ($uploaded === $total) {
+            return ['success' => true, 'message' => \dcs_t('admin.cms.gallery_images_uploaded', ['count' => $uploaded])];
+        }
+        if ($uploaded > 0) {
+            return ['success' => true, 'message' => \dcs_t('admin.cms.gallery_images_partially_uploaded', ['uploaded' => $uploaded, 'total' => $total, 'error' => $firstError])];
+        }
+        return ['success' => false, 'message' => $firstError ?: \dcs_t('admin.cms.media_upload_failed')];
+    }
+
     public function delete(string $id): array
     {
         if (!preg_match('/^[a-f0-9]{32}$/', $id)) {
@@ -98,6 +136,13 @@ final class CmsMediaService
         foreach ($this->pageStore->all() as $page) {
             if ($path !== '' && (strpos((string)($page['content'] ?? ''), $path) !== false || ($page['seo_image'] ?? '') === $path)) {
                 return ['success' => false, 'message' => \dcs_t('admin.cms.media_in_use'), 'in_use' => true];
+            }
+        }
+        foreach ((new CmsGalleryStore())->all() as $gallery) {
+            foreach ((array)($gallery['items'] ?? []) as $galleryItem) {
+                if (($galleryItem['media_id'] ?? '') === $id) {
+                    return ['success' => false, 'message' => \dcs_t('admin.cms.media_in_use'), 'in_use' => true];
+                }
             }
         }
         $absolute = $this->absolutePath($path);

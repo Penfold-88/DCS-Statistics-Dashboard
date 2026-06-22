@@ -87,6 +87,7 @@ final class CmsHtmlSanitizer
             $figureClass = $tag === 'figure' ? trim($node->getAttribute('class')) : '';
             $widgetClass = $tag === 'div' ? trim($node->getAttribute('class')) : '';
             $widgetServer = $tag === 'div' ? trim($node->getAttribute('data-server')) : '';
+            $galleryId = $tag === 'div' ? trim($node->getAttribute('data-gallery')) : '';
             $textAlignment = $this->textAlignment($node, $tag);
             foreach (iterator_to_array($node->attributes) as $attribute) {
                 $node->removeAttribute($attribute->name);
@@ -120,7 +121,7 @@ final class CmsHtmlSanitizer
                 $node->setAttribute('class', $figureClass);
             }
             if ($tag === 'div') {
-                if ($widgetClass !== 'cms-widget-server-status') {
+                if (!in_array($widgetClass, ['cms-widget-server-status', 'cms-widget-image-gallery'], true)) {
                     $parent = $node->parentNode;
                     if ($parent) {
                         while ($node->firstChild) {
@@ -133,10 +134,15 @@ final class CmsHtmlSanitizer
                 while ($node->firstChild) {
                     $node->removeChild($node->firstChild);
                 }
-                $node->setAttribute('class', 'cms-widget-server-status');
-                $widgetServer = (string)preg_replace('/[\x00-\x1F\x7F]/u', '', $widgetServer);
-                if ($widgetServer !== '') {
-                    $node->setAttribute('data-server', substr($widgetServer, 0, 120));
+                $node->setAttribute('class', $widgetClass);
+                if ($widgetClass === 'cms-widget-server-status') {
+                    $widgetServer = (string)preg_replace('/[\x00-\x1F\x7F]/u', '', $widgetServer);
+                    if ($widgetServer !== '') $node->setAttribute('data-server', substr($widgetServer, 0, 120));
+                } elseif (preg_match('/^[a-f0-9]{16}$/', $galleryId)) {
+                    $node->setAttribute('data-gallery', $galleryId);
+                } else {
+                    if ($node->parentNode) $node->parentNode->removeChild($node);
+                    return;
                 }
             }
             if ($textAlignment !== '') {
