@@ -12,57 +12,6 @@ Turn your DCSServerBot statistics into a polished, configurable, squadron-ready 
 
 ---
 
-## 📡 Overview
-
-**DCS Statistics Dashboard** is a PHP web dashboard for communities running [DCSServerBot](https://github.com/Special-K-s-Flightsim-Bots/DCSServerBot).
-
-It gives squadrons and public DCS servers a clean place to show live server information, pilot statistics, leaderboards, squadron data, carrier trap results, custom links, credits, and configurable homepage insights.
-
-The dashboard is built for normal web hosting, XAMPP/local testing, and Docker deployments. Most setup is handled from the browser installer and admin panel.
-
----
-
-## 🚀 V1.3 Squadron CMS Expansion
-
-V1.3 is the **Squadron CMS Expansion** release. It keeps the live statistics dashboard as the backbone, then adds optional website-building tools around it for squadrons that want a lightweight public site without installing a separate CMS.
-
-V1.3 also moves the existing dashboard into a maintainable internal framework without changing the familiar installation or deployment model.
-
-Completed V1.3 foundation work includes:
-
-- Controllers, services, core helpers, and views organised under `dcs-stats/app/`.
-- Public pages, APIs, administration, installation, authentication, settings, themes, backups, exports, updates, and localisation moved behind focused framework services.
-- Encrypted storage and automatic migration for saved DCSServerBot API keys.
-- Stronger request validation, API proxy controls, rate limits, session handling, exports, uploads, restores, and updates.
-- Compatibility retained for Docker, XAMPP, shared hosting, and existing installations.
-
-The statistics dashboard remains the default homepage unless an admin chooses a published CMS page as the landing page. If a CMS landing page is selected, the Statistics Dashboard remains available automatically as `index.php?view=statistics`.
-
-V1.3 CMS features include:
-
-- Optional CMS enable/disable switch.
-- Published and draft pages.
-- Dedicated CMS Settings, Pages, Galleries, Downloads, Embeds, and editor screens.
-- Safe self-hosted rich-text editor with headings, emphasis, lists, quotes, links, image insertion, text alignment, and reusable widgets.
-- Protected JPG/PNG/WebP media library with random filenames, MIME validation, size/dimension limits, alt text, captions, alignment, and usage-aware deletion.
-- Image galleries with multi-upload, featured image carousel, thumbnail selector, captions, and lightbox viewing.
-- Downloads section for externally hosted files with categories, featured downloads, public filtering, version/file-size metadata, and public download cards.
-- Dashboard-derived CMS widgets for server status, summary statistics, attendance, top pilots, combat stats, top squadrons, player activity, top theatres, top missions, and top modules.
-- External iframe embeds for approved live widgets.
-- Per-page browser title, meta description, and social sharing image.
-- Draft preview restricted to administrators.
-- Page duplication as an unpublished draft.
-- Landing-page selection from published CMS pages.
-- Unified Menu Manager that discovers active statistics pages, CMS pages, downloads, Discord, squadron homepage, and custom links, with ordering, labels, visibility, new-tab behaviour, and one-level dropdowns.
-- LSO permission support for CMS management.
-- Settings backup/restore support for CMS pages, galleries, downloads, menus, themes, and metadata.
-
-V1.3 deliberately keeps `dcs-stats/` as the web document root. It does not require a Laravel-style `/public` directory, URL rewriting for ordinary operation, or custom `php.ini` settings. The small PHP files in the document root and `site-config/` are stable web entry points that delegate into the framework.
-
-For the implementation history, see [CHANGELOG.md](CHANGELOG.md).
-
----
-
 ## ✨ What's New In V1.3
 
 ### 🧱 Squadron CMS
