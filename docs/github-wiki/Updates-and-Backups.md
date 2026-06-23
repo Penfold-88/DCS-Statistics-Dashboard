@@ -48,6 +48,8 @@ Do not commit `.dev` to Git.
 
 Admin-managed customisations are preserved during normal updates, including uploaded branding under `uploads/`, generated theme files, menu settings, API settings, and local data. Manual edits made directly to core dashboard/template files may be replaced by the updater, so keep custom work in the admin theme tools, `uploads/`, or `custom/` where possible.
 
+CMS runtime content is also preserved during normal updates, including CMS pages, galleries, downloads, media uploads, menu configuration, and related data stored under `site-config/data/` and `uploads/`.
+
 ---
 
 ## 💾 Backups
@@ -57,6 +59,15 @@ The updater creates backups before updates.
 Manual backup tools are also available from the Update page.
 
 Backup restore now includes safer rollback handling if a restore fails part-way through.
+
+Settings backup includes CMS configuration and content data such as:
+
+- CMS pages
+- CMS galleries
+- CMS downloads
+- Menu configuration
+- Site features
+- Site metadata
 
 ---
 
@@ -70,6 +81,8 @@ Do not commit install-specific runtime files such as:
 - Sessions
 - Install check-in state
 - Cache files
+- CMS runtime JSON files from `site-config/data/`
+- Uploaded CMS media from `uploads/pages/`
 - `.dev`
 - `.demo`
 
@@ -87,3 +100,4 @@ Recommended update process:
 6. Check theme and logo.
 7. Check feature toggles.
 8. Check API health.
+9. If CMS is enabled, check public CMS pages, galleries, downloads, embeds, and menu links.

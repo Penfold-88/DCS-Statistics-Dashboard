@@ -65,6 +65,17 @@ final class MenuItemRegistry
             ];
         }
 
+        $items[] = [
+            'id' => 'cms-downloads',
+            'name' => 'Downloads',
+            'url' => 'downloads.php',
+            'enabled' => true,
+            'available' => \isFeatureEnabled('cms_enabled') && \isFeatureEnabled('cms_downloads_enabled'),
+            'type' => 'cms_downloads',
+            'label_key' => 'nav.downloads',
+            'new_tab' => false,
+        ];
+
         $customLinks = \getFeatureValue('custom_links', []);
         if (!is_array($customLinks)) {
             $customLinks = [];

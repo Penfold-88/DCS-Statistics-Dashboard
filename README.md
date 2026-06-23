@@ -1,6 +1,6 @@
 # DCS Statistics Dashboard
 
-Turn your DCSServerBot statistics into a polished, configurable, squadron-ready web dashboard.
+Turn your DCSServerBot statistics into a polished, configurable, squadron-ready website.
 
 [![Version](https://img.shields.io/badge/Version-V1.3_Development-orange?style=for-the-badge)](#v13-development-status)
 [![DCSServerBot](https://img.shields.io/badge/Requires-DCSServerBot-green?style=for-the-badge)](https://github.com/Special-K-s-Flightsim-Bots/DCSServerBot)
@@ -24,7 +24,9 @@ The dashboard is built for normal web hosting, XAMPP/local testing, and Docker d
 
 ## 🚧 V1.3 Development Status
 
-V1.3 is the **Squadron CMS Expansion** development release. Its first milestone was to move the existing dashboard into a maintainable internal framework without changing the familiar installation or deployment model. That framework conversion and its associated security hardening are complete.
+V1.3 is the **Squadron CMS Expansion** development release. It keeps the live statistics dashboard as the backbone, then adds optional website-building tools around it for squadrons that want a lightweight public site without installing a separate CMS.
+
+The first V1.3 milestone moved the existing dashboard into a maintainable internal framework without changing the familiar installation or deployment model. That framework conversion and its associated security hardening are complete.
 
 Completed V1.3 foundation work includes:
 
@@ -34,11 +36,51 @@ Completed V1.3 foundation work includes:
 - Stronger request validation, API proxy controls, rate limits, session handling, exports, uploads, restores, and updates.
 - Compatibility retained for Docker, XAMPP, shared hosting, and existing installations.
 
-The statistics dashboard remains the default homepage. The first CMS milestone now provides optional admin-managed pages with a self-hosted safe rich-text editor, protected image uploads, publishing controls, and a choice of any published CMS page as the website landing page. A unified Menu Manager automatically brings active statistics features, published CMS pages, integrations, and custom links into one ordered navigation structure with rename, visibility, new-tab, and parent/child dropdown controls. Reusable dashboard widgets and advanced page layouts remain planned and should not be treated as available until they appear in the release notes.
+The statistics dashboard remains the default homepage unless an admin chooses a published CMS page as the landing page. If a CMS landing page is selected, the Statistics Dashboard remains available automatically as `index.php?view=statistics`.
+
+Current V1.3 CMS features include:
+
+- Optional CMS enable/disable switch.
+- Published and draft pages.
+- Dedicated CMS Settings, Pages, Galleries, Downloads, Embeds, and editor screens.
+- Safe self-hosted rich-text editor with headings, emphasis, lists, quotes, links, image insertion, text alignment, and reusable widgets.
+- Protected JPG/PNG/WebP media library with random filenames, MIME validation, size/dimension limits, alt text, captions, alignment, and usage-aware deletion.
+- Image galleries with multi-upload, featured image carousel, thumbnail selector, captions, and lightbox viewing.
+- Downloads section for externally hosted files with categories, featured downloads, public filtering, version/file-size metadata, and public download cards.
+- Dashboard-derived CMS widgets for server status, summary statistics, attendance, top pilots, combat stats, top squadrons, player activity, top theatres, top missions, and top modules.
+- External iframe embeds for approved live widgets.
+- Per-page browser title, meta description, and social sharing image.
+- Draft preview restricted to administrators.
+- Page duplication as an unpublished draft.
+- Landing-page selection from published CMS pages.
+- Unified Menu Manager that discovers active statistics pages, CMS pages, downloads, Discord, squadron homepage, and custom links, with ordering, labels, visibility, new-tab behaviour, and one-level dropdowns.
+- LSO permission support for CMS management.
+- Settings backup/restore support for CMS pages, galleries, downloads, menus, themes, and metadata.
 
 V1.3 deliberately keeps `dcs-stats/` as the web document root. It does not require a Laravel-style `/public` directory, URL rewriting for ordinary operation, or custom `php.ini` settings. The small PHP files in the document root and `site-config/` are stable web entry points that delegate into the framework.
 
 For the implementation history, see [CHANGELOG.md](CHANGELOG.md).
+
+---
+
+## ✨ What's New In V1.3
+
+### 🧱 Squadron CMS
+
+- 📄 Custom pages with drafts, publishing, navigation badges, duplication, previews, SEO/sharing metadata, and optional landing-page selection.
+- ✍️ Self-hosted safe editor for rich text, links, images, galleries, and live dashboard widgets.
+- 🖼️ Media library and image galleries for squadron screenshots, recruitment images, training references, and server showcase pages.
+- ⬇️ Downloads page for externally hosted files such as mission packs, kneeboards, mod lists, SOPs, and briefing documents.
+- 🧩 Reusable live statistics widgets and iframe embeds for use inside CMS pages or external websites.
+- 🧭 Unified Menu Manager for dashboard links, CMS pages, downloads, integrations, custom links, labels, ordering, visibility, and dropdowns.
+- 🔐 CMS administration protected by existing admin roles and LSO permission controls.
+
+### 🏗️ Framework And Security
+
+- 🧱 Public pages, APIs, admin tools, installer, updater, backups, themes, authentication, localisation, and exports now run through focused controllers and services under `dcs-stats/app/`.
+- 🔐 Saved DCSServerBot API keys are encrypted with AES-256-GCM and migrated from older plaintext storage automatically.
+- 🛡️ Stronger validation for API proxy requests, uploads, sessions, exports, backups, updates, and imported custom files.
+- 📦 Runtime data remains under protected data/upload folders and is kept out of Git.
 
 ---
 
@@ -116,6 +158,7 @@ For the implementation history, see [CHANGELOG.md](CHANGELOG.md).
 | 🛡️ Squadrons | Squadron overview, members, logos, leaderboard, live data panels |
 | 🛰️ Servers | Live server cards, mission, theatre, weather, slots, extensions, SRS, active players |
 | 🧭 Navigation | Unified menu manager, automatic feature/CMS links, labels, visibility, ordering, parent/child dropdowns, server scope selector |
+| 📄 CMS Pages | Optional squadron website pages, landing pages, galleries, downloads, live widgets, embeds, and public navigation integration |
 | 🙌 Credits | Footer credits modal with relevant project acknowledgements |
 
 ---
@@ -128,7 +171,11 @@ For the implementation history, see [CHANGELOG.md](CHANGELOG.md).
 | ✅ Site Features | Enable/disable dashboard sections and individual feature blocks |
 | 🎨 Theme Management | Presets, colours, gradients, charts, header image, logo, CSS upload, backup/restore |
 | 🧭 Menu Manager | Order and rename public links, hide items, choose new-tab behaviour, and build one-level dropdowns |
+| ⚙️ CMS Settings | Enable/disable CMS features and choose an optional CMS landing page |
 | 📄 CMS Pages | Dedicated page list/editor, draft previews, duplication, safe rich text, media library, publishing, landing-page selection and per-page SEO/social fields |
+| 🖼️ CMS Galleries | Reusable image galleries with local media upload, captions, thumbnail selector, and lightbox viewing |
+| ⬇️ CMS Downloads | Public download cards for externally hosted files, with categories, featured downloads, filtering, metadata, and batch entry tools |
+| 🔌 CMS Embeds | Copy iframe code for approved live dashboard widgets on external websites |
 | 🔗 Custom Links | Add third-party squadron links to the front-end navigation |
 | 🔎 Privacy & SEO | Keywords, description, search engine crawling preference |
 | 🌍 Language | Select site language and upload translation files |
@@ -154,6 +201,39 @@ For the implementation history, see [CHANGELOG.md](CHANGELOG.md).
 - DCSServerBot with REST API enabled.
 - Network access from the dashboard web server to the DCSServerBot REST API host and port.
 - Optional but recommended: DCSServerBot API key.
+
+---
+
+## 🧱 Squadron CMS Quick Start
+
+The CMS is optional. A fresh install can continue using the statistics dashboard exactly as before.
+
+To enable the CMS:
+
+```text
+Admin Panel -> CMS Options -> CMS Settings
+```
+
+Common first steps:
+
+1. Enable CMS.
+2. Create a page from **CMS Pages**.
+3. Add text, images, galleries, downloads, or live widgets.
+4. Publish the page.
+5. Use **Website Options -> Menu Manager** to place the page in navigation.
+6. Optionally select a published CMS page as the homepage from **CMS Settings**.
+
+Useful CMS tools:
+
+| Tool | Use |
+| --- | --- |
+| CMS Pages | Create and publish custom website pages |
+| CMS Galleries | Build reusable screenshot/media galleries |
+| CMS Downloads | Link to mission packs, briefings, kneeboards, SOPs, mod lists, and other externally hosted files |
+| CMS Embeds | Copy approved iframe embeds for live widgets on external websites |
+| Menu Manager | Control where CMS pages, downloads, dashboard pages, and custom links appear |
+
+The CMS stores user content under protected runtime data files and upload folders. These files are preserved by updates and should not be committed to Git.
 
 ---
 
@@ -401,6 +481,7 @@ DCS-Statistics-Dashboard/
 │   │   ├── Services/           Focused application and integration services
 │   │   ├── Views/              Public and admin view templates
 │   │   └── bootstrap.php       Framework bootstrap
+│   ├── css/widgets/            Reusable CMS/dashboard widget styles
 │   ├── site-config/            Admin panel and setup tools
 │   │   ├── api/                Admin API endpoints
 │   │   ├── data/               Runtime settings and admin data
@@ -408,7 +489,13 @@ DCS-Statistics-Dashboard/
 │   │   └── js/                 Admin JavaScript
 │   ├── js/                     Front-end JavaScript and vendor scripts
 │   ├── lang/                   Translation files
+│   ├── uploads/pages/          CMS page and gallery media uploads
 │   ├── index.php               Thin homepage entry point
+│   ├── page.php                Thin CMS page entry point
+│   ├── page_preview.php        Protected CMS draft preview entry point
+│   ├── downloads.php           Thin CMS downloads entry point
+│   ├── server_status_embed.php Thin server status iframe embed entry point
+│   ├── dashboard_widget_embed.php Thin dashboard widget iframe embed entry point
 │   ├── leaderboard.php         Thin leaderboard entry point
 │   ├── pilot_statistics.php    Thin pilot profile entry point
 │   ├── pilot_credits.php       Thin pilot credits entry point

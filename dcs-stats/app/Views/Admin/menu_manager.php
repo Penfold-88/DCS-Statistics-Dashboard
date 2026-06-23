@@ -27,6 +27,7 @@
                             $typeLabels = [
                                 'page' => 'admin.menu_manager.type_statistics',
                                 'cms_page' => 'admin.menu_manager.type_cms_page',
+                                'cms_downloads' => 'admin.menu_manager.type_cms_downloads',
                                 'discord' => 'admin.menu_manager.type_discord',
                                 'squadron_homepage' => 'admin.menu_manager.type_squadron',
                                 'group' => 'admin.menu_manager.type_group',

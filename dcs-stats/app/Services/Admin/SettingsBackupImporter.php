@@ -63,6 +63,7 @@ final class SettingsBackupImporter
             'header_image' => $this->fileStore->dataPath('header_image.json'),
             'cms_pages' => $this->fileStore->dataPath('pages.json'),
             'cms_galleries' => $this->fileStore->dataPath('cms_galleries.json'),
+            'cms_downloads' => $this->fileStore->dataPath('cms_downloads.json'),
         ] as $section => $path) {
             if (isset($data[$section]) && is_array($data[$section]) && !$this->fileStore->writeJsonFile($path, $data[$section])) {
                 $error = \dcs_t('admin.settings_backup.restore_section_failed', ['section' => $this->sectionLabel($section)]);

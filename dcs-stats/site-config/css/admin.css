@@ -747,7 +747,21 @@ code {
 .cms-gallery-pick-card > img { aspect-ratio: 4/3; border-radius: 5px; object-fit: cover; width: 100%; }
 .cms-gallery-pick-card > span { color: var(--text-muted); font-size: 11px; }
 .cms-gallery-upload { align-items: center; display: flex; gap: 10px; margin-top: 14px; }
+.cms-download-admin-grid { display: grid; gap: 18px; grid-template-columns: minmax(280px,.75fr) minmax(520px,1.25fr); }
+.cms-download-list { display: grid; gap: 10px; }
+.cms-download-list article { align-items: center; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 7px; display: flex; gap: 12px; justify-content: space-between; padding: 12px; }
+.cms-download-list article > div:first-child { display: grid; gap: 4px; min-width: 0; }
+.cms-download-url { color: var(--text-muted); font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cms-download-form { display: grid; gap: 16px; }
+.cms-download-batch-panel { margin-top: 18px; }
+.cms-download-row { border: 1px solid var(--border-color); border-radius: 8px; margin: 0; padding: 14px; }
+.cms-download-row legend { color: var(--accent-primary); font-weight: 700; padding: 0 8px; }
+.cms-download-fields { display: grid; gap: 12px; grid-template-columns: repeat(2,minmax(0,1fr)); }
+.cms-download-url-field, .cms-download-description, .cms-download-enabled, .cms-download-featured { grid-column: 1 / -1; }
+.cms-download-fields textarea { resize: vertical; }
 @media (max-width: 1050px) { .cms-gallery-admin-grid { grid-template-columns: 1fr; } }
+@media (max-width: 1050px) { .cms-download-admin-grid { grid-template-columns: 1fr; } }
+@media (max-width: 720px) { .cms-download-fields { grid-template-columns: 1fr; } .cms-download-list article { align-items: flex-start; flex-direction: column; } }
 .cms-pages-header, .cms-editor-page-header { align-items: center; display: flex; gap: 16px; justify-content: space-between; }
 .cms-pages-header p { margin: 4px 0 0; }
 .cms-page-list { display: grid; gap: 10px; margin-top: 18px; }

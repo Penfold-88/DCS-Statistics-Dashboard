@@ -32,6 +32,7 @@ final class SettingsBackupBuilder
                 'header_custom_css',
                 'cms_pages',
                 'cms_galleries',
+                'cms_downloads',
             ],
             'data' => [
                 'site_config' => $this->fileStore->readJsonFile(DCS_ROOT_PATH . '/site_config.json', []),
@@ -44,6 +45,7 @@ final class SettingsBackupBuilder
                 'header_custom_css' => $this->fileStore->readTextFile(DCS_ROOT_PATH . '/header_custom.css'),
                 'cms_pages' => $this->fileStore->readJsonFile($this->fileStore->dataPath('pages.json'), []),
                 'cms_galleries' => $this->fileStore->readJsonFile($this->fileStore->dataPath('cms_galleries.json'), []),
+                'cms_downloads' => $this->fileStore->readJsonFile($this->fileStore->dataPath('cms_downloads.json'), []),
             ],
             'excluded' => [
                 'api_config',

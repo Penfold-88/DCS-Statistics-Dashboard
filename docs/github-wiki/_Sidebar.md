@@ -4,6 +4,7 @@
 - 🚀 [Installation](Installation)
 - 🐳 [Docker Deployment](Docker-Deployment)
 - ⚙️ [Admin Panel](Admin-Panel)
+- 🧱 [Squadron CMS](Squadron-CMS)
 - 🔌 [API Setup](API-Setup)
 - 🎚️ [Site Features](Site-Features)
 - 🎨 [Themes and Branding](Themes-and-Branding)
