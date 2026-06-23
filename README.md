@@ -2,7 +2,7 @@
 
 Turn your DCSServerBot statistics into a polished, configurable, squadron-ready website.
 
-[![Version](https://img.shields.io/badge/Version-V1.3_Development-orange?style=for-the-badge)](#v13-development-status)
+[![Version](https://img.shields.io/badge/Version-V1.3-orange?style=for-the-badge)](#v13-squadron-cms-expansion)
 [![DCSServerBot](https://img.shields.io/badge/Requires-DCSServerBot-green?style=for-the-badge)](https://github.com/Special-K-s-Flightsim-Bots/DCSServerBot)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-blue?style=for-the-badge)](#requirements)
 [![Mobile](https://img.shields.io/badge/Mobile-Friendly-purple?style=for-the-badge)](#frontend-features)
@@ -22,11 +22,11 @@ The dashboard is built for normal web hosting, XAMPP/local testing, and Docker d
 
 ---
 
-## 🚧 V1.3 Development Status
+## 🚀 V1.3 Squadron CMS Expansion
 
-V1.3 is the **Squadron CMS Expansion** development release. It keeps the live statistics dashboard as the backbone, then adds optional website-building tools around it for squadrons that want a lightweight public site without installing a separate CMS.
+V1.3 is the **Squadron CMS Expansion** release. It keeps the live statistics dashboard as the backbone, then adds optional website-building tools around it for squadrons that want a lightweight public site without installing a separate CMS.
 
-The first V1.3 milestone moved the existing dashboard into a maintainable internal framework without changing the familiar installation or deployment model. That framework conversion and its associated security hardening are complete.
+V1.3 also moves the existing dashboard into a maintainable internal framework without changing the familiar installation or deployment model.
 
 Completed V1.3 foundation work includes:
 
@@ -38,7 +38,7 @@ Completed V1.3 foundation work includes:
 
 The statistics dashboard remains the default homepage unless an admin chooses a published CMS page as the landing page. If a CMS landing page is selected, the Statistics Dashboard remains available automatically as `index.php?view=statistics`.
 
-Current V1.3 CMS features include:
+V1.3 CMS features include:
 
 - Optional CMS enable/disable switch.
 - Published and draft pages.
