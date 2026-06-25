@@ -10,6 +10,7 @@ final class LanguageRegistry
             'en' => 'English',
             'de' => 'Deutsch',
             'it' => 'Italiano',
+            'es' => 'Español',
         ];
     }
 

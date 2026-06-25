@@ -3,6 +3,11 @@
 $translations = require __DIR__ . '/en.php';
 
 $manual = [
+    'language.english' => 'Inglese',
+    'language.german' => 'Tedesco',
+    'language.italian' => 'Italiano',
+    'language.spanish' => 'Spagnolo',
+
     'site.subtitle' => 'Piattaforma dati e analisi di combattimento',
     'header.toggle_navigation' => 'Apri o chiudi il menu di navigazione',
     'header.live_data' => 'Dati live',

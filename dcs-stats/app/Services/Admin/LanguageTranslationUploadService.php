@@ -34,7 +34,7 @@ final class LanguageTranslationUploadService
         }
 
         if (isset(\dcs_builtin_languages()[$code])) {
-            return ['English and German are built in. Use a new language code for uploads.', 'error'];
+            return ['That language is built in. Use a new language code for uploads.', 'error'];
         }
 
         $cleanTranslations = $this->filterTranslations($translations);

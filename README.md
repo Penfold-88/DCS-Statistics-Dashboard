@@ -6,7 +6,7 @@ Turn your DCSServerBot statistics into a polished, configurable, squadron-ready 
 [![DCSServerBot](https://img.shields.io/badge/Requires-DCSServerBot-green?style=for-the-badge)](https://github.com/Special-K-s-Flightsim-Bots/DCSServerBot)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-blue?style=for-the-badge)](#requirements)
 [![Mobile](https://img.shields.io/badge/Mobile-Friendly-purple?style=for-the-badge)](#frontend-features)
-[![Languages](https://img.shields.io/badge/Languages-EN%20%7C%20DE%20%7C%20IT-orange?style=for-the-badge)](#language-support)
+[![Languages](https://img.shields.io/badge/Languages-EN%20%7C%20DE%20%7C%20IT%20%7C%20ES-orange?style=for-the-badge)](#language-support)
 [![License](https://img.shields.io/badge/License-MIT-lightgrey?style=for-the-badge)](LICENSE)
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-Online-brightgreen?style=for-the-badge&logo=googlechrome&logoColor=white)](https://demo.dcsstatisticsdashboard.app/)
 
@@ -70,7 +70,7 @@ Turn your DCSServerBot statistics into a polished, configurable, squadron-ready 
 ### 🌍 Language Support
 
 - 🗣️ Language groundwork added across the dashboard.
-- 🇬🇧 English, 🇩🇪 German, and 🇮🇹 Italian translation files included.
+- 🇬🇧 English, 🇩🇪 German, 🇮🇹 Italian, and 🇪🇸 Spanish translation files included.
 - 🧾 Translation template file for future community translations.
 - 🛠️ Installer language selection.
 - ⚙️ Admin language setting.
@@ -302,6 +302,7 @@ Included languages:
 - English
 - German
 - Italian
+- Spanish
 
 Translation files live in:
 

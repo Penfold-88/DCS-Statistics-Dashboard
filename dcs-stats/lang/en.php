@@ -229,6 +229,8 @@ return [
     'servers.active_players' => 'Active Players',
     'language.english' => 'English',
     'language.german' => 'German',
+    'language.italian' => 'Italian',
+    'language.spanish' => 'Spanish',
     'admin.common.logout' => 'Logout',
     'admin.common.note' => 'Note',
     'admin.common.view_all' => 'View All',
