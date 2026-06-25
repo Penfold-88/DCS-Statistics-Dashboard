@@ -336,7 +336,7 @@ The updater supports:
 - Backup creation before updates.
 - Downgrade/version list where available.
 
-Stable is the default update channel. A hidden `.dev` file enables the configured development branch.
+Stable is the default update channel and checks the `master` branch. A hidden `.dev` file switches the updater to the configured development branch, which defaults to `Dev-20-05-26`.
 
 Manual source installations are recorded without a commit SHA because the installer cannot verify which Git commit produced the copied files. They can still install the latest build from the selected stable or development channel, after which the updater records the verified commit.
 

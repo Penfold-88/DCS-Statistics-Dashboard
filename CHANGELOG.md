@@ -468,7 +468,7 @@ V1.2 is a major dashboard, admin, theme, update, language, security, and perform
 - 🔐 Locked the web installer behind admin authentication once the dashboard is already installed.
 - 🧹 Installer now attempts to remove `site-config/install.php` automatically after a successful install.
 - 🧭 Fresh installs now use the selected update channel branch and record the latest GitHub commit metadata when available.
-- 🧭 Stable update channel now defaults to `main` instead of the old `master` branch name.
+- 🧭 Stable update channel defaults to `master`; `.dev` installs default to the `Dev-20-05-26` branch.
 - 🧭 Missing configuration now redirects to installer properly.
 - 🧹 Removed fragile `goto` flow from installer logic.
 - 🧰 Installer-generated local data stays out of Git distribution.

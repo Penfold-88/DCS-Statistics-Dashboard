@@ -40,9 +40,9 @@ After the updater runs successfully, the installed build can include commit/date
 
 ## 🛤️ Stable And Dev Channels
 
-Stable is used by default.
+Stable is used by default and checks the `master` branch.
 
-If a `.dev` file exists, the updater can use the configured development branch.
+If a `.dev` file exists, the updater switches to the configured development branch, which defaults to `Dev-20-05-26`.
 
 Do not commit `.dev` to Git.
 

@@ -36,8 +36,8 @@ final class UpdateChannel
     {
         $devFilePath = self::devFilePath();
         $isDev = $devFilePath !== null || getenv('DEV_BRANCH') === 'true';
-        $stableBranch = getenv('DCS_STATS_STABLE_BRANCH') ?: 'main';
-        $devBranch = getenv('DCS_STATS_DEV_BRANCH') ?: 'V1.3-Dev';
+        $stableBranch = getenv('DCS_STATS_STABLE_BRANCH') ?: 'master';
+        $devBranch = getenv('DCS_STATS_DEV_BRANCH') ?: 'Dev-20-05-26';
 
         return [
             'repo' => 'Penfold-88/DCS-Statistics-Dashboard',
