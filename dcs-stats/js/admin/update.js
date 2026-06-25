@@ -8,6 +8,56 @@ const demoRestrictionMessage = adminUpdateConfig.demoRestrictionMessage || '';
 const adminCurrentVersion = adminUpdateConfig.currentVersion || '';
 const updateText = adminUpdateConfig.i18n || {};
 
+function replaceWithText(element, text, className = '') {
+    if (!element) return;
+    element.replaceChildren();
+    const span = document.createElement('span');
+    if (className) span.className = className;
+    span.textContent = text || '';
+    element.appendChild(span);
+}
+
+function replaceWithParagraph(element, text, className = '') {
+    if (!element) return;
+    element.replaceChildren();
+    const paragraph = document.createElement('p');
+    if (className) paragraph.className = className;
+    paragraph.textContent = text || '';
+    element.appendChild(paragraph);
+}
+
+function appendUpdateAction(element, label) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'btn btn-primary btn-small';
+    button.style.marginLeft = '10px';
+    button.textContent = label || '';
+    button.addEventListener('click', performUpdate);
+    element.appendChild(document.createTextNode(' '));
+    element.appendChild(button);
+}
+
+function textCell(text) {
+    const cell = document.createElement('td');
+    cell.textContent = text || '';
+    return cell;
+}
+
+function badge(text, className) {
+    const span = document.createElement('span');
+    span.className = `badge ${className}`;
+    span.textContent = text || '';
+    return span;
+}
+
+function backupName(backup) {
+    return String(backup && backup.name ? backup.name : '');
+}
+
+function backupBranchClass(branch) {
+    return branch === 'Dev' ? 'badge-warning' : 'badge-primary';
+}
+
 function copySupportInfo() {
     const supportInfo = document.getElementById('support-info');
     if (!supportInfo) return;
@@ -50,7 +100,8 @@ function checkUpdateStatus() {
             // Parse the response to check if update is available
             if (data.includes('⚠ Installed source commit is unverified.')) {
                 statusTitle.textContent = updateText.sourceUnverified;
-                statusDiv.innerHTML = `<span class="text-warning">${updateText.sourceUnverifiedDetail}</span> <button class="btn btn-primary btn-small" onclick="performUpdate()" style="margin-left: 10px;">${updateText.installLatest}</button>`;
+                replaceWithText(statusDiv, updateText.sourceUnverifiedDetail, 'text-warning');
+                appendUpdateAction(statusDiv, updateText.installLatest);
             } else if (data.includes('✅ Update Available!')) {
                 updateAvailable = true;
                 // Extract version from response
@@ -59,16 +110,17 @@ function checkUpdateStatus() {
                     latestVersion = versionMatch[1];
                 }
                 statusTitle.textContent = updateText.updateReady;
-                statusDiv.innerHTML = `${updateText.latestCodeAvailable} ${sourceLabel}. <button class="btn btn-primary btn-small" onclick="performUpdate()" style="margin-left: 10px;">${updateText.updateNow}</button>`;
+                replaceWithText(statusDiv, `${updateText.latestCodeAvailable} ${sourceLabel}.`);
+                appendUpdateAction(statusDiv, updateText.updateNow);
             } else if (data.includes('✓ You are running the latest')) {
                 statusTitle.textContent = updateText.upToDate;
-                statusDiv.innerHTML = `<span class="text-success">${updateText.upToDateDetail}</span>`;
+                replaceWithText(statusDiv, updateText.upToDateDetail, 'text-success');
             } else if (data.includes('Could not fetch branch information')) {
                 statusTitle.textContent = updateText.githubFailed;
-                statusDiv.innerHTML = updateText.githubFailedDetail;
+                replaceWithText(statusDiv, updateText.githubFailedDetail);
             } else {
                 statusTitle.textContent = updateText.unknownStatus;
-                statusDiv.innerHTML = updateText.unknownStatusDetail;
+                replaceWithText(statusDiv, updateText.unknownStatusDetail);
             }
             
             // Also populate versions for downgrade
@@ -80,7 +132,7 @@ function checkUpdateStatus() {
             populateVersionSelect(versions);
         })
         .catch(error => {
-            document.getElementById('update-status').innerHTML = `<p class="text-danger">${updateText.failedCheck}</p>`;
+            replaceWithParagraph(document.getElementById('update-status'), updateText.failedCheck, 'text-danger');
         });
 }
 
@@ -119,35 +171,61 @@ function loadBackups() {
         .then(data => {
             const backupList = document.getElementById('backup-list');
             if (data.backups && data.backups.length > 0) {
-                let html = '<div class="data-table-wrapper"><table class="data-table">';
-                html += `<thead><tr><th>${updateText.backupDate}</th><th>${updateText.version}</th><th>${updateText.branch}</th><th>${updateText.size}</th><th>${updateText.status}</th><th>${updateText.actions}</th></tr></thead><tbody>`;
-                data.backups.forEach((backup, index) => {
-                    const branchClass = backup.branch === 'Dev' ? 'badge-warning' : 'badge-primary';
-                    const isProtected = index < 5;
-                    const statusHtml = isProtected 
-                        ? `<span class="badge badge-success">${updateText.protected}</span>` 
-                        : `<span class="badge badge-warning">${updateText.autoDeleted}</span>`;
-                    html += `<tr>
-                        <td>${backup.date}</td>
-                        <td>${backup.version}</td>
-                        <td><span class="badge ${branchClass}">${backup.branch}</span></td>
-                        <td>${backup.size}</td>
-                        <td>${statusHtml}</td>
-                        <td>
-                            <button class="btn btn-small btn-secondary" onclick="restoreBackup('${backup.name}')">${updateText.restore}</button>
-                            <button class="btn btn-small btn-danger" onclick="deleteBackup('${backup.name}')">${updateText.delete}</button>
-                        </td>
-                    </tr>`;
+                backupList.replaceChildren();
+                const wrapper = document.createElement('div');
+                wrapper.className = 'data-table-wrapper';
+                const table = document.createElement('table');
+                table.className = 'data-table';
+                const thead = document.createElement('thead');
+                const headRow = document.createElement('tr');
+                [updateText.backupDate, updateText.version, updateText.branch, updateText.size, updateText.status, updateText.actions].forEach(label => {
+                    const th = document.createElement('th');
+                    th.textContent = label || '';
+                    headRow.appendChild(th);
                 });
-                html += '</tbody></table></div>';
-                html += `<p class="text-muted mt-2">${updateText.keepsBackups}</p>`;
-                backupList.innerHTML = html;
+                thead.appendChild(headRow);
+                const tbody = document.createElement('tbody');
+                data.backups.forEach((backup, index) => {
+                    const branch = String(backup.branch || '');
+                    const branchClass = backupBranchClass(branch);
+                    const isProtected = index < 5;
+                    const row = document.createElement('tr');
+                    row.appendChild(textCell(String(backup.date || '')));
+                    row.appendChild(textCell(String(backup.version || '')));
+                    const branchCell = document.createElement('td');
+                    branchCell.appendChild(badge(branch, branchClass));
+                    row.appendChild(branchCell);
+                    row.appendChild(textCell(String(backup.size || '')));
+                    const statusCell = document.createElement('td');
+                    statusCell.appendChild(isProtected ? badge(updateText.protected, 'badge-success') : badge(updateText.autoDeleted, 'badge-warning'));
+                    row.appendChild(statusCell);
+                    const actions = document.createElement('td');
+                    const restore = document.createElement('button');
+                    restore.type = 'button';
+                    restore.className = 'btn btn-small btn-secondary';
+                    restore.textContent = updateText.restore || '';
+                    restore.addEventListener('click', () => restoreBackup(backupName(backup)));
+                    const remove = document.createElement('button');
+                    remove.type = 'button';
+                    remove.className = 'btn btn-small btn-danger';
+                    remove.textContent = updateText.delete || '';
+                    remove.addEventListener('click', () => deleteBackup(backupName(backup)));
+                    actions.append(restore, document.createTextNode(' '), remove);
+                    row.appendChild(actions);
+                    tbody.appendChild(row);
+                });
+                table.append(thead, tbody);
+                wrapper.appendChild(table);
+                const note = document.createElement('p');
+                note.className = 'text-muted mt-2';
+                note.textContent = updateText.keepsBackups || '';
+                backupList.append(wrapper, note);
             } else {
-                backupList.innerHTML = `<p class="text-muted">${updateText.noBackups}</p>`;
+                replaceWithParagraph(backupList, updateText.noBackups, 'text-muted');
             }
         })
         .catch(error => {
-            document.getElementById('backup-list').innerHTML = `<p class="text-danger">${updateText.failedLoadBackups}</p>`;
+            replaceWithParagraph(document.getElementById('backup-list'), updateText.failedLoadBackups, 'text-danger');
         });
 }
 
@@ -283,27 +361,41 @@ function loadBackupsForRestore() {
         .then(data => {
             const restoreList = document.getElementById('restore-backup-list');
             if (data.backups && data.backups.length > 0) {
-                let html = '<div class="backup-list">';
+                restoreList.replaceChildren();
+                const list = document.createElement('div');
+                list.className = 'backup-list';
                 data.backups.forEach(backup => {
-                    const branchClass = backup.branch === 'Dev' ? 'badge-warning' : 'badge-primary';
-                    html += `
-                        <div class="backup-item" style="padding: 10px; border: 1px solid var(--border-color); margin-bottom: 10px; border-radius: 4px;">
-                            <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <div>
-                                    <strong>${backup.date}</strong><br>
-                                    ${updateText.version}: ${backup.version} | <span class="badge ${branchClass}">${backup.branch}</span> | ${updateText.size}: ${backup.size}
-                                </div>
-                                <button class="btn btn-secondary btn-small" onclick="restoreBackup('${backup.name}'); closeModal('restoreModal');">
-                                    ${updateText.restore}
-                                </button>
-                            </div>
-                        </div>
-                    `;
+                    const branch = String(backup.branch || '');
+                    const branchClass = backupBranchClass(branch);
+                    const item = document.createElement('div');
+                    item.className = 'backup-item';
+                    item.style.padding = '10px';
+                    item.style.border = '1px solid var(--border-color)';
+                    item.style.marginBottom = '10px';
+                    item.style.borderRadius = '4px';
+                    const row = document.createElement('div');
+                    row.style.display = 'flex';
+                    row.style.justifyContent = 'space-between';
+                    row.style.alignItems = 'center';
+                    const details = document.createElement('div');
+                    const date = document.createElement('strong');
+                    date.textContent = String(backup.date || '');
+                    details.append(date, document.createElement('br'), document.createTextNode(`${updateText.version}: ${backup.version || ''} | `), badge(branch, branchClass), document.createTextNode(` | ${updateText.size}: ${backup.size || ''}`));
+                    const restore = document.createElement('button');
+                    restore.type = 'button';
+                    restore.className = 'btn btn-secondary btn-small';
+                    restore.textContent = updateText.restore || '';
+                    restore.addEventListener('click', () => {
+                        restoreBackup(backupName(backup));
+                        closeModal('restoreModal');
+                    });
+                    row.append(details, restore);
+                    item.appendChild(row);
+                    list.appendChild(item);
                 });
-                html += '</div>';
-                restoreList.innerHTML = html;
+                restoreList.appendChild(list);
             } else {
-                restoreList.innerHTML = `<p class="text-muted">${updateText.noBackupsAvailable}</p>`;
+                replaceWithParagraph(restoreList, updateText.noBackupsAvailable, 'text-muted');
             }
         });
 }
@@ -311,13 +403,19 @@ function loadBackupsForRestore() {
 // Populate version select
 function populateVersionSelect(versions) {
     const select = document.getElementById('downgrade-version');
-    let html = `<option value="">${updateText.selectVersion}</option>`;
+    select.replaceChildren();
+    const placeholder = document.createElement('option');
+    placeholder.value = '';
+    placeholder.textContent = updateText.selectVersion || '';
+    select.appendChild(placeholder);
     versions.forEach(version => {
         if (version !== adminCurrentVersion) {
-            html += `<option value="${version}">${version}</option>`;
+            const option = document.createElement('option');
+            option.value = version;
+            option.textContent = version;
+            select.appendChild(option);
         }
     });
-    select.innerHTML = html;
 }
 
 // Handle downgrade form

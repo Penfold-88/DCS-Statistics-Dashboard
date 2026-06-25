@@ -22,6 +22,18 @@
         sync();
     }
 
+    function isSafeLinkHref(href) {
+        if (!href) return false;
+        if (href.startsWith('//')) return false;
+        if (href.startsWith('/') || href.startsWith('#')) return true;
+        try {
+            const url = new URL(href);
+            return ['http:', 'https:', 'mailto:'].includes(url.protocol.toLowerCase());
+        } catch (error) {
+            return false;
+        }
+    }
+
     function sync() {
         const portableContent = editor.cloneNode(true);
         portableContent.querySelectorAll('img').forEach(image => {
@@ -65,7 +77,13 @@
             return;
         }
         const href = window.prompt(text.linkPrompt || 'Enter a link URL (https://...)');
-        if (href) run('createLink', href.trim());
+        if (!href) return;
+        const cleanHref = href.trim();
+        if (!isSafeLinkHref(cleanHref)) {
+            window.alert(text.invalidLink || 'Enter a link URL beginning with https://, http://, mailto:, / or #');
+            return;
+        }
+        run('createLink', cleanHref);
     });
 
     const mediaPanel = document.querySelector('[data-media-panel]');
