@@ -169,13 +169,14 @@ EXPOSE 80
 RUN echo '<?php http_response_code(200); echo "OK"; ?>' > /var/www/html/health-check.php && \
     chown www:www /var/www/html/health-check.php
 
-# Copy custom PHP configuration
+# Copy custom PHP configuration. Memory headroom intentionally exceeds the
+# upload ceiling, while post_max_size includes multipart form overhead.
 RUN { \
         echo 'expose_php = Off'; \
         echo 'max_execution_time = 300'; \
         echo 'max_input_time = 300'; \
         echo 'memory_limit = 256M'; \
-        echo 'post_max_size = 50M'; \
+        echo 'post_max_size = 64M'; \
         echo 'upload_max_filesize = 50M'; \
         echo 'max_input_vars = 1000'; \
         echo 'date.timezone = UTC'; \

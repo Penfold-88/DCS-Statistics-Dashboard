@@ -11,6 +11,7 @@ Current included languages:
 - English
 - German
 - Italian
+- Spanish
 
 ---
 
@@ -40,6 +41,7 @@ Current files include:
 en.php
 de.php
 it.php
+es.php
 translation-template.json
 ```
 

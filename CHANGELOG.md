@@ -4,6 +4,113 @@ All notable changes to **DCS Statistics Dashboard** are recorded here.
 
 ---
 
+## 🚀 V1.3
+
+V1.3 is the **Squadron CMS Expansion** release. Development began by converting the existing dashboard into a cleaner internal framework while preserving the simple installation and update experience expected by Docker, XAMPP, and hosted-server users.
+
+V1.3 remains in development. New implementation entries should include the date they were completed.
+
+---
+
+### ✨ Headline Features
+
+- ⬇️ Added an optional CMS Downloads section for externally hosted files, with enable/disable control, CMS admin navigation, batch entry creation, edit/delete management, category/version/file-size metadata, public themed download cards, Menu Manager discovery, permissions copy, translations, and settings backup support. *(23 June 2026)*
+- 📚 Updated the README and GitHub wiki draft pages for the V1.3 Squadron CMS feature set, including CMS quick start, pages, galleries, downloads, widgets, embeds, menu management, permissions, backups, troubleshooting, and testing guidance. *(23 June 2026)*
+- 📊 Added nine reusable, server-targetable CMS statistics widgets derived from the homepage: summary statistics, attendance, Top Pilots, combat statistics, Top Squadrons, player activity, Top Theatres, Top Missions, and Top Modules. Widgets share data loads by server scope, expose metric/count controls where relevant, and are also available as transparent standalone embeds with live previews and copyable iframe code. *(22 June 2026)*
+- 🖼️ Added optional locally hosted CMS image galleries with their own Galleries administration page, reusable named collections, media-library uploads for up to 20 images at once, alt text and captions, page-editor widgets, a large featured image with a horizontally scrolling thumbnail selector, accessible lightbox viewing, usage-aware deletion, and settings backup support. *(22 June 2026)*
+- 🟢 Added the first reusable CMS data widget: a lazy-loading Server Status block available from the editor’s Widgets dropdown, with live All/individual-server targeting and support for multiple independently targeted blocks per page. Added a dedicated Embeds admin page with matching server selection, responsive iframe preview, and one-click code copying for external websites. *(22 June 2026)*
+- 📄 Split CMS page management into a dedicated page list and editor, added authenticated draft previews, page duplication, publication/navigation/landing badges, and per-page browser title, meta description, and social sharing image fields. *(21 June 2026)*
+- 🧩 Reorganised CMS Settings into separate availability, landing-page, and action cards for clearer administration. *(21 June 2026)*
+- 👁️ Moved authenticated draft rendering to a protected root preview adapter so previews use the same stylesheets, scripts, navigation assets, and media paths as public CMS pages. *(21 June 2026)*
+- 🎨 Corrected the CMS editor style dropdown contrast on native Windows select menus. *(21 June 2026)*
+- ↔️ Added safe left, centre, and right text alignment controls to CMS pages. *(21 June 2026)*
+- 🏠 Renamed the legacy Squadron menu source and default label to Squadron Homepage to distinguish it from squadron statistics. *(21 June 2026)*
+- 🖼️ Added a protected CMS page media library with verified JPG/PNG/WebP uploads, image dimensions and size limits, random filenames, alt text, captions, alignment options, editor insertion, usage-aware deletion, and responsive public rendering. *(21 June 2026)*
+- 🏠 Added a CMS landing-page selector that can make any published page the `index.php` homepage while preserving the Statistics Dashboard as the default and automatic fallback. A separate Statistics Dashboard menu source appears directly after Home by default when a CMS landing page is active. *(21 June 2026)*
+- 🧱 Added the first optional CMS vertical slice: enable/disable control, protected page storage, page administration, publishing, public navigation integration, themed rendering, permissions, audit logging, and backup/restore support. *(20 June 2026)*
+- 🗂️ Separated CMS Settings from CMS Pages so enablement has its own admin page and page management appears as a distinct navigation item only when CMS is enabled. *(20 June 2026)*
+- 🧭 Added a standalone card-based Menu Manager that automatically discovers active statistics pages, published CMS pages, Discord, the squadron homepage, and custom links while supporting labels, visibility, drag ordering, new-tab behaviour, and one-level parent/child dropdowns. Existing menu configuration is migrated without resetting user choices. *(20 June 2026)*
+- ✍️ Added a self-hosted CMS rich-text editor with headings, emphasis, lists, quotes, links, undo/redo, safe HTML allowlisting, and automatic compatibility for existing plain-text pages. *(20 June 2026)*
+- 🏗️ **Completed the internal framework conversion** across public pages, APIs, administration, installation, updates, themes, settings, backup, export, authentication, and configuration. *(19 June 2026)*
+- 🧩 **Introduced 89 focused services** and reduced 39 large mixed-responsibility facades. *(19 June 2026)*
+- 🧹 **Removed more than 3,000 lines** from mixed-responsibility classes while retaining existing behaviour. *(19 June 2026)*
+- 🔌 **Preserved simple deployment compatibility** for Docker, XAMPP, and hosted web servers without requiring a Laravel-style `/public` directory. *(19 June 2026)*
+
+---
+
+### 🏗️ Framework & File Organisation
+
+- 📁 Moved application code into controllers, services, core helpers, and views under `dcs-stats/app/`. *(11–19 June 2026)*
+- 📘 Updated the README to distinguish the completed V1.3 framework and security foundation from the planned CMS phase, document the preserved deployment model, and reflect the current framework structure and cache policy. *(20 June 2026)*
+- 🎛️ Converted public pages, public APIs, admin pages, admin APIs, installation, authentication, updates, themes, settings, backup, export, and configuration workflows to framework classes. *(11–19 June 2026)*
+- 🖼️ Separated public rendering, shared layouts, page assets, and reusable views from legacy page files. *(11–14 June 2026)*
+- 🧱 Reduced controllers and page facades to request orchestration, service calls, and view rendering. *(13–19 June 2026)*
+- 🔗 Improved dependency boundaries and reduced repeated per-request service creation. *(14–19 June 2026)*
+
+---
+
+### 🎨 Theme & Header Services
+
+- 🧩 Centralised theme service composition. *(14 June 2026)*
+- 🖼️ Moved header image persistence into a dedicated service. *(18 June 2026)*
+- 🔗 Moved theme preview URL construction into a dedicated service. *(18 June 2026)*
+- 🎨 Split theme actions into focused preset, import, menu, appearance, upload, restore, logging, and dispatch services. *(19 June 2026)*
+- 🧭 Retained `ThemeActionService::handle()` as the stable public facade. *(19 June 2026)*
+- 🧹 Moved navigation configuration out of Theme Management so themes now control presentation while Website Options → Menu Manager controls public navigation structure. *(20 June 2026)*
+
+---
+
+### 🧰 Admin, Core & Installer Services
+
+- 🧭 Split the admin navigation into permission-aware **Statistics Options**, **Website Options**, and **Global Options**, keeping existing website links available independently of the future optional CMS and adding direct API Health access. *(20 June 2026)*
+- 🧱 Added a disabled, clearly labelled **Enable CMS** preview switch so the future optional CMS has a visible navigation placeholder without activating unfinished functionality. *(20 June 2026)*
+- 🎮 Removed the duplicate Discord visibility control from Statistics Features; Discord visibility and invite URL remain managed from Website Options → Discord Link. *(20 June 2026)*
+- 🔗 Moved the Squadron Links Dropdown enable/disable control from Statistics Features to Website Options → Custom Links while preserving existing settings and public navigation behaviour. *(20 June 2026)*
+- 🔐 Extracted admin authentication, session, permission, navigation, URL, and data-initialisation services. *(17–18 June 2026)*
+- ⚙️ Extracted admin dashboard, settings, maintenance, metadata, backup, export, and page-state services. *(17–18 June 2026)*
+- 🌍 Decomposed cache, localisation, API configuration, feature configuration, and storage responsibilities. *(18 June 2026)*
+- 🛠️ Extracted installer environment, input, file-writing, version-initialisation, and completion-rendering services. *(18 June 2026)*
+- 📡 Reduced public API controllers to endpoint facades backed by focused API services. *(18 June 2026)*
+
+---
+
+### 🛡️ Security Hardening
+
+- 🖼️ Restricted CMS media to verified image MIME signatures, bounded file sizes and dimensions, allowlisted random filenames, CSRF-protected admin actions, non-executable upload storage, sanitised image markup, and deletion checks for images used by saved pages. *(21 June 2026)*
+- 🔐 Changed admin logout and data export actions to POST-only requests protected by CSRF validation. *(19 June 2026)*
+- 🍪 Added Strict SameSite remember-me cookies, automatic Secure cookies on HTTPS, timing-safe token checks, and token rotation after successful restoration. *(19 June 2026)*
+- 📤 Prevented spreadsheet formula injection in CSV exports, restricted full exports to explicit field allowlists, and removed upstream API addresses from browser configuration. *(19 June 2026)*
+- 📡 Added public API rate limits, leaderboard and search validation, strict proxy method/body handling, and blocked upstream API redirects. *(19 June 2026)*
+- 🔑 Redacted API keys from configuration audit events and reinforced private permissions for sensitive configuration, translation, backup, update, and restore files. *(19 June 2026)*
+- 🎨 Added validation for uploaded and restored CSS, blocking executable directives and external resource references from imported backups. *(19 June 2026)*
+- 📦 Hardened updates with verified TLS, native Windows certificate support, GitHub host and repository validation, immutable commit resolution, download limits, SHA-256 audit output, strict archive structure checks, and protected workspaces. *(19 June 2026)*
+- 💾 Added randomized private restore workspaces, archive size and symlink checks, stricter language upload validation, and safer path-boundary checks. *(19 June 2026)*
+- 🛠️ Added installer CSRF and rate protection, an optional `DCS_INSTALL_TOKEN`, exclusive installation locking, race-condition checks, and explicit self-delete failure logging. *(19 June 2026)*
+- 🔐 Replaced plaintext non-Docker API-key storage with AES-256-GCM encryption, automatic migration, protected local key material, and optional `DCS_CONFIG_ENCRYPTION_KEY` support. *(19 June 2026)*
+- 🧾 Replaced silent remember-me session-store failures with explicit validation and server-side error logging. *(19 June 2026)*
+- 🐳 Clarified Docker PHP memory headroom, increased multipart POST capacity above the upload ceiling, and retained production OPcache timestamp validation settings. *(19 June 2026)*
+- 🕵️ Removed UCIDs and administrator IP addresses from ordinary data exports while retaining identifiers in Air Boss full exports. *(20 June 2026)*
+- ✅ Added controller-level leaderboard sort validation and retained service-layer validation as defence in depth. *(20 June 2026)*
+- 🧹 Removed the unused wildcard `ALLOWED_ORIGINS` Docker variable and made API settings call encrypted configuration storage directly. *(20 June 2026)*
+- 🌐 Documented HTTP DCSServerBot support and the allowlisted public API proxy as intentional compatibility architecture. *(20 June 2026)*
+
+---
+
+### 🧹 Compatibility & Cleanup
+
+- 🖼️ Corrected the CMS media API bootstrap for the PHP preview server, made Fileinfo optional, added structured endpoint exception handling, and exposed useful HTTP/network errors instead of a generic browser failure. *(21 June 2026)*
+- 🖼️ Corrected CMS editor image preview paths while retaining portable public-page image paths in saved content. *(21 June 2026)*
+- 🔄 Kept the selected-channel **Install Latest** action available when a manual installation's exact source commit cannot be verified. *(20 June 2026)*
+- 🧭 Stopped fresh installers from assigning an unverified remote commit to manually copied source files, and treat older installer-generated commit metadata as unknown to prevent false “Up to Date” results. *(20 June 2026)*
+- 🗑️ Removed 23 obsolete internal compatibility wrappers after replacing filename-based bootstrap dependencies with framework support loaders. *(19 June 2026)*
+- 🔌 Removed nine duplicate `*_api.php` aliases and retained one canonical URL for each public API endpoint. *(19 June 2026)*
+- 🧭 Kept thin root and `site-config/` PHP entry files as stable deployment adapters. *(19 June 2026)*
+- 🌐 Retained `dcs-stats/` as the web document root with no mandatory rewrite rules, custom `php.ini` settings, or `/public` directory migration. *(19 June 2026)*
+- ✅ Verified all 498 remaining PHP files lint cleanly after compatibility cleanup. *(19 June 2026)*
+- 🧪 Confirmed public pages, canonical APIs, login, and protected admin routes continued to respond correctly. *(19 June 2026)*
+
+---
+
 ## 🚀 V1.2
 
 V1.2 is a major dashboard, admin, theme, update, language, security, and performance release. It focuses on making the project easier to install, easier to customise, safer to run, and much better suited to different squadrons and server setups.
@@ -361,7 +468,7 @@ V1.2 is a major dashboard, admin, theme, update, language, security, and perform
 - 🔐 Locked the web installer behind admin authentication once the dashboard is already installed.
 - 🧹 Installer now attempts to remove `site-config/install.php` automatically after a successful install.
 - 🧭 Fresh installs now use the selected update channel branch and record the latest GitHub commit metadata when available.
-- 🧭 Stable update channel now defaults to `main` instead of the old `master` branch name.
+- 🧭 Stable update channel defaults to `master`; `.dev` installs default to the `Dev-20-05-26` branch.
 - 🧭 Missing configuration now redirects to installer properly.
 - 🧹 Removed fragile `goto` flow from installer logic.
 - 🧰 Installer-generated local data stays out of Git distribution.

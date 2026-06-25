@@ -1,24 +1,35 @@
 # DCS Statistics Dashboard
 
-Turn your DCSServerBot statistics into a polished, configurable, squadron-ready web dashboard.
+Turn your DCSServerBot statistics into a polished, configurable, squadron-ready website.
 
-[![Version](https://img.shields.io/badge/Version-V1.2-brightgreen?style=for-the-badge)](#whats-new-in-v12)
+[![Version](https://img.shields.io/badge/Version-V1.3-orange?style=for-the-badge)](#v13-squadron-cms-expansion)
 [![DCSServerBot](https://img.shields.io/badge/Requires-DCSServerBot-green?style=for-the-badge)](https://github.com/Special-K-s-Flightsim-Bots/DCSServerBot)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-blue?style=for-the-badge)](#requirements)
 [![Mobile](https://img.shields.io/badge/Mobile-Friendly-purple?style=for-the-badge)](#frontend-features)
-[![Languages](https://img.shields.io/badge/Languages-EN%20%7C%20DE%20%7C%20IT-orange?style=for-the-badge)](#language-support)
+[![Languages](https://img.shields.io/badge/Languages-EN%20%7C%20DE%20%7C%20IT%20%7C%20ES-orange?style=for-the-badge)](#language-support)
 [![License](https://img.shields.io/badge/License-MIT-lightgrey?style=for-the-badge)](LICENSE)
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-Online-brightgreen?style=for-the-badge&logo=googlechrome&logoColor=white)](https://demo.dcsstatisticsdashboard.app/)
 
 ---
 
-## 📡 Overview
+## ✨ What's New In V1.3
 
-**DCS Statistics Dashboard** is a PHP web dashboard for communities running [DCSServerBot](https://github.com/Special-K-s-Flightsim-Bots/DCSServerBot).
+### 🧱 Squadron CMS
 
-It gives squadrons and public DCS servers a clean place to show live server information, pilot statistics, leaderboards, squadron data, carrier trap results, custom links, credits, and configurable homepage insights.
+- 📄 Custom pages with drafts, publishing, navigation badges, duplication, previews, SEO/sharing metadata, and optional landing-page selection.
+- ✍️ Self-hosted safe editor for rich text, links, images, galleries, and live dashboard widgets.
+- 🖼️ Media library and image galleries for squadron screenshots, recruitment images, training references, and server showcase pages.
+- ⬇️ Downloads page for externally hosted files such as mission packs, kneeboards, mod lists, SOPs, and briefing documents.
+- 🧩 Reusable live statistics widgets and iframe embeds for use inside CMS pages or external websites.
+- 🧭 Unified Menu Manager for dashboard links, CMS pages, downloads, integrations, custom links, labels, ordering, visibility, and dropdowns.
+- 🔐 CMS administration protected by existing admin roles and LSO permission controls.
 
-The dashboard is built for normal web hosting, XAMPP/local testing, and Docker deployments. Most setup is handled from the browser installer and admin panel.
+### 🏗️ Framework And Security
+
+- 🧱 Public pages, APIs, admin tools, installer, updater, backups, themes, authentication, localisation, and exports now run through focused controllers and services under `dcs-stats/app/`.
+- 🔐 Saved DCSServerBot API keys are encrypted with AES-256-GCM and migrated from older plaintext storage automatically.
+- 🛡️ Stronger validation for API proxy requests, uploads, sessions, exports, backups, updates, and imported custom files.
+- 📦 Runtime data remains under protected data/upload folders and is kept out of Git.
 
 ---
 
@@ -59,7 +70,7 @@ The dashboard is built for normal web hosting, XAMPP/local testing, and Docker d
 ### 🌍 Language Support
 
 - 🗣️ Language groundwork added across the dashboard.
-- 🇬🇧 English, 🇩🇪 German, and 🇮🇹 Italian translation files included.
+- 🇬🇧 English, 🇩🇪 German, 🇮🇹 Italian, and 🇪🇸 Spanish translation files included.
 - 🧾 Translation template file for future community translations.
 - 🛠️ Installer language selection.
 - ⚙️ Admin language setting.
@@ -95,7 +106,8 @@ The dashboard is built for normal web hosting, XAMPP/local testing, and Docker d
 | 🎖️ Pilot Credits | Credit views with translated labels and themed styling |
 | 🛡️ Squadrons | Squadron overview, members, logos, leaderboard, live data panels |
 | 🛰️ Servers | Live server cards, mission, theatre, weather, slots, extensions, SRS, active players |
-| 🧭 Navigation | Custom links dropdown, configurable front-end sections, server scope selector |
+| 🧭 Navigation | Unified menu manager, automatic feature/CMS links, labels, visibility, ordering, parent/child dropdowns, server scope selector |
+| 📄 CMS Pages | Optional squadron website pages, landing pages, galleries, downloads, live widgets, embeds, and public navigation integration |
 | 🙌 Credits | Footer credits modal with relevant project acknowledgements |
 
 ---
@@ -107,6 +119,12 @@ The dashboard is built for normal web hosting, XAMPP/local testing, and Docker d
 | 🔌 API Settings | DCSServerBot host, port, optional API key, timeout, cache TTL, refresh interval, API health |
 | ✅ Site Features | Enable/disable dashboard sections and individual feature blocks |
 | 🎨 Theme Management | Presets, colours, gradients, charts, header image, logo, CSS upload, backup/restore |
+| 🧭 Menu Manager | Order and rename public links, hide items, choose new-tab behaviour, and build one-level dropdowns |
+| ⚙️ CMS Settings | Enable/disable CMS features and choose an optional CMS landing page |
+| 📄 CMS Pages | Dedicated page list/editor, draft previews, duplication, safe rich text, media library, publishing, landing-page selection and per-page SEO/social fields |
+| 🖼️ CMS Galleries | Reusable image galleries with local media upload, captions, thumbnail selector, and lightbox viewing |
+| ⬇️ CMS Downloads | Public download cards for externally hosted files, with categories, featured downloads, filtering, metadata, and batch entry tools |
+| 🔌 CMS Embeds | Copy iframe code for approved live dashboard widgets on external websites |
 | 🔗 Custom Links | Add third-party squadron links to the front-end navigation |
 | 🔎 Privacy & SEO | Keywords, description, search engine crawling preference |
 | 🌍 Language | Select site language and upload translation files |
@@ -132,6 +150,39 @@ The dashboard is built for normal web hosting, XAMPP/local testing, and Docker d
 - DCSServerBot with REST API enabled.
 - Network access from the dashboard web server to the DCSServerBot REST API host and port.
 - Optional but recommended: DCSServerBot API key.
+
+---
+
+## 🧱 Squadron CMS Quick Start
+
+The CMS is optional. A fresh install can continue using the statistics dashboard exactly as before.
+
+To enable the CMS:
+
+```text
+Admin Panel -> CMS Options -> CMS Settings
+```
+
+Common first steps:
+
+1. Enable CMS.
+2. Create a page from **CMS Pages**.
+3. Add text, images, galleries, downloads, or live widgets.
+4. Publish the page.
+5. Use **Website Options -> Menu Manager** to place the page in navigation.
+6. Optionally select a published CMS page as the homepage from **CMS Settings**.
+
+Useful CMS tools:
+
+| Tool | Use |
+| --- | --- |
+| CMS Pages | Create and publish custom website pages |
+| CMS Galleries | Build reusable screenshot/media galleries |
+| CMS Downloads | Link to mission packs, briefings, kneeboards, SOPs, mod lists, and other externally hosted files |
+| CMS Embeds | Copy approved iframe embeds for live widgets on external websites |
+| Menu Manager | Control where CMS pages, downloads, dashboard pages, and custom links appear |
+
+The CMS stores user content under protected runtime data files and upload folders. These files are preserved by updates and should not be committed to Git.
 
 ---
 
@@ -172,6 +223,8 @@ your-api-domain.com:9876
 
 The dashboard will try to handle HTTP/HTTPS safely depending on the install environment.
 
+HTTP remains the default for newly entered DCSServerBot hosts because many bot installations expose their REST API only over HTTP on a private network. HTTPS is preserved whenever it is configured or detected. Browser pages use the dashboard's server-side, allowlisted PHP proxy rather than connecting directly to an HTTP API.
+
 If DCSServerBot has an API key configured, add it in:
 
 ```text
@@ -179,6 +232,8 @@ Admin Panel -> Settings -> API Settings
 ```
 
 If your DCSServerBot REST API has no key configured, leave the field blank.
+
+Keys saved through the installer or API Settings page are encrypted with AES-256-GCM. Existing plaintext keys are migrated automatically. The generated encryption key is kept in the protected `site-config/data/` directory.
 
 For Docker or server-managed installs, you can keep the API key out of `api_config.json` by setting:
 
@@ -188,6 +243,8 @@ DCSBOT_API_KEY=your_key_here
 
 When `DCSBOT_API_KEY` is present, the dashboard uses it for API requests and ignores the saved API key field.
 
+Advanced server-managed installs can provide a stable `DCS_CONFIG_ENCRYPTION_KEY` instead of using the generated local encryption-key file. Keep this value unchanged after first use.
+
 ---
 
 ## ⚡ API Caching
@@ -196,15 +253,23 @@ The dashboard includes file-based caching for heavier API responses.
 
 Cached endpoints include:
 
+- `/credits`
+- `/getuser`
+- `/highscore`
 - `/serverstats`
 - `/server_attendance`
 - `/leaderboard`
+- `/modulestats`
 - `/squadrons`
 - `/squadron_members`
 - `/squadron_credits`
 - `/stats`
 - `/player_info`
+- `/player_squadrons`
+- `/topkills`
+- `/topkdr`
 - `/traps`
+- `/trueskill`
 - `/weaponpk`
 
 Live status endpoints are not cached:
@@ -226,6 +291,8 @@ dcs-stats/site-config/data/api-cache/
 
 These are runtime files and should not be committed to Git.
 
+`/server_attendance` has a minimum 15-minute cache time because it performs broader attendance aggregation. Page feature settings prevent the request when no attendance or insight widgets need it.
+
 ---
 
 ## 🌍 Language Support
@@ -235,6 +302,7 @@ Included languages:
 - English
 - German
 - Italian
+- Spanish
 
 Translation files live in:
 
@@ -268,7 +336,9 @@ The updater supports:
 - Backup creation before updates.
 - Downgrade/version list where available.
 
-Stable is the default update channel. A hidden `.dev` file enables the configured development branch.
+Stable is the default update channel and checks the `master` branch. A hidden `.dev` file switches the updater to the configured development branch, which defaults to `Dev-20-05-26`.
+
+Manual source installations are recorded without a commit SHA because the installer cannot verify which Git commit produced the copied files. They can still install the latest build from the selected stable or development channel, after which the updater records the verified commit.
 
 Runtime settings and admin-managed customisations are preserved during normal updates, including uploaded branding under `uploads/`, generated theme files, menu settings, API settings, and local data. Manual edits made directly to core dashboard/template files may be replaced by the updater, so keep custom work in the admin theme tools, `uploads/`, or `custom/` where possible.
 
@@ -284,11 +354,16 @@ The dashboard includes:
 - CSRF protection for admin actions.
 - Role checks for admin pages.
 - Security headers.
-- API proxy allow-listing.
+- API proxy endpoint, method, query, and request-body allow-listing.
+- Public API request validation and rate limits.
 - Optional DCSServerBot API key forwarding.
-- Sensitive API values kept server-side.
+- AES-256-GCM encryption for saved API keys with automatic plaintext migration.
+- Sensitive API values kept server-side and redacted from audit events.
 - Protected runtime data folders.
 - Safer generated file permissions.
+- CSV formula-injection protection and privacy-reduced standard exports.
+- Strict validation for imported CSS, translations, backups, and update archives.
+- Verified update downloads with archive structure and path-safety checks.
 
 Recommended production setup:
 
@@ -350,6 +425,13 @@ The dashboard sends very minimal install/version check-in data to the project ma
 ```text
 DCS-Statistics-Dashboard/
 ├── dcs-stats/                  Main web application
+│   ├── app/                    Internal V1.3 framework
+│   │   ├── Controllers/        Public, API, admin, and installer controllers
+│   │   ├── Core/               Framework, security, storage, and configuration helpers
+│   │   ├── Services/           Focused application and integration services
+│   │   ├── Views/              Public and admin view templates
+│   │   └── bootstrap.php       Framework bootstrap
+│   ├── css/widgets/            Reusable CMS/dashboard widget styles
 │   ├── site-config/            Admin panel and setup tools
 │   │   ├── api/                Admin API endpoints
 │   │   ├── data/               Runtime settings and admin data
@@ -357,12 +439,18 @@ DCS-Statistics-Dashboard/
 │   │   └── js/                 Admin JavaScript
 │   ├── js/                     Front-end JavaScript and vendor scripts
 │   ├── lang/                   Translation files
-│   ├── index.php               Homepage
-│   ├── leaderboard.php         Leaderboard page
-│   ├── pilot_statistics.php    Pilot search and profile page
-│   ├── pilot_credits.php       Pilot credits page
-│   ├── squadrons.php           Squadron pages
-│   └── servers.php             Server status page
+│   ├── uploads/pages/          CMS page and gallery media uploads
+│   ├── index.php               Thin homepage entry point
+│   ├── page.php                Thin CMS page entry point
+│   ├── page_preview.php        Protected CMS draft preview entry point
+│   ├── downloads.php           Thin CMS downloads entry point
+│   ├── server_status_embed.php Thin server status iframe embed entry point
+│   ├── dashboard_widget_embed.php Thin dashboard widget iframe embed entry point
+│   ├── leaderboard.php         Thin leaderboard entry point
+│   ├── pilot_statistics.php    Thin pilot profile entry point
+│   ├── pilot_credits.php       Thin pilot credits entry point
+│   ├── squadrons.php           Thin squadron entry point
+│   └── servers.php             Thin server-status entry point
 ├── docker/                      Docker image and compose files
 │   ├── Dockerfile
 │   ├── Dockerfile.dockerignore
@@ -390,6 +478,8 @@ Before opening a pull request:
 - Test on desktop and mobile widths.
 - Check PHP syntax for changed files.
 - Avoid committing runtime data from your own install.
+- Keep business logic in `app/` services and controllers; preserve the thin physical PHP entry points.
+- Do not introduce a mandatory `/public` document root or rewrite-rule dependency.
 - Update translations where new visible text is added.
 - Update documentation when behaviour changes.
 

@@ -42,6 +42,8 @@ Use this checklist before a public release or when testing a new install.
 - [ ] Servers page shows expected server cards.
 - [ ] Squadrons page shows real squadron data.
 - [ ] Custom links menu works.
+- [ ] Menu Manager ordering, labels, visibility, and dropdowns appear correctly on desktop.
+- [ ] Menu Manager ordering, labels, visibility, and dropdowns appear correctly on mobile.
 - [ ] Footer credits modal works.
 - [ ] Mobile layout is usable.
 
@@ -64,6 +66,27 @@ Use this checklist before a public release or when testing a new install.
 
 ---
 
+## 🧱 CMS
+
+- [ ] CMS can be enabled and disabled.
+- [ ] CMS disabled state leaves the statistics dashboard working normally.
+- [ ] CMS page can be created, saved as draft, previewed, published, duplicated, and deleted.
+- [ ] CMS landing page can be selected and falls back safely if unavailable.
+- [ ] Rich text editor formatting works for headings, lists, quotes, links, and alignment.
+- [ ] Media upload accepts valid JPG, PNG, and WebP images.
+- [ ] Media upload rejects invalid files and oversized images.
+- [ ] Inserted page images stay inside the public page card on mobile.
+- [ ] Image galleries can upload multiple images and render with featured image, thumbnails, captions, and lightbox.
+- [ ] Downloads can be enabled, created, edited, featured, categorised, filtered, and hidden.
+- [ ] Downloads page links open external files in a new tab.
+- [ ] CMS widgets render on public pages and remain inside the page card on mobile.
+- [ ] Server-scoped widgets show the correct server when selected.
+- [ ] Embeds page shows a live preview and copyable iframe code.
+- [ ] Menu Manager discovers published CMS pages and CMS Downloads.
+- [ ] LSO Manage CMS permission grants/removes CMS admin access as expected.
+
+---
+
 ## 🔐 Security
 
 - [ ] Admin pages require login.
@@ -73,6 +96,7 @@ Use this checklist before a public release or when testing a new install.
 - [ ] `.demo` is not committed.
 - [ ] `.dev` is not committed.
 - [ ] Runtime JSON files are not committed.
+- [ ] CMS uploads and CMS runtime JSON files are not committed.
 
 ---
 
@@ -82,8 +106,10 @@ Use this checklist before a public release or when testing a new install.
 - [ ] Configure API settings.
 - [ ] Apply custom theme.
 - [ ] Add custom links.
+- [ ] Add a CMS page, gallery, and download if testing V1.3.
 - [ ] Run update.
 - [ ] Confirm settings were preserved.
 - [ ] Confirm theme was preserved.
 - [ ] Confirm users were preserved.
+- [ ] Confirm CMS pages, galleries, downloads, menu settings, and uploads were preserved.
 - [ ] Confirm installed build/version display is sensible.
