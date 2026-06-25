@@ -2,6 +2,8 @@
 
 namespace DcsStats\Services\Admin;
 
+use DcsStats\Core\AdminAuditLog;
+
 final class LogsPageService
 {
     public function state(): array
@@ -12,7 +14,7 @@ final class LogsPageService
         $filterDateTo = $_GET['date_to'] ?? date('Y-m-d');
         $page = max(1, intval($_GET['page'] ?? 1));
         $perPage = RECORDS_PER_PAGE;
-        $allLogs = json_decode((string)@file_get_contents(ADMIN_LOGS_FILE), true) ?: [];
+        $allLogs = AdminAuditLog::readAll(ADMIN_LOGS_FILE);
         $prunedLogs = function_exists('pruneAdminLogs') ? \pruneAdminLogs($allLogs) : $allLogs;
 
         if (count($prunedLogs) !== count($allLogs)) {

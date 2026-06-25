@@ -2,6 +2,8 @@
 
 namespace DcsStats\Services\Admin;
 
+use DcsStats\Core\AdminAuditLog;
+
 final class ExportPageService
 {
     public function state(array $currentAdmin): array
@@ -20,7 +22,7 @@ final class ExportPageService
 
     private function recentExports(): array
     {
-        $logs = json_decode(@file_get_contents(ADMIN_LOGS_FILE), true) ?: [];
+        $logs = AdminAuditLog::readAll(ADMIN_LOGS_FILE);
         $logs = array_map('normalizeAdminLog', $logs);
         $adminMap = [];
 

@@ -4,6 +4,33 @@ namespace DcsStats\Core;
 
 final class AdminAuditLog
 {
+    public static function readAll(?string $logsFile = null): array
+    {
+        $logsFile = $logsFile ?? AdminEnvironment::dataFilePath('logs');
+        if (!is_file($logsFile)) {
+            return [];
+        }
+
+        if (!is_readable($logsFile)) {
+            error_log('Admin log file is not readable: ' . $logsFile);
+            return [];
+        }
+
+        $content = file_get_contents($logsFile);
+        if ($content === false) {
+            error_log('Unable to read admin log file: ' . $logsFile);
+            return [];
+        }
+
+        $logs = json_decode($content, true);
+        if (!is_array($logs)) {
+            error_log('Admin log file contains invalid JSON: ' . $logsFile);
+            return [];
+        }
+
+        return $logs;
+    }
+
     public static function prune($logs, ?int $maxLogs = null): array
     {
         if (!is_array($logs)) {
@@ -37,7 +64,7 @@ final class AdminAuditLog
         }
 
         $logsFile = AdminEnvironment::dataFilePath('logs');
-        $logs = json_decode((string)@file_get_contents($logsFile), true) ?: [];
+        $logs = self::readAll($logsFile);
         $nextId = 1;
         foreach ($logs as $existingLog) {
             $nextId = max($nextId, (int)($existingLog['id'] ?? 0) + 1);

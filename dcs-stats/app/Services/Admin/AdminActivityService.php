@@ -55,7 +55,7 @@ final class AdminActivityService
     {
         $logs = [];
         if (file_exists(ADMIN_LOGS_FILE)) {
-            $logs = json_decode((string)file_get_contents(ADMIN_LOGS_FILE), true) ?: [];
+            $logs = AdminAuditLog::readAll(ADMIN_LOGS_FILE);
         }
 
         $currentAdmin = $this->currentAdmin();
@@ -76,7 +76,7 @@ final class AdminActivityService
 
     public function recentActivity(int $limit = 10): array
     {
-        $logs = json_decode((string)@file_get_contents(ADMIN_LOGS_FILE), true) ?: [];
+        $logs = AdminAuditLog::readAll(ADMIN_LOGS_FILE);
         $logs = array_map([$this, 'normalizeLog'], $logs);
 
         usort($logs, function ($a, $b) {

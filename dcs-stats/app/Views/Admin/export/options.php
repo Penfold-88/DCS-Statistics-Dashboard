@@ -109,11 +109,13 @@
         <div class="export-option" style="border: 2px solid var(--accent-danger);">
             <h3 style="color: var(--accent-danger);">Full Data Export</h3>
             <p style="color: var(--accent-warning);">
-                <strong>Warning:</strong> This will export ALL data from the system.
-                It may include player identifiers and other administrative records. Large exports may take significant time.
+                <strong>Air Boss only:</strong> This exports all site data for ownership, migration and audit use.
+                It may include player identifiers, admin account metadata, ban records and admin activity logs.
+                Treat the file as sensitive and store or share it only with trusted administrators.
+                Large exports may take significant time.
             </p>
 
-            <form method="POST" action="api/export_data.php" onsubmit="return confirm('Are you sure you want to export ALL data?');">
+            <form method="POST" action="api/export_data.php" onsubmit="return confirm('This Air Boss export may include player identifiers, admin account metadata, ban records and admin activity logs. Continue?');">
                 <?= csrfField() ?>
                 <input type="hidden" name="type" value="full">
 

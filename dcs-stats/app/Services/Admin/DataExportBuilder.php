@@ -2,6 +2,8 @@
 
 namespace DcsStats\Services\Admin;
 
+use DcsStats\Core\AdminAuditLog;
+
 final class DataExportBuilder
 {
     public function players(bool $includeIdentifiers = false): array
@@ -29,7 +31,7 @@ final class DataExportBuilder
 
     public function adminLogs(string $dateFrom, string $dateTo): array
     {
-        $logs = json_decode(@file_get_contents(ADMIN_LOGS_FILE), true) ?: [];
+        $logs = AdminAuditLog::readAll(ADMIN_LOGS_FILE);
         $logs = array_map('normalizeAdminLog', $logs);
         $users = getAdminUsers();
         $userMap = [];
@@ -57,6 +59,12 @@ final class DataExportBuilder
 
     public function full(string $format, array $currentAdmin): array
     {
+        /*
+         * Full exports are intentionally restricted to Air Boss administrators by
+         * the export controller/UI. They are designed for site ownership,
+         * migration and audit use, and may include player identifiers, admin
+         * account metadata, ban records and admin activity records.
+         */
         if ($format === 'json') {
             return [
                 'export_date' => date('c'),
@@ -72,7 +80,7 @@ final class DataExportBuilder
                     'id', 'username', 'email', 'role', 'permissions', 'created_at', 'last_login', 'is_active',
                 ]),
                 'admin_logs' => $this->allowFields(
-                    json_decode((string)@file_get_contents(ADMIN_LOGS_FILE), true) ?: [],
+                    AdminAuditLog::readAll(ADMIN_LOGS_FILE),
                     ['admin_id', 'action', 'target_type', 'target_id', 'details', 'created_at', 'timestamp']
                 ),
             ];
