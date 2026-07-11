@@ -34,8 +34,52 @@
         }
     }
 
+    function textAlignmentFromElement(element) {
+        const align = (element.getAttribute('align') || '').trim().toLowerCase();
+        if (['left', 'center', 'right'].includes(align)) return align;
+        const styleAlign = (element.style && element.style.textAlign ? element.style.textAlign : '').trim().toLowerCase();
+        if (['left', 'center', 'right'].includes(styleAlign)) return styleAlign;
+        const style = (element.getAttribute('style') || '').toLowerCase();
+        const styleMatch = style.match(/(?:^|;)\s*text-align\s*:\s*(left|center|right)\s*(?:;|$)/);
+        if (styleMatch) return styleMatch[1];
+        const classMatch = (` ${element.className || ''} `).match(/\scms-text-(left|center|right)\s/);
+        return classMatch ? classMatch[1] : '';
+    }
+
+    function applyPortableTextAlignment(element, alignment) {
+        element.classList.remove('cms-text-left', 'cms-text-center', 'cms-text-right');
+        element.removeAttribute('align');
+        if (element.style) element.style.textAlign = '';
+        if (alignment) element.classList.add(`cms-text-${alignment}`);
+    }
+
+    function isCmsWidgetElement(element) {
+        return element.classList.contains('cms-widget-server-status')
+            || element.classList.contains('cms-widget-image-gallery')
+            || element.classList.contains('cms-widget-dashboard');
+    }
+
+    function hasPortableBlockChild(element) {
+        return Boolean(element.querySelector('p,h2,h3,h4,ul,ol,blockquote,figure,div,.cms-widget-server-status,.cms-widget-image-gallery,.cms-widget-dashboard'));
+    }
+
+    function normalizePortableContent(root) {
+        root.querySelectorAll('p,h2,h3,h4,blockquote,li').forEach(block => {
+            applyPortableTextAlignment(block, textAlignmentFromElement(block));
+        });
+        Array.from(root.querySelectorAll('div')).reverse().forEach(div => {
+            if (isCmsWidgetElement(div)) return;
+            if (hasPortableBlockChild(div)) return;
+            const paragraph = document.createElement('p');
+            applyPortableTextAlignment(paragraph, textAlignmentFromElement(div));
+            while (div.firstChild) paragraph.appendChild(div.firstChild);
+            div.replaceWith(paragraph);
+        });
+    }
+
     function sync() {
         const portableContent = editor.cloneNode(true);
+        normalizePortableContent(portableContent);
         portableContent.querySelectorAll('img').forEach(image => {
             const source = image.getAttribute('src') || '';
             const match = source.match(/(?:^|\/)uploads\/pages\/([a-f0-9]{32}\.(?:jpg|png|webp))$/i);

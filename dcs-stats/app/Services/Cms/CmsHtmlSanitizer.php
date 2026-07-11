@@ -146,6 +146,17 @@ final class CmsHtmlSanitizer
                 if (!in_array($widgetClass, ['cms-widget-server-status', 'cms-widget-image-gallery', 'cms-widget-dashboard'], true)) {
                     $parent = $node->parentNode;
                     if ($parent) {
+                        if (!$this->hasBlockChild($node)) {
+                            $paragraph = $node->ownerDocument->createElement('p');
+                            while ($node->firstChild) {
+                                $paragraph->appendChild($node->firstChild);
+                            }
+                            if ($textAlignment !== '') {
+                                $paragraph->setAttribute('class', 'cms-text-' . $textAlignment);
+                            }
+                            $parent->replaceChild($paragraph, $node);
+                            return;
+                        }
                         while ($node->firstChild) {
                             $parent->insertBefore($node->firstChild, $node);
                         }
@@ -173,10 +184,20 @@ final class CmsHtmlSanitizer
                     return;
                 }
             }
-            if ($textAlignment !== '') {
+            if ($textAlignment !== '' && $tag !== 'div') {
                 $node->setAttribute('class', 'cms-text-' . $textAlignment);
             }
         }
+    }
+
+    private function hasBlockChild(\DOMElement $node): bool
+    {
+        foreach ($node->childNodes as $child) {
+            if ($child instanceof \DOMElement && in_array(strtolower($child->nodeName), ['p', 'h2', 'h3', 'h4', 'ul', 'ol', 'blockquote', 'figure', 'div'], true)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private function safeHref(string $href): bool
@@ -198,12 +219,8 @@ final class CmsHtmlSanitizer
 
     private function textAlignment(\DOMElement $node, string $tag): string
     {
-        if (!in_array($tag, ['p', 'h2', 'h3', 'h4', 'blockquote', 'li'], true)) {
+        if (!in_array($tag, ['p', 'h2', 'h3', 'h4', 'blockquote', 'li', 'div'], true)) {
             return '';
-        }
-        $class = trim($node->getAttribute('class'));
-        if (preg_match('/(?:^|\s)cms-text-(left|center|right)(?:\s|$)/', $class, $match)) {
-            return $match[1];
         }
         $align = strtolower(trim($node->getAttribute('align')));
         if (in_array($align, ['left', 'center', 'right'], true)) {
@@ -211,6 +228,10 @@ final class CmsHtmlSanitizer
         }
         $style = strtolower($node->getAttribute('style'));
         if (preg_match('/(?:^|;)\s*text-align\s*:\s*(left|center|right)\s*(?:;|$)/', $style, $match)) {
+            return $match[1];
+        }
+        $class = trim($node->getAttribute('class'));
+        if (preg_match('/(?:^|\s)cms-text-(left|center|right)(?:\s|$)/', $class, $match)) {
             return $match[1];
         }
         return '';
