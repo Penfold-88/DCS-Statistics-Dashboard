@@ -151,7 +151,7 @@ nav a:hover,
 .nav-link:hover,
 .nav-link:focus,
 .nav-link:active,
-.public-nav-dropdown.open > .nav-dropdown-button {
+.public-nav-dropdown.open .nav-dropdown-button {
     background: color-mix(in srgb, var(--nav_hover_color) 18%, transparent) !important;
     color: var(--nav_hover_color) !important;
 }
