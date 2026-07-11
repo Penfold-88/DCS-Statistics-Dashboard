@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= e($pageTitle) ?> - DCS Statistics</title>
     <link rel="stylesheet" href="css/admin.css">
+    <link rel="stylesheet" href="../css/admin/menu-manager.css">
 </head>
 <body>
 <div class="admin-wrapper">
