@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="<?= e(dcs_default_language()) ?>">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title><?= e($pageTitle) ?> - DCS Statistics</title><link rel="stylesheet" href="css/admin.css"></head>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title><?= e($pageTitle) ?> - DCS Statistics</title><link rel="stylesheet" href="css/admin.css"><link rel="stylesheet" href="../css/admin/cms.css"></head>
 <body><div class="admin-wrapper">
 <?php require DCS_APP_PATH . '/Views/Admin/partials/nav.php'; ?>
 <main class="admin-main">

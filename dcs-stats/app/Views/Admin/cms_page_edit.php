@@ -5,7 +5,7 @@ $editorContent = ($editPage['content_format'] ?? 'plain_text') === 'rich_html'
     : ($storedContent !== '' ? '<p>' . nl2br(e($storedContent)) . '</p>' : '<p><br></p>');
 $editorContent = preg_replace('#src="/?uploads/pages/#', 'src="../uploads/pages/', $editorContent);
 ?>
-<!DOCTYPE html><html lang="<?= e(dcs_default_language()) ?>"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title><?= e($pageTitle) ?> - DCS Statistics</title><link rel="stylesheet" href="css/admin.css"></head>
+<!DOCTYPE html><html lang="<?= e(dcs_default_language()) ?>"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title><?= e($pageTitle) ?> - DCS Statistics</title><link rel="stylesheet" href="css/admin.css"><link rel="stylesheet" href="../css/admin/cms.css"></head>
 <body><div class="admin-wrapper"><?php require DCS_APP_PATH . '/Views/Admin/partials/nav.php'; ?><main class="admin-main">
 <header class="admin-header"><h1><?= e($pageTitle) ?></h1><div class="admin-user-menu"><div class="admin-user-info"><div class="admin-username"><?= e($currentAdmin['username']) ?></div><div class="admin-role"><?= getRoleBadge($currentAdmin['role']) ?></div></div><?php require DCS_APP_PATH . '/Views/Admin/partials/logout_form.php'; ?></div></header>
 <div class="admin-content"><?php if ($message): ?><div class="alert alert-<?= $messageType === 'success' ? 'success' : 'error' ?>"><?= e($message) ?></div><?php endif; ?>
