@@ -11,6 +11,7 @@
     const widgetConfig = window.DCS_CMS_WIDGET_CONFIG || {};
     let mediaItems = Array.isArray(mediaConfig.items) ? mediaConfig.items : [];
     let savedRange = null;
+    let pendingTextAlignment = null;
 
     function focusEditor() {
         editor.focus();
@@ -19,6 +20,74 @@
     function run(command, value) {
         focusEditor();
         document.execCommand(command, false, value || null);
+        sync();
+    }
+
+    function alignmentFromCommand(command) {
+        if (command === 'justifyLeft') return 'left';
+        if (command === 'justifyCenter') return 'center';
+        if (command === 'justifyRight') return 'right';
+        return null;
+    }
+
+    function editableTextBlock(node) {
+        let current = node && node.nodeType === Node.ELEMENT_NODE ? node : node ? node.parentElement : null;
+        while (current && current !== editor) {
+            if (['P', 'H2', 'H3', 'H4', 'BLOCKQUOTE', 'LI'].includes(current.tagName)) {
+                return current;
+            }
+            current = current.parentElement;
+        }
+        return null;
+    }
+
+    function setTextBlockAlignment(block, alignment) {
+        if (!block) return;
+        block.classList.remove('cms-text-left', 'cms-text-center', 'cms-text-right');
+        block.removeAttribute('align');
+        if (block.style) block.style.textAlign = '';
+        block.classList.add(`cms-text-${alignment}`);
+    }
+
+    function selectedTextBlocks() {
+        const selection = window.getSelection();
+        if (!selection || !selection.rangeCount || !editor.contains(selection.anchorNode)) return [];
+        const range = selection.getRangeAt(0);
+        const blocks = new Set();
+        const startBlock = editableTextBlock(range.startContainer);
+        const endBlock = editableTextBlock(range.endContainer);
+        if (startBlock) blocks.add(startBlock);
+        if (endBlock) blocks.add(endBlock);
+
+        const walker = document.createTreeWalker(editor, NodeFilter.SHOW_ELEMENT, {
+            acceptNode(node) {
+                if (!['P', 'H2', 'H3', 'H4', 'BLOCKQUOTE', 'LI'].includes(node.tagName)) {
+                    return NodeFilter.FILTER_SKIP;
+                }
+                return range.intersectsNode(node) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+            }
+        });
+        let node = walker.nextNode();
+        while (node) {
+            blocks.add(node);
+            node = walker.nextNode();
+        }
+
+        return [...blocks];
+    }
+
+    function applyTextAlignment(alignment) {
+        pendingTextAlignment = alignment;
+        focusEditor();
+        const blocks = selectedTextBlocks();
+        if (!blocks.length) {
+            document.execCommand('formatBlock', false, 'p');
+            const selection = window.getSelection();
+            const block = selection && selection.rangeCount ? editableTextBlock(selection.getRangeAt(0).startContainer) : null;
+            if (block) blocks.push(block);
+        }
+        blocks.forEach(block => setTextBlockAlignment(block, alignment));
+        rememberSelection();
         sync();
     }
 
@@ -60,7 +129,14 @@
 
     wrapper.querySelectorAll('[data-editor-command]').forEach(button => {
         button.addEventListener('mousedown', event => event.preventDefault());
-        button.addEventListener('click', () => run(button.dataset.editorCommand));
+        button.addEventListener('click', () => {
+            const alignment = alignmentFromCommand(button.dataset.editorCommand);
+            if (alignment) {
+                applyTextAlignment(alignment);
+                return;
+            }
+            run(button.dataset.editorCommand);
+        });
     });
 
     format.addEventListener('change', () => {
@@ -547,7 +623,12 @@
         }).catch(error => setMediaStatus(error.message, true));
     });
 
-    editor.addEventListener('input', sync);
+    editor.addEventListener('input', () => {
+        if (pendingTextAlignment) {
+            selectedTextBlocks().forEach(block => setTextBlockAlignment(block, pendingTextAlignment));
+        }
+        sync();
+    });
     editor.addEventListener('keyup', rememberSelection);
     editor.addEventListener('mouseup', rememberSelection);
     editor.addEventListener('paste', event => {
