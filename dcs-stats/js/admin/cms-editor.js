@@ -138,7 +138,18 @@
     const captionInput = document.querySelector('[data-media-caption]');
     const alignmentInput = document.querySelector('[data-media-alignment]');
 
-    function insertNodeAtSelection(node) {
+    function placeCursorInNode(node) {
+        const selection = window.getSelection();
+        if (!selection) return;
+        const range = document.createRange();
+        range.selectNodeContents(node);
+        range.collapse(true);
+        selection.removeAllRanges();
+        selection.addRange(range);
+        rememberSelection();
+    }
+
+    function insertNodeAtSelection(node, addEditableParagraphAfter) {
         focusEditor();
         restoreSelection();
         const selection = window.getSelection();
@@ -162,6 +173,12 @@
             selection.addRange(range);
         } else {
             editor.appendChild(node);
+        }
+        if (addEditableParagraphAfter) {
+            const paragraph = document.createElement('p');
+            paragraph.appendChild(document.createElement('br'));
+            node.after(paragraph);
+            placeCursorInNode(paragraph);
         }
         sync();
     }
@@ -455,7 +472,7 @@
         } else {
             return;
         }
-        insertNodeAtSelection(marker);
+        insertNodeAtSelection(marker, true);
     });
 
     function setMediaStatus(message, isError) {
