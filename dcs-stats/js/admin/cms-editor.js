@@ -35,15 +35,15 @@
     }
 
     function textAlignmentFromElement(element) {
-        const classMatch = (` ${element.className || ''} `).match(/\scms-text-(left|center|right)\s/);
-        if (classMatch) return classMatch[1];
         const align = (element.getAttribute('align') || '').trim().toLowerCase();
         if (['left', 'center', 'right'].includes(align)) return align;
         const styleAlign = (element.style && element.style.textAlign ? element.style.textAlign : '').trim().toLowerCase();
         if (['left', 'center', 'right'].includes(styleAlign)) return styleAlign;
         const style = (element.getAttribute('style') || '').toLowerCase();
         const styleMatch = style.match(/(?:^|;)\s*text-align\s*:\s*(left|center|right)\s*(?:;|$)/);
-        return styleMatch ? styleMatch[1] : '';
+        if (styleMatch) return styleMatch[1];
+        const classMatch = (` ${element.className || ''} `).match(/\scms-text-(left|center|right)\s/);
+        return classMatch ? classMatch[1] : '';
     }
 
     function applyPortableTextAlignment(element, alignment) {

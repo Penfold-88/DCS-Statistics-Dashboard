@@ -222,16 +222,16 @@ final class CmsHtmlSanitizer
         if (!in_array($tag, ['p', 'h2', 'h3', 'h4', 'blockquote', 'li', 'div'], true)) {
             return '';
         }
-        $class = trim($node->getAttribute('class'));
-        if (preg_match('/(?:^|\s)cms-text-(left|center|right)(?:\s|$)/', $class, $match)) {
-            return $match[1];
-        }
         $align = strtolower(trim($node->getAttribute('align')));
         if (in_array($align, ['left', 'center', 'right'], true)) {
             return $align;
         }
         $style = strtolower($node->getAttribute('style'));
         if (preg_match('/(?:^|;)\s*text-align\s*:\s*(left|center|right)\s*(?:;|$)/', $style, $match)) {
+            return $match[1];
+        }
+        $class = trim($node->getAttribute('class'));
+        if (preg_match('/(?:^|\s)cms-text-(left|center|right)(?:\s|$)/', $class, $match)) {
             return $match[1];
         }
         return '';
