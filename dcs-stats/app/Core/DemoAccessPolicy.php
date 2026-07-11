@@ -18,9 +18,11 @@ final class DemoAccessPolicy
         }
 
         $protectedUsername = $this->configReader->protectedUsername();
+        $currentUsername = trim((string)($admin['username'] ?? ''));
         return $protectedUsername !== ''
             && is_array($admin)
-            && hash_equals($protectedUsername, (string)($admin['username'] ?? ''));
+            && $currentUsername !== ''
+            && hash_equals(strtolower($protectedUsername), strtolower($currentUsername));
     }
 
     public function isRestricted($admin = null): bool

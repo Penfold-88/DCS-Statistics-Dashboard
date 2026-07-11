@@ -10,6 +10,7 @@ final class DemoConfigReader
     {
         $this->paths = $paths ?? [
             DCS_ROOT_PATH . '/.demo',
+            DCS_ROOT_PATH . '/site-config/.demo',
             dirname(DCS_ROOT_PATH) . '/.demo',
         ];
     }
@@ -39,7 +40,7 @@ final class DemoConfigReader
 
         $json = json_decode($content, true);
         if (is_array($json)) {
-            return trim((string)($json['protected_user'] ?? $json['owner'] ?? $json['username'] ?? ''));
+            return trim((string)($json['protected_user'] ?? $json['owner'] ?? $json['username'] ?? $json['demo_owner'] ?? $json['full_control_user'] ?? ''));
         }
 
         foreach (preg_split('/\R/', $content) as $line) {
@@ -50,7 +51,7 @@ final class DemoConfigReader
 
             if (strpos($line, '=') !== false) {
                 [$key, $value] = array_map('trim', explode('=', $line, 2));
-                if (in_array(strtolower($key), ['protected_user', 'owner', 'username'], true)) {
+                if (in_array(strtolower($key), ['protected_user', 'owner', 'username', 'demo_owner', 'full_control_user'], true)) {
                     return $value;
                 }
                 continue;
