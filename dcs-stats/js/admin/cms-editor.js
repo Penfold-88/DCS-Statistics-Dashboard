@@ -6,20 +6,40 @@
     const editor = wrapper.querySelector('.cms-editor-content');
     const textarea = document.getElementById('cms_content');
     const format = wrapper.querySelector('[data-editor-format]');
+    const sourceButton = wrapper.querySelector('[data-editor-source]');
+    const sourceEditor = document.createElement('textarea');
     const text = window.DCS_CMS_EDITOR_TEXT || {};
     const mediaConfig = window.DCS_CMS_MEDIA || {};
     const widgetConfig = window.DCS_CMS_WIDGET_CONFIG || {};
     let mediaItems = Array.isArray(mediaConfig.items) ? mediaConfig.items : [];
     let savedRange = null;
     let pendingTextAlignment = null;
+    let sourceMode = false;
+
+    sourceEditor.className = 'cms-editor-source';
+    sourceEditor.hidden = true;
+    sourceEditor.spellcheck = false;
+    sourceEditor.setAttribute('aria-label', 'HTML source');
+    editor.after(sourceEditor);
 
     function focusEditor() {
         editor.focus();
     }
 
-    function run(command, value) {
+    function selectionInEditor() {
+        const selection = window.getSelection();
+        return Boolean(selection && selection.rangeCount && editor.contains(selection.anchorNode));
+    }
+
+    function ensureEditorSelection() {
         focusEditor();
-        restoreSelection();
+        if (!selectionInEditor()) restoreSelection();
+    }
+
+    function run(command, value) {
+        if (sourceMode) return;
+        ensureEditorSelection();
+        focusEditor();
         document.execCommand(command, false, value || null);
         rememberSelection();
         sync();
@@ -51,6 +71,13 @@
         block.classList.add(`cms-text-${alignment}`);
     }
 
+    function clearTextBlockAlignment(block) {
+        if (!block) return;
+        block.classList.remove('cms-text-left', 'cms-text-center', 'cms-text-right');
+        block.removeAttribute('align');
+        if (block.style) block.style.textAlign = '';
+    }
+
     function selectedTextBlocks() {
         const selection = window.getSelection();
         if (!selection || !selection.rangeCount || !editor.contains(selection.anchorNode)) return [];
@@ -78,10 +105,10 @@
         return [...blocks];
     }
 
-    function applyTextAlignment(alignment) {
+    function applyTextAlignment(alignment, command) {
+        if (sourceMode) return;
         pendingTextAlignment = alignment;
-        focusEditor();
-        restoreSelection();
+        ensureEditorSelection();
         const blocks = selectedTextBlocks();
         if (!blocks.length) {
             document.execCommand('formatBlock', false, 'p');
@@ -89,7 +116,10 @@
             const block = selection && selection.rangeCount ? editableTextBlock(selection.getRangeAt(0).startContainer) : null;
             if (block) blocks.push(block);
         }
-        blocks.forEach(block => setTextBlockAlignment(block, alignment));
+        blocks.forEach(clearTextBlockAlignment);
+        document.execCommand(command, false, null);
+        const alignedBlocks = selectedTextBlocks();
+        (alignedBlocks.length ? alignedBlocks : blocks).forEach(block => setTextBlockAlignment(block, alignment));
         rememberSelection();
         sync();
     }
@@ -107,6 +137,10 @@
     }
 
     function sync() {
+        if (sourceMode) {
+            textarea.value = sourceEditor.value.trim();
+            return;
+        }
         const portableContent = editor.cloneNode(true);
         portableContent.querySelectorAll('img').forEach(image => {
             const source = image.getAttribute('src') || '';
@@ -135,7 +169,7 @@
         button.addEventListener('click', () => {
             const alignment = alignmentFromCommand(button.dataset.editorCommand);
             if (alignment) {
-                applyTextAlignment(alignment);
+                applyTextAlignment(alignment, button.dataset.editorCommand);
                 return;
             }
             run(button.dataset.editorCommand);
@@ -448,9 +482,13 @@
         widget.append(label, controls);
     }
 
-    editor.querySelectorAll('.cms-widget-server-status').forEach(decorateWidget);
-    editor.querySelectorAll('.cms-widget-image-gallery').forEach(decorateGalleryWidget);
-    editor.querySelectorAll('.cms-widget-dashboard').forEach(decorateDashboardWidget);
+    function decorateEditorWidgets() {
+        editor.querySelectorAll('.cms-widget-server-status').forEach(decorateWidget);
+        editor.querySelectorAll('.cms-widget-image-gallery').forEach(decorateGalleryWidget);
+        editor.querySelectorAll('.cms-widget-dashboard').forEach(decorateDashboardWidget);
+    }
+
+    decorateEditorWidgets();
 
     function loadWidgetServers() {
         if (serverNamesPromise) return serverNamesPromise;
@@ -471,6 +509,7 @@
 
     widgetSelect.addEventListener('mousedown', rememberSelection);
     widgetSelect.addEventListener('change', () => {
+        if (sourceMode) return;
         const type = widgetSelect.value;
         widgetSelect.value = '';
         const marker = document.createElement('div');
@@ -492,6 +531,36 @@
         }
         insertNodeAtSelection(marker);
     });
+
+    function setSourceMode(enabled) {
+        sourceMode = enabled;
+        if (sourceMode) {
+            sync();
+            sourceEditor.value = textarea.value;
+            editor.hidden = true;
+            sourceEditor.hidden = false;
+            sourceButton?.classList.add('is-active');
+            sourceButton?.setAttribute('aria-pressed', 'true');
+            sourceEditor.focus();
+            return;
+        }
+        editor.innerHTML = sourceEditor.value.trim() || '<p><br></p>';
+        editor.hidden = false;
+        sourceEditor.hidden = true;
+        sourceButton?.classList.remove('is-active');
+        sourceButton?.setAttribute('aria-pressed', 'false');
+        decorateEditorWidgets();
+        sync();
+        focusEditor();
+    }
+
+    if (sourceButton) {
+        sourceButton.setAttribute('aria-pressed', 'false');
+        sourceButton.addEventListener('mousedown', event => event.preventDefault());
+        sourceButton.addEventListener('click', () => setSourceMode(!sourceMode));
+    }
+
+    sourceEditor.addEventListener('input', sync);
 
     function setMediaStatus(message, isError) {
         mediaStatus.textContent = message || '';
@@ -650,10 +719,14 @@
     });
     form.addEventListener('submit', event => {
         sync();
-        if (!editor.textContent.trim() && !editor.querySelector('.cms-widget-server-status')) {
+        const submittedContent = sourceMode ? textarea.value : editor.innerHTML;
+        const submittedText = sourceMode ? submittedContent.replace(/<[^>]*>/g, '').trim() : editor.textContent.trim();
+        const hasWidget = /class=["'][^"']*cms-widget-/.test(submittedContent);
+        if (!submittedText && !hasWidget) {
             event.preventDefault();
             window.alert(text.contentRequired || 'Page content is required.');
-            focusEditor();
+            if (sourceMode) sourceEditor.focus();
+            else focusEditor();
         }
     });
     sync();
