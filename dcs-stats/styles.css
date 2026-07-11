@@ -537,6 +537,11 @@ h2 {
     position: relative;
 }
 
+.public-nav-dropdown-toggle {
+    align-items: stretch;
+    display: flex;
+}
+
 .nav-link {
     display: block;
     padding: 14px 20px;
@@ -553,6 +558,13 @@ h2 {
     border: 0;
     cursor: pointer;
     font-size: inherit;
+    padding-left: 10px;
+    padding-right: 14px;
+}
+
+.public-nav-parent-link,
+.public-nav-parent-label {
+    padding-right: 8px;
 }
 
 .nav-dropdown-caret {

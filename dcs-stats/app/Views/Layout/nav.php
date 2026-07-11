@@ -50,8 +50,20 @@ foreach ($visibleMenuItems as $visibleItem) {
     <?php foreach ($visibleMenuItems as $item): if (!empty($item['parent_id'])) continue; ?>
       <?php $children = $menuChildren[$item['id']] ?? []; ?>
       <?php if ($children): ?>
+        <?php
+          $external = in_array($item['type'] ?? '', ['external', 'discord', 'squadron_homepage'], true);
+          $href = $external ? $item['url'] : url($item['url']);
+          $target = $external && !empty($item['new_tab']) ? ' target="_blank" rel="noopener noreferrer"' : '';
+        ?>
         <li class="public-nav-dropdown">
-          <button type="button" class="nav-link nav-dropdown-button" aria-expanded="false"><?= e($navigationService->label($item)) ?> <span class="nav-dropdown-caret">▼</span></button>
+          <div class="public-nav-dropdown-toggle">
+            <?php if (($item['type'] ?? '') !== 'group'): ?>
+              <a class="nav-link public-nav-parent-link" href="<?= e($href) ?>"<?= $target ?>><?= e($navigationService->label($item)) ?></a>
+            <?php else: ?>
+              <span class="nav-link public-nav-parent-label"><?= e($navigationService->label($item)) ?></span>
+            <?php endif; ?>
+            <button type="button" class="nav-link nav-dropdown-button" aria-expanded="false" aria-label="<?= e($navigationService->label($item)) ?> menu"><span class="nav-dropdown-caret">▼</span></button>
+          </div>
           <ul class="public-nav-dropdown-menu">
             <?php foreach ($children as $child):
               $external = in_array($child['type'] ?? '', ['external', 'discord', 'squadron_homepage'], true);

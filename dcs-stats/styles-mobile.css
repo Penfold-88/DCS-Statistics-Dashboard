@@ -221,6 +221,11 @@ html, body {
     .public-nav-dropdown {
         position: static;
     }
+
+    .public-nav-dropdown-toggle {
+        display: flex;
+        width: 100%;
+    }
     
     .nav-link {
         display: block;
@@ -230,8 +235,15 @@ html, body {
     }
 
     .nav-dropdown-button {
-        text-align: left;
-        width: 100%;
+        flex: 0 0 auto;
+        min-width: 54px;
+        text-align: center;
+    }
+
+    .public-nav-parent-link,
+    .public-nav-parent-label {
+        flex: 1 1 auto;
+        min-width: 0;
     }
 
     .public-nav-dropdown-menu {
