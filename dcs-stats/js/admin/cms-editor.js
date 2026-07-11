@@ -19,7 +19,9 @@
 
     function run(command, value) {
         focusEditor();
+        restoreSelection();
         document.execCommand(command, false, value || null);
+        rememberSelection();
         sync();
     }
 
@@ -79,6 +81,7 @@
     function applyTextAlignment(alignment) {
         pendingTextAlignment = alignment;
         focusEditor();
+        restoreSelection();
         const blocks = selectedTextBlocks();
         if (!blocks.length) {
             document.execCommand('formatBlock', false, 'p');
@@ -623,10 +626,19 @@
         }).catch(error => setMediaStatus(error.message, true));
     });
 
+    editor.addEventListener('beforeinput', () => {
+        if (pendingTextAlignment) {
+            const blocks = selectedTextBlocks();
+            if (blocks.length) {
+                blocks.forEach(block => setTextBlockAlignment(block, pendingTextAlignment));
+            }
+        }
+    });
     editor.addEventListener('input', () => {
         if (pendingTextAlignment) {
             selectedTextBlocks().forEach(block => setTextBlockAlignment(block, pendingTextAlignment));
         }
+        rememberSelection();
         sync();
     });
     editor.addEventListener('keyup', rememberSelection);
