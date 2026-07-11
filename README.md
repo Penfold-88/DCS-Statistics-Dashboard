@@ -2,112 +2,71 @@
 
 Turn your DCSServerBot statistics into a polished, configurable, squadron-ready website.
 
-[![Version](https://img.shields.io/badge/Version-V1.3-orange?style=for-the-badge)](#v13-squadron-cms-expansion)
+[![Version](https://img.shields.io/badge/Version-V1.3-orange?style=for-the-badge)](#features)
 [![DCSServerBot](https://img.shields.io/badge/Requires-DCSServerBot-green?style=for-the-badge)](https://github.com/Special-K-s-Flightsim-Bots/DCSServerBot)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-blue?style=for-the-badge)](#requirements)
-[![Mobile](https://img.shields.io/badge/Mobile-Friendly-purple?style=for-the-badge)](#frontend-features)
+[![Mobile](https://img.shields.io/badge/Mobile-Friendly-purple?style=for-the-badge)](#website-features)
 [![Languages](https://img.shields.io/badge/Languages-EN%20%7C%20DE%20%7C%20IT%20%7C%20ES-orange?style=for-the-badge)](#language-support)
 [![License](https://img.shields.io/badge/License-MIT-lightgrey?style=for-the-badge)](LICENSE)
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-Online-brightgreen?style=for-the-badge&logo=googlechrome&logoColor=white)](https://demo.dcsstatisticsdashboard.app/)
 
 ---
 
-## ✨ What's New In V1.3
+## ✨ Features
 
-### 🧱 Squadron CMS
+### 🖥️ Statistics Dashboard
 
-- 📄 Custom pages with drafts, publishing, navigation badges, duplication, previews, SEO/sharing metadata, and optional landing-page selection.
-- ✍️ Self-hosted safe editor for rich text, links, images, galleries, and live dashboard widgets.
-- 🖼️ Media library and image galleries for squadron screenshots, recruitment images, training references, and server showcase pages.
-- ⬇️ Downloads page for externally hosted files such as mission packs, kneeboards, mod lists, SOPs, and briefing documents.
-- 🧩 Reusable live statistics widgets and iframe embeds for use inside CMS pages or external websites.
-- 🧭 Unified Menu Manager for dashboard links, CMS pages, downloads, integrations, custom links, labels, ordering, visibility, and dropdowns.
-- 🔐 CMS administration protected by existing admin roles and LSO permission controls.
+- Live DCSServerBot-powered statistics for pilots, squadrons, servers, playtime, sorties, combat data, credits, and attendance.
+- Configurable homepage cards, insight panels, charts, detected server cards, and leaderboard columns.
+- Server selector for **All Servers** or individual detected servers.
+- Pilot profiles with search, aircraft/stat breakdowns, credits, and carrier landing / LSO trap history.
+- Squadron pages with logos, members, credits, and leaderboard support.
+- Live server status cards showing mission, theatre, weather, slots, extensions, SRS, and active players.
+- Public API failure handling with a configurable “API Currently Unavailable” message and capped public request timeouts.
 
-### 🏗️ Framework And Security
+### 🧱 Optional Squadron CMS
 
-- 🧱 Public pages, APIs, admin tools, installer, updater, backups, themes, authentication, localisation, and exports now run through focused controllers and services under `dcs-stats/app/`.
-- 🔐 Saved DCSServerBot API keys are encrypted with AES-256-GCM and migrated from older plaintext storage automatically.
-- 🛡️ Stronger validation for API proxy requests, uploads, sessions, exports, backups, updates, and imported custom files.
-- 📦 Runtime data remains under protected data/upload folders and is kept out of Git.
+- Custom pages with drafts, publishing, duplication, protected previews, navigation badges, SEO metadata, social sharing metadata, and optional landing-page selection.
+- Self-hosted safe editor for rich text, headings, lists, quotes, links, images, galleries, and live dashboard widgets.
+- Media library with JPG, PNG, and WebP uploads, randomised filenames, MIME validation, alt text, captions, and image alignment.
+- Image galleries for screenshots, recruitment images, training references, event photos, and server showcase pages.
+- Downloads section for externally hosted mission packs, kneeboards, mod lists, SOPs, briefing documents, and community resources.
+- Reusable live statistics widgets for CMS pages.
+- Approved iframe embeds for external websites.
+- CMS administration protected by existing admin roles and LSO permission controls.
 
----
+### ⚙️ Admin And Customisation
 
-## ✨ What's New In V1.2
+- Site Features panel for enabling/disabling major dashboard, CMS, squadron, server, leaderboard, pilot, credits, and homepage sections.
+- Unified Menu Manager for dashboard links, CMS pages, downloads, integrations, custom links, labels, ordering, visibility, new-tab behaviour, and one-level dropdowns.
+- Theme presets, custom presets, detailed colour controls, chart colours, gradients, header image upload, logo settings, CSS upload, and theme backup/restore.
+- API Settings for DCSServerBot host, port, optional API key, timeout, cache TTL, refresh interval, unavailable message, health checks, and cache clearing.
+- Admin dashboard overview cards, update/version display, backup tools, settings import/export, and maintenance mode.
+- Built-in English, German, Italian, and Spanish language files with a translation template for community language packs.
 
-### 🖥️ Dashboard Experience
+### 🔐 Security, Compatibility And Updates
 
-- 📊 New configurable homepage cards and insight panels.
-- 🛰️ Server selector for **All Servers** or individual detected servers.
-- 🏆 Top 5 pilot chart selector for **Kills**, **K/D**, and **PvP K/D**.
-- 📈 Leaderboard table and bar chart improvements.
-- 🛬 Carrier landing / LSO trap data added to pilot profiles.
-- 📱 Better mobile styling across navigation, cards, tables, and panels.
-- 🔗 Custom **Squadron Links** dropdown in the front-end navigation.
-- 🙌 Footer credits modal with project and contributor credits.
-
-### ⚙️ Admin Control
-
-- ✅ Site Features panel can enable or disable major dashboard sections.
-- 🎛️ Fine-grained toggles for homepage, attendance, Top 5 insights, leaderboard, pilot, credits, squadron, and server sections.
-- 🖥️ Dynamic detected server card controls.
-- 📋 Admin dashboard overview cards.
-- 🩺 API health/debug page.
-- ⏱️ Configurable API refresh rate.
-- 🔄 Update/version display improvements.
-- 💾 Full settings import/export for portable site configuration.
-
-### 🎨 Theme System
-
-- 🎨 Theme presets.
-- 🧪 Custom theme preset creation.
-- 🌈 Detailed colour controls for headings, text, panels, cards, tables, buttons, footer, charts, and gradients.
-- 📸 Header background image upload.
-- 🪪 Logo support with display options for logo only, text only, or logo plus text.
-- 📊 Homepage and leaderboard chart colour controls.
-- 💾 Theme backup and restore tools.
-
-### 🌍 Language Support
-
-- 🗣️ Language groundwork added across the dashboard.
-- 🇬🇧 English, 🇩🇪 German, 🇮🇹 Italian, and 🇪🇸 Spanish translation files included.
-- 🧾 Translation template file for future community translations.
-- 🛠️ Installer language selection.
-- ⚙️ Admin language setting.
-
-### 🚀 Performance
-
-- ⚡ File-based API response caching for heavier endpoints.
-- 🧹 Clear API cache button in the admin panel.
-- 📴 Avoids unnecessary heavy API calls when related features are disabled.
-- 📦 Self-hosted Chart.js instead of relying on a CDN.
-- 🔁 Cache-busted assets for easier updates.
-
-### 🔐 Security
-
-- 🛡️ Stronger CSRF protection on destructive admin actions.
-- 🔑 Session ID regeneration after login.
-- 📁 Safer generated file permissions.
-- 🚦 Improved API proxy allow-listing and validation.
-- 🔐 Optional DCSServerBot API key support.
-- 🙈 Sensitive API settings kept server-side.
-- 🧪 Demo mode restrictions for public demo installs.
-- 🗄️ Protected runtime data folders.
+- Password hashing, session security, session ID regeneration, CSRF protection, role checks, security headers, and demo-mode restrictions.
+- Server-side API proxy with endpoint, method, query, and request-body allow-listing.
+- Optional DCSServerBot API key forwarding with AES-256-GCM encryption for saved keys and automatic plaintext migration.
+- Protected runtime data folders, safer generated file permissions, CSV formula-injection protection, and privacy-reduced standard exports.
+- Verified update downloads with archive structure checks, path-safety checks, backups, and stable/dev channel support.
+- Works with Docker, XAMPP, shared hosting, Apache, Nginx, IIS, and existing `dcs-stats/` document-root deployments.
 
 ---
 
-## 🧭 Frontend Features
+## 🧭 Website Features
 
 | Area | Features |
 | --- | --- |
-| 🏠 Home | Player totals, playtime, sorties, attendance cards, Top 5 pilots, combat chart, Top 5 insights |
+| 🏠 Home | Player totals, playtime, sorties, attendance cards, Top 5 pilots, combat chart, Top 5 insights, API unavailable fallback |
 | 🏆 Leaderboard | Sortable pilot table, configurable columns, bar chart, mobile card view |
 | 👨‍✈️ Pilot Statistics | Pilot search, profile layers, charts, LSO trap history, weapon/stat data |
 | 🎖️ Pilot Credits | Credit views with translated labels and themed styling |
 | 🛡️ Squadrons | Squadron overview, members, logos, leaderboard, live data panels |
 | 🛰️ Servers | Live server cards, mission, theatre, weather, slots, extensions, SRS, active players |
 | 🧭 Navigation | Unified menu manager, automatic feature/CMS links, labels, visibility, ordering, parent/child dropdowns, server scope selector |
-| 📄 CMS Pages | Optional squadron website pages, landing pages, galleries, downloads, live widgets, embeds, and public navigation integration |
+| 📄 CMS Pages | Optional squadron website pages, landing pages, galleries, downloads, live widgets, embeds, draft previews, SEO fields, and public navigation integration |
 | 🙌 Credits | Footer credits modal with relevant project acknowledgements |
 
 ---
@@ -116,7 +75,7 @@ Turn your DCSServerBot statistics into a polished, configurable, squadron-ready 
 
 | Section | What You Can Manage |
 | --- | --- |
-| 🔌 API Settings | DCSServerBot host, port, optional API key, timeout, cache TTL, refresh interval, API health |
+| 🔌 API Settings | DCSServerBot host, port, optional API key, timeout, cache TTL, refresh interval, public unavailable message, API health |
 | ✅ Site Features | Enable/disable dashboard sections and individual feature blocks |
 | 🎨 Theme Management | Presets, colours, gradients, charts, header image, logo, CSS upload, backup/restore |
 | 🧭 Menu Manager | Order and rename public links, hide items, choose new-tab behaviour, and build one-level dropdowns |
@@ -425,7 +384,7 @@ The dashboard sends very minimal install/version check-in data to the project ma
 ```text
 DCS-Statistics-Dashboard/
 ├── dcs-stats/                  Main web application
-│   ├── app/                    Internal V1.3 framework
+│   ├── app/                    Internal application framework
 │   │   ├── Controllers/        Public, API, admin, and installer controllers
 │   │   ├── Core/               Framework, security, storage, and configuration helpers
 │   │   ├── Services/           Focused application and integration services
