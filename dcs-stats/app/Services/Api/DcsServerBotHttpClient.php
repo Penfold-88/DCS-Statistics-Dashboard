@@ -33,7 +33,7 @@ final class DcsServerBotHttpClient
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
+        curl_setopt($ch, CURLOPT_TIMEOUT, max(5, min(60, $timeout)));
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
 
         $headers = ['Accept: */*'];

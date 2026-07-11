@@ -4,6 +4,10 @@
         <p class="dashboard-subtitle"><?php echo htmlspecialchars(dcs_t('home.subtitle')); ?></p>
     </div>
 
+    <div class="dashboard-api-unavailable" id="dashboardApiUnavailable" style="display: none;" role="status" aria-live="polite">
+        <strong id="dashboardApiUnavailableText">API Currently Unavailable</strong>
+    </div>
+
     <?php if (isFeatureEnabled('home_server_stats')): ?>
     <div class="stats-cards">
         <div class="stat-card" id="totalPlayersCard">

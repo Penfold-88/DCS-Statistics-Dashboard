@@ -27,7 +27,7 @@ final class ApiConfigValidator
             $fixed = true;
         }
 
-        $requiredFields = ['timeout', 'cache_ttl', 'refresh_interval', 'use_api', 'verify_ssl'];
+        $requiredFields = ['timeout', 'unavailable_message', 'cache_ttl', 'refresh_interval', 'use_api', 'verify_ssl'];
         foreach ($requiredFields as $field) {
             if (!isset($config[$field])) {
                 $config[$field] = $default[$field];
@@ -69,11 +69,32 @@ final class ApiConfigValidator
             }
         }
 
-        if (!is_int($config['timeout']) || $config['timeout'] < 1) {
+        $config['timeout'] = filter_var($config['timeout'], FILTER_VALIDATE_INT);
+        if ($config['timeout'] === false || $config['timeout'] < 1) {
             $config['timeout'] = 30;
             $changes[] = 'Fixed invalid timeout value';
             $fixed = true;
         }
+        if ($config['timeout'] > 60) {
+            $config['timeout'] = 60;
+            $changes[] = 'Capped timeout at 60 seconds';
+            $fixed = true;
+        }
+
+        $message = trim((string)($config['unavailable_message'] ?? ''));
+        if ($message === '') {
+            $message = $default['unavailable_message'];
+            $changes[] = 'Added default unavailable message';
+            $fixed = true;
+        }
+        $message = preg_replace('/[\x00-\x1F\x7F]/', ' ', $message);
+        $message = trim(preg_replace('/\s+/', ' ', (string)$message));
+        if (strlen($message) > 160) {
+            $message = substr($message, 0, 160);
+            $changes[] = 'Trimmed unavailable message';
+            $fixed = true;
+        }
+        $config['unavailable_message'] = $message;
 
         if (!is_int($config['cache_ttl']) || $config['cache_ttl'] < 0) {
             $config['cache_ttl'] = 300;

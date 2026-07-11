@@ -74,26 +74,15 @@ async function searchForPlayers() {
 async function loadPilotCredits(pilot) {
     try {
         // Call credits endpoint with exact name
-        const basePath = window.DCS_CONFIG ? window.DCS_CONFIG.basePath : '';
-        const buildUrl = (path) => basePath ? `${basePath}/${path}` : path;
-        const response = await fetch(buildUrl('api_proxy.php?endpoint=' + encodeURIComponent('/credits') + '&method=POST'), {
+        const creditsData = await window.dcsAPI.makeAPICall('/credits', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
+            data: {
                 nick: pilot.nick,
                 date: pilot.date
-            })
+            }
         });
         
         document.getElementById('loading').style.display = 'none';
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const creditsData = await response.json();
         
         if (creditsData && creditsData.credits !== undefined) {
             // Display credits data

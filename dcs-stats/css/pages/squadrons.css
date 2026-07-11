@@ -1,4 +1,45 @@
 /* Squadron Tables Professional Styling */
+    .squadrons-loading .squadron-data-region {
+        visibility: hidden;
+    }
+
+    .squadrons-unavailable .squadron-data-region {
+        display: none !important;
+    }
+
+    .squadrons-ready .squadron-data-region {
+        visibility: visible;
+    }
+
+    .squadrons-api-unavailable {
+        background: color-mix(in srgb, var(--accent_color, #4CAF50) 10%, transparent);
+        border: 1px solid color-mix(in srgb, var(--accent_color, #4CAF50) 35%, transparent);
+        border-radius: 12px;
+        color: var(--accent_hover_color, var(--accent_color, #4CAF50));
+        font-size: 1.05rem;
+        margin: 24px auto;
+        max-width: 760px;
+        padding: 24px;
+        text-align: center;
+    }
+
+    .squadrons-error-message {
+        display: none;
+    }
+
+    .squadrons-error-message:not(:empty) {
+        background: color-mix(in srgb, var(--accent_color, #4CAF50) 10%, transparent);
+        border: 1px solid color-mix(in srgb, var(--accent_color, #4CAF50) 35%, transparent);
+        border-radius: 12px;
+        color: var(--accent_hover_color, var(--accent_color, #4CAF50));
+        display: block;
+        font-size: 1.05rem;
+        margin: 24px auto;
+        max-width: 760px;
+        padding: 24px;
+        text-align: center;
+    }
+
     .table-responsive {
         margin-bottom: 40px;
     }

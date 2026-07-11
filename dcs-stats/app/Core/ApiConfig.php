@@ -11,6 +11,7 @@ final class ApiConfig
             'api_base_url' => $apiHost ? 'http://' . $apiHost : '',
             'api_key' => null,
             'timeout' => 30,
+            'unavailable_message' => 'API Currently Unavailable',
             'cache_ttl' => 300,
             'refresh_interval' => 300,
             'verify_ssl' => true,

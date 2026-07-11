@@ -28,13 +28,20 @@ final class ServersController
                 'generated' => date('c'),
             ]);
         } catch (\Exception $e) {
+            \DcsStats\Core\SupportBootstrap::apiConfig();
+            $config = \loadApiConfigWithFix()['config'];
             ApiResponse::json([
-                'error' => 'Service temporarily unavailable',
+                'error' => $this->unavailableMessage($config),
                 'servers' => [],
                 'data' => [],
                 'source' => 'api',
             ]);
         }
     }
-}
 
+    private function unavailableMessage(array $config): string
+    {
+        $message = trim((string)($config['unavailable_message'] ?? ''));
+        return $message !== '' ? $message : 'API Currently Unavailable';
+    }
+}

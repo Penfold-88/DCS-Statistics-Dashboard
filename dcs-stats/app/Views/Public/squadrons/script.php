@@ -8,7 +8,8 @@ window.DCS_SQUADRONS_CONFIG = {
         'credits' => dcs_t('squadrons.credits'),
         'loadFailed' => dcs_t('squadrons.load_failed'),
         'errorTitle' => dcs_t('squadrons.error_title'),
-        'configRetry' => dcs_t('squadrons.config_retry')
+        'configRetry' => dcs_t('squadrons.config_retry'),
+        'apiUnavailable' => 'API Currently Unavailable'
     ], JSON_UNESCAPED_UNICODE); ?>
 };
 </script>

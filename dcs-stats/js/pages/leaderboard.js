@@ -148,8 +148,10 @@ function renderTable() {
 
 async function loadLeaderboardFromMissionstats() {
   try {
-    document.getElementById("leaderboard-loading").style.display = "block";
-    document.getElementById("leaderboard-loading").innerText = i18n.loading || 'Loading...';
+    const loading = document.getElementById("leaderboard-loading");
+    loading.style.display = "block";
+    loading.classList.remove('api-unavailable-message');
+    loading.innerText = i18n.loading || 'Loading...';
     document.getElementById("top3-leaderboard").innerHTML = "";
 
     // Use the client-side API
@@ -165,7 +167,7 @@ async function loadLeaderboardFromMissionstats() {
     }
     // Only keep top 10 players
     leaderboardData = data.slice(0, 10);
-    document.getElementById("leaderboard-loading").style.display = "none";
+    loading.style.display = "none";
     
     // Populate top 3 leaderboard
     const top3Container = document.getElementById("top3-leaderboard");
@@ -180,7 +182,11 @@ async function loadLeaderboardFromMissionstats() {
     renderTable();
     renderLeaderboardChart();
   } catch (error) {
-    document.getElementById("leaderboard-loading").innerText = i18n.loadError;
+    const fallback = window.dcsAPI?.getUnavailableMessage
+      ? window.dcsAPI.getUnavailableMessage()
+      : (i18n.loadError || 'API Currently Unavailable');
+    document.getElementById("leaderboard-loading").innerText = error?.message || fallback;
+    document.getElementById("leaderboard-loading").classList.add('api-unavailable-message');
     console.error("Error loading leaderboard:", error);
   }
 }

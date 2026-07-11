@@ -58,7 +58,13 @@ final class PublicServerStatsService
                 'source' => 'api',
             ];
         } catch (\Exception $e) {
-            return $this->formatter->emptyServerStats('Service temporarily unavailable');
+            return $this->formatter->emptyServerStats($this->unavailableMessage($config));
         }
+    }
+
+    private function unavailableMessage(array $config): string
+    {
+        $message = trim((string)($config['unavailable_message'] ?? ''));
+        return $message !== '' ? $message : 'API Currently Unavailable';
     }
 }

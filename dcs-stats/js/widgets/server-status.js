@@ -38,7 +38,7 @@
         return card;
     }
 
-    function render(servers) {
+    function render(servers, message = '') {
         widgets.forEach(widget => {
             widget.replaceChildren();
             const targetServer = String(widget.dataset.serverFilter || '').trim();
@@ -48,7 +48,7 @@
             if (!widgetServers.length) {
                 const unavailable = document.createElement('p');
                 unavailable.className = 'dcs-widget-unavailable';
-                unavailable.textContent = text.unavailable || 'Server status is currently unavailable.';
+                unavailable.textContent = message || text.unavailable || 'Server status is currently unavailable.';
                 widget.appendChild(unavailable);
                 return;
             }
@@ -67,7 +67,7 @@
             const allServers = Array.isArray(data) ? data : (data && Array.isArray(data.servers) ? data.servers : []);
             render(allServers);
         } catch (error) {
-            render([]);
+            render([], error.message);
         }
     }
 

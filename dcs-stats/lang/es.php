@@ -265,6 +265,10 @@ $manual = [
     'admin.language.upload_help' => 'Sube una plantilla completada para un nuevo idioma. El texto que falte usará inglés como respaldo.',
     'admin.install.language' => 'Idioma del instalador',
 
+    'admin.api.timeout_help' => 'Tiempo máximo de espera para respuestas de la API. Las páginas públicas están limitadas a 60 segundos.',
+    'admin.api.unavailable_message' => 'Mensaje de API no disponible',
+    'admin.api.unavailable_message_help' => 'Se muestra en páginas públicas de estadísticas, widgets CMS y embeds cuando la API de estadísticas no responde.',
+
     'admin.cms.settings' => 'Ajustes CMS',
     'admin.cms.create_page' => 'Crear página',
     'admin.cms.edit_page' => 'Editar página',

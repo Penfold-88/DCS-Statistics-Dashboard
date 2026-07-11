@@ -1,4 +1,20 @@
 /* Professional Leaderboard Styling */
+  #leaderboard-loading {
+    color: var(--text_muted, #aaa);
+    font-size: 1.05rem;
+    padding: 28px;
+    text-align: center;
+  }
+
+  #leaderboard-loading.api-unavailable-message {
+    background: color-mix(in srgb, var(--accent_color, #4CAF50) 10%, transparent);
+    border: 1px solid color-mix(in srgb, var(--accent_color, #4CAF50) 35%, transparent);
+    border-radius: 12px;
+    color: var(--accent_hover_color, var(--accent_color, #4CAF50));
+    margin: 20px auto;
+    max-width: 760px;
+  }
+
   #leaderboardTable {
     background: rgba(0, 0, 0, 0.6);
     border: 1px solid rgba(76, 175, 80, 0.3);

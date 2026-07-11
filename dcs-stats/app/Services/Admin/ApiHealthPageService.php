@@ -32,7 +32,7 @@ final class ApiHealthPageService
                 $checkResults[$endpoint['endpoint']] = $this->checkService->run(
                     $apiBaseUrl,
                     $apiConfig['api_key'] ?? '',
-                    max(1, (int)($apiConfig['timeout'] ?? 30)),
+                    max(5, min(60, (int)($apiConfig['timeout'] ?? 30))),
                     $endpoint
                 );
             }
@@ -43,7 +43,7 @@ final class ApiHealthPageService
         }
 
         $refreshInterval = max(60, (int)($apiConfig['refresh_interval'] ?? 300));
-        $timeout = max(1, (int)($apiConfig['timeout'] ?? 30));
+        $timeout = max(5, min(60, (int)($apiConfig['timeout'] ?? 30)));
         $cacheTtl = max(0, (int)($apiConfig['cache_ttl'] ?? 300));
 
         return [

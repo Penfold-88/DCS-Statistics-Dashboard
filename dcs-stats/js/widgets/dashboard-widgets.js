@@ -104,7 +104,7 @@
             try {
                 const data = await window.dcsAPI.getServerStats({serverScope:server,loadServerStats:[...types].some(type => ['summary','combat-stats','player-activity'].includes(type)),loadAttendance:[...types].some(type => ['attendance','player-activity','top-theatres','top-missions','top-modules'].includes(type)),loadTopPilots:false});
                 group.forEach(widget => renderStatsWidget(widget,data));
-            } catch (error) { group.forEach(widget => unavailable(widget)); }
+            } catch (error) { group.forEach(widget => unavailable(widget, error.message)); }
         }));
         await Promise.all(widgets.filter(widget => widget.dataset.dashboardWidget === 'top-pilots').map(async widget => {
             try {
@@ -112,14 +112,14 @@
                 const pilots = await window.dcsAPI.getTopPilots(metric,limit,{serverScope:widget.dataset.serverFilter || ''});
                 const metricLabel = metric === 'kdr_pvp' ? text.pvpKdRatio : (metric === 'kdr' ? text.kdRatio : text.kills);
                 rankList(widget,pilots.slice(0,limit).map(pilot => ({name:pilot.nick || pilot.name || '-',value:`${number(pilot[metric] ?? pilot.kd_ratio)} ${metricLabel}`})));
-            } catch (error) { unavailable(widget); }
+            } catch (error) { unavailable(widget, error.message); }
         }));
         await Promise.all(widgets.filter(widget => widget.dataset.dashboardWidget === 'top-squadrons').map(async widget => {
             try {
                 const limit = Number(widget.dataset.limit || 5);
                 const rows = await window.dcsAPI.getTopSquadrons(limit,{serverScope:widget.dataset.serverFilter || ''});
                 rankList(widget,rows.map(row => ({name:row.name || '-',value:`${number(row.credits)} ${text.credits}`})));
-            } catch (error) { unavailable(widget); }
+            } catch (error) { unavailable(widget, error.message); }
         }));
     }
     load();

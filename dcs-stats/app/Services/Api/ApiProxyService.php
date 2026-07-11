@@ -25,7 +25,7 @@ final class ApiProxyService
 
         $apiConfig = loadApiConfigWithFix()['config'];
         if (!$apiConfig['use_api'] || empty($apiConfig['api_base_url'])) {
-            $this->jsonError('API not enabled', 503);
+            $this->jsonError($this->unavailableMessage($apiConfig), 503);
             return;
         }
 
@@ -46,7 +46,7 @@ final class ApiProxyService
 
         $response = $this->httpClient->send($apiConfig, $request);
         if (!empty($response['error'])) {
-            $this->jsonError('Upstream API request failed', 502);
+            $this->jsonError($this->unavailableMessage($apiConfig), 502);
             return;
         }
 
@@ -66,5 +66,11 @@ final class ApiProxyService
     {
         http_response_code($statusCode);
         echo json_encode(['error' => $message]);
+    }
+
+    private function unavailableMessage(array $apiConfig): string
+    {
+        $message = trim((string)($apiConfig['unavailable_message'] ?? ''));
+        return $message !== '' ? $message : 'API Currently Unavailable';
     }
 }

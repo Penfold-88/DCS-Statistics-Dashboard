@@ -32,7 +32,7 @@ class DCSServerBotAPIClient {
     ) {
         $this->apiBaseUrl = $config['api_base_url'] ?? 'http://localhost:9876';
         $this->apiKey = $config['api_key'] ?? null;
-        $this->timeout = $config['timeout'] ?? 30;
+        $this->timeout = max(5, min(60, (int)($config['timeout'] ?? 30)));
         $this->isDevMode = isDevMode();
         $this->config = $config;
         $this->mockDataProvider = $mockDataProvider ?? new \DcsStats\Services\Api\DcsServerBotMockDataProvider();

@@ -28,8 +28,9 @@ final class ApiProxyHttpClient
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_TIMEOUT, $apiConfig['timeout'] ?? 30);
-        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, min(10, (int)($apiConfig['timeout'] ?? 30)));
+        $timeout = max(5, min(60, (int)($apiConfig['timeout'] ?? 30)));
+        curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, min(10, $timeout));
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, false);
 
         if (stripos($url, 'https://') === 0) {

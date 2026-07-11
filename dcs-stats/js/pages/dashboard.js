@@ -86,12 +86,14 @@ async function loadServerStats() {
         if (loadingOverlay) {
             loadingOverlay.style.display = 'flex';
         }
+        hideDashboardUnavailable();
 
         // Use the client-side API
         const data = await window.dcsAPI.getServerStats(homepageDataNeeds);
         
         if (data.error) {
-            document.getElementById('loading-overlay').style.display = 'none';
+            hideLoadingOverlay();
+            showDashboardUnavailable(data.error);
             return;
         }
         
@@ -125,7 +127,7 @@ async function loadServerStats() {
         }
         
         // Hide loading overlay
-        document.getElementById('loading-overlay').style.display = 'none';
+        hideLoadingOverlay();
         
         // Add pop animations to cards
         if (homepageFeatures.serverStats) {
@@ -138,8 +140,79 @@ async function loadServerStats() {
         
     } catch (error) {
         console.error('Error fetching server stats:', error);
-        document.getElementById('loading-overlay').style.display = 'none';
+        hideLoadingOverlay();
+        showDashboardUnavailable(error?.message);
     }
+}
+
+function hideLoadingOverlay() {
+    const loadingOverlay = document.getElementById('loading-overlay');
+    if (loadingOverlay) {
+        loadingOverlay.style.display = 'none';
+    }
+}
+
+function showDashboardUnavailable(message) {
+    const fallback = window.dcsAPI?.getUnavailableMessage
+        ? window.dcsAPI.getUnavailableMessage()
+        : 'API Currently Unavailable';
+    const safeMessage = String(message || fallback).trim() || fallback;
+    const notice = document.getElementById('dashboardApiUnavailable');
+    const noticeText = document.getElementById('dashboardApiUnavailableText');
+
+    if (noticeText) {
+        noticeText.textContent = safeMessage;
+    }
+    if (notice) {
+        notice.style.display = 'block';
+    }
+
+    document.querySelectorAll('.stat-number').forEach(element => {
+        element.textContent = '-';
+    });
+    document.querySelectorAll('.stat-card').forEach(card => {
+        card.classList.add('pop-in');
+    });
+    document.querySelectorAll('.chart-container canvas').forEach(canvas => {
+        canvas.style.display = 'none';
+    });
+    [topPilotsChart, combatStatsChart, playerActivityChart, topSquadronsChart].forEach(chart => {
+        if (chart && typeof chart.destroy === 'function') {
+            chart.destroy();
+        }
+    });
+    topPilotsChart = null;
+    combatStatsChart = null;
+    playerActivityChart = null;
+    topSquadronsChart = null;
+
+    document.querySelectorAll('.chart-container').forEach(container => {
+        let messageElement = container.querySelector('.dashboard-chart-unavailable');
+        if (!messageElement) {
+            messageElement = document.createElement('p');
+            messageElement.className = 'no-data-message dashboard-chart-unavailable';
+            container.appendChild(messageElement);
+        }
+        messageElement.textContent = safeMessage;
+        messageElement.style.display = 'block';
+    });
+    const apiInsights = document.getElementById('apiInsights');
+    const apiAttendance = document.getElementById('apiAttendance');
+    if (apiInsights) apiInsights.style.display = 'none';
+    if (apiAttendance) apiAttendance.style.display = 'none';
+}
+
+function hideDashboardUnavailable() {
+    const notice = document.getElementById('dashboardApiUnavailable');
+    if (notice) {
+        notice.style.display = 'none';
+    }
+    document.querySelectorAll('.chart-container canvas').forEach(canvas => {
+        canvas.style.display = 'block';
+    });
+    document.querySelectorAll('.dashboard-chart-unavailable').forEach(messageElement => {
+        messageElement.style.display = 'none';
+    });
 }
 
 async function loadTopSquadronsChart() {

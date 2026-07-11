@@ -42,10 +42,11 @@ class DCSStatsAPI {
 
     async makeAPICall(endpoint, options = {}) {
         const config = await this.loadConfig();
+        const unavailableMessage = this.getUnavailableMessage(config);
         
         if (!config.use_api) {
             // API not enabled or no base URL configured
-            throw new Error('API not enabled');
+            throw new Error(unavailableMessage);
         }
 
         // First try proxy endpoint
@@ -55,7 +56,7 @@ class DCSStatsAPI {
         
         // Making API call via proxy
 
-        const timeout = (config.timeout || 30) * 1000;
+        const timeout = Math.min(Math.max(Number(config.timeout || 30), 5), 60) * 1000;
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), timeout);
 
@@ -91,18 +92,26 @@ class DCSStatsAPI {
 
             if (!response.ok) {
                 // API call failed
-                throw new Error(`HTTP error! status: ${response.status}`);
+                throw new Error(unavailableMessage);
             }
 
             const data = await response.json();
+            if (data && data.error) {
+                throw new Error(unavailableMessage);
+            }
             // API response received
             return data;
         } catch (error) {
             clearTimeout(timeoutId);
             // API proxy call error
             
-            throw error;
+            throw new Error(unavailableMessage);
         }
+    }
+
+    getUnavailableMessage(config = this.config || {}) {
+        const message = String(config.api_unavailable_message || '').trim();
+        return message || 'API Currently Unavailable';
     }
 
     async request(endpoint, options = {}) {
@@ -286,7 +295,7 @@ class DCSStatsAPI {
         const config = await this.loadConfig();
         
         if (!config.use_api) {
-            throw new Error('API is not enabled');
+            throw new Error(this.getUnavailableMessage(config));
         }
 
         const leaderboard = await this.makeAPICall('/leaderboard?what=kills&limit=10');
@@ -346,7 +355,7 @@ class DCSStatsAPI {
         const config = await this.loadConfig();
 
         if (!config.use_api) {
-            throw new Error('API is not enabled');
+            throw new Error(this.getUnavailableMessage(config));
         }
 
         const metricMap = {
@@ -421,18 +430,18 @@ class DCSStatsAPI {
         const config = await this.loadConfig();
         
         if (!config.use_api) {
-            throw new Error('API is not enabled');
+            throw new Error(this.getUnavailableMessage(config));
         }
 
         const [stats, attendance, topkills] = await Promise.all([
             options.loadServerStats !== false
-                ? this.makeAPICall('/serverstats', { ...options, data: {} }).catch(() => ({}))
+                ? this.makeAPICall('/serverstats', { ...options, data: {} })
                 : Promise.resolve({}),
             options.loadAttendance !== false
-                ? this.getServerAttendance(options).catch(() => ({}))
+                ? this.getServerAttendance(options)
                 : Promise.resolve({}),
             options.loadTopPilots !== false
-                ? this.getTopPilots('kills', 5, options).catch(() => [])
+                ? this.getTopPilots('kills', 5, options)
                 : Promise.resolve([])
         ]);
 
@@ -457,7 +466,7 @@ class DCSStatsAPI {
         const config = await this.loadConfig();
         
         if (!config.use_api) {
-            throw new Error('API is not enabled');
+            throw new Error(this.getUnavailableMessage(config));
         }
 
         const players = await this.makeAPICall('/getuser', {
@@ -498,7 +507,7 @@ class DCSStatsAPI {
         const config = await this.loadConfig();
         
         if (!config.use_api) {
-            throw new Error('API is not enabled');
+            throw new Error(this.getUnavailableMessage(config));
         }
 
         const users = await this.makeAPICall('/getuser', {
@@ -596,7 +605,7 @@ class DCSStatsAPI {
         const config = await this.loadConfig();
         
         if (!config.use_api) {
-            throw new Error('API is not enabled');
+            throw new Error(this.getUnavailableMessage(config));
         }
 
         const leaderboard = await this.makeAPICall('/leaderboard?what=credits&limit=100');
@@ -617,7 +626,7 @@ class DCSStatsAPI {
         const config = await this.loadConfig();
         
         if (!config.use_api) {
-            throw new Error('API is not enabled');
+            throw new Error(this.getUnavailableMessage(config));
         }
 
         // Use new /servers endpoint

@@ -6,6 +6,43 @@ document.addEventListener("DOMContentLoaded", () => {
     const basePath = window.DCS_CONFIG ? window.DCS_CONFIG.basePath : '';
     const buildUrl = (path) => basePath ? `${basePath}/${path}` : path;
 
+    function setSquadronsState(state) {
+        const page = document.getElementById('squadronsPage');
+        if (!page) return;
+        page.classList.toggle('squadrons-loading', state === 'loading');
+        page.classList.toggle('squadrons-ready', state === 'ready');
+        page.classList.toggle('squadrons-unavailable', state === 'unavailable');
+    }
+
+    async function getApiUnavailableMessage(fallback = '') {
+        if (window.dcsAPI?.loadConfig) {
+            try {
+                const config = await window.dcsAPI.loadConfig();
+                if (window.dcsAPI.getUnavailableMessage) {
+                    const configuredMessage = String(window.dcsAPI.getUnavailableMessage(config) || '').trim();
+                    if (configuredMessage) {
+                        return configuredMessage;
+                    }
+                }
+            } catch (error) {
+                // Fall back to the page default below.
+            }
+        }
+
+        const message = String(fallback || i18n.apiUnavailable || 'API Currently Unavailable').trim();
+        return message || 'API Currently Unavailable';
+    }
+
+    function showSquadronsUnavailable(message) {
+        const safeMessage = String(message || i18n.apiUnavailable || 'API Currently Unavailable').trim() || 'API Currently Unavailable';
+        setSquadronsState('unavailable');
+        const notice = document.getElementById('squadronsApiUnavailable');
+        if (notice) {
+            notice.textContent = safeMessage;
+            notice.style.display = 'block';
+        }
+    }
+
     function toArray(value) {
         if (Array.isArray(value)) return value;
         if (!value || typeof value !== 'object') return [];
@@ -59,11 +96,19 @@ document.addEventListener("DOMContentLoaded", () => {
     async function loadSquadronData() {
         try {
             // First, get the list of squadrons
-            const squadronsResponse = await fetch(buildUrl('get_squadrons.php'));
-            if (!squadronsResponse.ok) {
-                throw new Error(i18n.loadFailed);
+            let squadronsData;
+            if (window.dcsAPI?.getSquadrons) {
+                squadronsData = await window.dcsAPI.getSquadrons();
+            } else {
+                const squadronsResponse = await fetch(buildUrl('get_squadrons.php'));
+                if (!squadronsResponse.ok) {
+                    throw new Error(await getApiUnavailableMessage(i18n.loadFailed));
+                }
+                squadronsData = await squadronsResponse.json();
+                if (squadronsData && squadronsData.error) {
+                    throw new Error(await getApiUnavailableMessage(squadronsData.error));
+                }
             }
-            const squadronsData = await squadronsResponse.json();
             const squadrons = toArray(squadronsData.data || squadronsData).map(normalizeSquadron);
             
             // No need to load players separately - member names come from API
@@ -126,34 +171,14 @@ document.addEventListener("DOMContentLoaded", () => {
             
         } catch (error) {
             console.error('Error loading squadron data:', error);
-            // Try to get more details about the error
-            if (error.message === i18n.loadFailed) {
-                // The squadrons endpoint failed, let's check the response
-                try {
-                    const errorResp = await fetch(buildUrl('get_squadrons.php'));
-                    const errorText = await errorResp.text();
-                    console.error('Squadrons endpoint response:', errorText);
-                    
-                    // Try to parse as JSON to get error details
-                    try {
-                        const errorData = JSON.parse(errorText);
-                        if (errorData.error) {
-                            throw new Error(errorData.error);
-                        }
-                    } catch (e) {
-                        // Not JSON, probably PHP error
-                        throw new Error('API error: ' + errorText.substring(0, 200));
-                    }
-                } catch (e) {
-                    console.error('Failed to get error details:', e);
-                }
-            }
             throw error;
         }
     }
     
     // Main execution
+    setSquadronsState('loading');
     loadSquadronData().then(({ squadrons }) => {
+        setSquadronsState('ready');
 
         const squadronBody = document.querySelector('#squadronsTable tbody');
         const membersBody = document.querySelector('#membersTable tbody');
@@ -379,14 +404,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             }
         };
-    }).catch(err => {
+    }).catch(async err => {
         console.error('Error loading squadron data:', err);
-        document.querySelector('main').innerHTML = `
-            <div class="alert" style="text-align: center; padding: 50px;">
-                <h2>${escapeHtml(i18n.errorTitle)}</h2>
-                <p>${err.message}</p>
-                <p>${escapeHtml(i18n.configRetry)}</p>
-            </div>
-        `;
+        const message = await getApiUnavailableMessage(err.message);
+        showSquadronsUnavailable(message);
     });
 });

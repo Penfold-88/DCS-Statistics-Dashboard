@@ -23,6 +23,23 @@ main {
     opacity: 0.8;
 }
 
+.dashboard-api-unavailable {
+    background: color-mix(in srgb, var(--accent_color, #4CAF50) 12%, transparent);
+    border: 1px solid color-mix(in srgb, var(--accent_color, #4CAF50) 45%, transparent);
+    border-radius: 14px;
+    box-shadow: 0 8px 28px color-mix(in srgb, var(--accent_color, #4CAF50) 14%, transparent);
+    color: #fff;
+    margin: 0 auto 30px;
+    max-width: 760px;
+    padding: 18px 22px;
+    text-align: center;
+}
+
+.dashboard-api-unavailable strong {
+    color: var(--accent_hover_color, var(--accent_color, #4CAF50));
+    font-size: 1.1rem;
+}
+
 .stats-cards {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -367,14 +384,14 @@ main {
 .loader {
     width: 60px;
     height: 60px;
-    border: 4px solid rgba(76, 175, 80, 0.3);
-    border-top-color: #4CAF50;
+    border: 4px solid color-mix(in srgb, var(--accent_color, #4CAF50) 30%, transparent);
+    border-top-color: var(--accent_color, #4CAF50);
     border-radius: 50%;
     animation: spin 1s linear infinite;
 }
 
 .loading-overlay p {
-    color: #4CAF50;
+    color: var(--accent_color, #4CAF50);
     margin-top: 20px;
     font-size: 1.2rem;
 }

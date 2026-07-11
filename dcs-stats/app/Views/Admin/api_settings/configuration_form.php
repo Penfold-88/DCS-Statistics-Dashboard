@@ -41,9 +41,20 @@
                    name="timeout"
                    value="<?= e($apiConfig['timeout']) ?>"
                    min="5"
-                   max="300"
+                   max="60"
                    <?= $demoRestricted ? 'disabled' : '' ?>>
             <div class="help-text"><?= e(dcs_t('admin.api.timeout_help')) ?></div>
+        </div>
+
+        <div class="form-group">
+            <label for="unavailable_message"><?= e(dcs_t('admin.api.unavailable_message')) ?></label>
+            <input type="text"
+                   id="unavailable_message"
+                   name="unavailable_message"
+                   value="<?= e($apiConfig['unavailable_message'] ?? 'API Currently Unavailable') ?>"
+                   maxlength="160"
+                   <?= $demoRestricted ? 'disabled' : '' ?>>
+            <div class="help-text"><?= e(dcs_t('admin.api.unavailable_message_help')) ?></div>
         </div>
 
         <div class="form-group">
