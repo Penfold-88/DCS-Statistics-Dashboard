@@ -1,0 +1,225 @@
+/* Critical inline CSS for layout */
+        * { box-sizing: border-box; }
+        body { margin: 0; padding: 0; overflow-x: hidden; }
+        .admin-wrapper { display: flex; min-height: 100vh; width: 100%; overflow-x: hidden; }
+        .admin-sidebar { width: 250px; flex-shrink: 0; background: #2a2a2a; }
+        .admin-main { flex: 1; min-width: 0; overflow-x: hidden; }
+        .admin-content { padding: 30px; max-width: 100%; overflow-x: hidden; }
+        .card { max-width: 100%; overflow-x: auto; }
+        .compact-card {
+            margin-bottom: 18px;
+        }
+        .compact-card .card-header {
+            padding: 14px 18px;
+        }
+        .compact-card .card-title {
+            font-size: 18px;
+        }
+        .compact-card .data-table td {
+            padding: 9px 12px;
+        }
+        .data-table { width: 100%; table-layout: fixed; }
+        .data-table td { word-wrap: break-word; overflow-wrap: break-word; }
+        
+        /* Bridge Log / Activity List Styles */
+        .activity-list {
+            max-height: 360px;
+            max-width: 100%;
+            overflow-y: auto;
+        }
+        .activity-item {
+            padding: 10px 14px;
+            border-bottom: 1px solid #444;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            transition: background-color 0.2s;
+        }
+        .activity-item:last-child { border-bottom: none; }
+        .activity-item:hover { background-color: #333; }
+        .activity-time {
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 3px;
+            font-style: italic;
+        }
+        .activity-action {
+            margin-bottom: 3px;
+            word-break: break-word;
+            line-height: 1.45;
+        }
+        .activity-action strong {
+            color: #4CAF50;
+            margin-right: 5px;
+        }
+        .activity-details {
+            font-size: 12px;
+            color: #aaa;
+            background: #1a1a1a;
+            padding: 6px 8px;
+            border-radius: 4px;
+            margin-top: 6px;
+            word-break: break-all;
+            max-width: 100%;
+            overflow-x: auto;
+            border-left: 3px solid #4CAF50;
+        }
+        code {
+            background: #1a1a1a;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            color: #ff9800;
+            word-break: break-all;
+            display: inline-block;
+            max-width: 100%;
+        }
+        .text-muted {
+            color: #888;
+            font-size: 13px;
+        }
+        .overview-grid {
+            display: grid;
+            gap: 18px;
+            grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+            margin-bottom: 28px;
+        }
+        .install-file-warning {
+            align-items: center;
+            display: flex;
+            gap: 14px;
+            justify-content: space-between;
+        }
+        .install-file-warning form {
+            flex: 0 0 auto;
+            margin: 0;
+        }
+        @media (max-width: 700px) {
+            .install-file-warning {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+        }
+        .overview-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            padding: 18px;
+            min-height: 160px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .overview-card-header {
+            align-items: flex-start;
+            display: flex;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        .overview-icon {
+            align-items: center;
+            background: rgba(76, 175, 80, 0.14);
+            border-radius: 6px;
+            color: var(--accent-primary);
+            display: flex;
+            flex: 0 0 40px;
+            font-size: 22px;
+            height: 40px;
+            justify-content: center;
+            width: 40px;
+        }
+        .overview-title {
+            color: var(--text-primary);
+            font-size: 16px;
+            font-weight: 700;
+            line-height: 1.25;
+            margin: 0;
+        }
+        .overview-subtitle {
+            color: var(--text-muted);
+            font-size: 13px;
+            margin-top: 3px;
+        }
+        .overview-value {
+            color: var(--text-primary);
+            font-size: 24px;
+            font-weight: 700;
+            line-height: 1.2;
+            overflow-wrap: anywhere;
+        }
+        .overview-meta {
+            color: var(--text-muted);
+            font-size: 13px;
+            margin-top: 6px;
+            overflow-wrap: anywhere;
+        }
+        .status-pill {
+            align-self: flex-start;
+            border-radius: 999px;
+            display: inline-block;
+            font-size: 12px;
+            font-weight: 700;
+            margin-top: 12px;
+            padding: 4px 9px;
+        }
+        .status-pill.good {
+            background: rgba(76, 175, 80, 0.18);
+            color: #7bd97f;
+        }
+        .status-pill.warn {
+            background: rgba(255, 152, 0, 0.18);
+            color: #ffc266;
+        }
+        .status-pill.info {
+            background: rgba(33, 150, 243, 0.18);
+            color: #78c3ff;
+        }
+        .overview-card.update-ready {
+            border-color: rgba(33, 150, 243, 0.62);
+            background: rgba(33, 150, 243, 0.09);
+        }
+        .overview-card.update-ready .overview-icon {
+            background: rgba(33, 150, 243, 0.18);
+            color: #78c3ff;
+        }
+        .overview-update-action {
+            align-items: center;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .overview-update-action .btn {
+            padding: 5px 10px;
+        }
+        .quick-action-grid {
+            display: grid;
+            gap: 10px;
+            grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
+        }
+        .quick-action-grid .btn {
+            padding: 9px 12px;
+        }
+        .dashboard-lower-grid {
+            align-items: start;
+            display: grid;
+            gap: 18px;
+            grid-template-columns: minmax(360px, 1.25fr) minmax(280px, 0.75fr);
+        }
+        .dashboard-utility-stack {
+            display: grid;
+            gap: 18px;
+        }
+        .system-table {
+            font-size: 13px;
+        }
+        @media (max-width: 768px) {
+            .admin-sidebar { display: none; }
+            .admin-wrapper { flex-direction: column; }
+            .admin-content { padding: 15px; }
+            .activity-item { padding: 10px; }
+            .activity-details { font-size: 11px; padding: 5px; }
+            .dashboard-lower-grid {
+                grid-template-columns: 1fr;
+            }
+        }

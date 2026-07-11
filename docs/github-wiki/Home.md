@@ -13,6 +13,7 @@ This wiki is for squadron owners, server admins, testers, and contributors who w
 | 🚀 Install | [Installation](Installation) |
 | 🐳 Container | [Docker Deployment](Docker-Deployment) |
 | ⚙️ Configure | [Admin Panel](Admin-Panel) |
+| 🧱 Website Builder | [Squadron CMS](Squadron-CMS) |
 | 🔌 Connect | [API Setup](API-Setup) |
 | 🎚️ Control | [Site Features](Site-Features) |
 | 🎨 Customise | [Themes and Branding](Themes-and-Branding) |
@@ -38,6 +39,7 @@ It provides a public-facing statistics website with:
 - 🛡️ Squadron pages
 - 🛬 Carrier landing / LSO trap history
 - 🧭 Server filters
+- 🧱 Optional CMS pages, galleries, downloads, widgets, and embeds
 - 🔗 Custom squadron links
 - 🎨 Theme customisation
 - 🌍 Multi-language groundwork
@@ -53,8 +55,9 @@ If this is your first install:
 2. Use [Docker Deployment](Docker-Deployment) if you prefer containers.
 3. Configure [API Setup](API-Setup).
 4. Check [Site Features](Site-Features).
-5. Customise [Themes and Branding](Themes-and-Branding).
-6. Review [Security and Privacy](Security-and-Privacy).
+5. Use [Squadron CMS](Squadron-CMS) if you want custom website pages, galleries, downloads, widgets, or embeds.
+6. Customise [Themes and Branding](Themes-and-Branding).
+7. Review [Security and Privacy](Security-and-Privacy).
 
 If you are updating from an older version:
 
@@ -65,8 +68,10 @@ If you are updating from an older version:
 
 ---
 
-## 🚀 Current Public Release
+## 🚧 V1.3 Development
 
-**V1.2** is a major release focused on customisation, admin control, security hardening, performance, language support, and expanded DCSServerBot API usage.
+V1.3 is the Squadron CMS Expansion. It keeps the statistics dashboard as the default experience while adding optional CMS pages, galleries, downloads, live widgets, embeds, and unified menu management.
 
-See [V1.2 Release Notes](V1.2-Release-Notes) for details.
+For current V1.3 CMS guidance, see [Squadron CMS](Squadron-CMS).
+
+For the current public V1.2 release, see [V1.2 Release Notes](V1.2-Release-Notes).

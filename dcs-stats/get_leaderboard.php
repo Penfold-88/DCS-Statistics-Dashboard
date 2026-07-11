@@ -1,8 +1,7 @@
 <?php
-/**
- * Get Leaderboard Endpoint
- * API-only implementation
- */
 
-// Always use API version
-include __DIR__ . '/get_leaderboard_api.php';
+define('DCS_SKIP_SESSION', true);
+
+require_once __DIR__ . '/app/bootstrap.php';
+
+(new \DcsStats\Controllers\Api\PublicStatsController())->leaderboard();

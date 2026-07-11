@@ -1,6 +1,6 @@
 # 🎚️ Site Features
 
-The Site Features page lets admins control which dashboard sections are visible.
+The Site Features page lets admins control which dashboard sections are visible. CMS-specific availability is managed from CMS Options, while the dashboard feature toggles remain focused on statistics pages and API-backed dashboard sections.
 
 ---
 
@@ -31,6 +31,14 @@ Feature controls include:
 - Server filter selector
 - Detected server cards
 
+CMS features are managed from:
+
+```text
+Admin Panel -> CMS Options -> CMS Settings
+Admin Panel -> CMS Options -> Galleries
+Admin Panel -> CMS Options -> Downloads
+```
+
 ---
 
 ## 🏠 Homepage Controls
@@ -47,6 +55,22 @@ The homepage can show or hide:
 - Top modules
 
 If a related section is disabled, the dashboard should avoid unnecessary API calls for that data.
+
+---
+
+## 🧱 CMS Features
+
+The CMS is optional. When enabled, it can add:
+
+- Custom pages
+- Image galleries
+- Downloads
+- Live widgets
+- Embeds
+- Optional CMS landing page
+- Menu Manager discovery for published CMS content
+
+See [Squadron CMS](Squadron-CMS).
 
 ---
 

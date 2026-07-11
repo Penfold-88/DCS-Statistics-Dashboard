@@ -1,1 +1,7 @@
-<?php http_response_code(200); echo "OK"; ?>
+<?php
+
+define('DCS_SKIP_SESSION', true);
+
+require_once __DIR__ . '/app/bootstrap.php';
+
+(new \DcsStats\Controllers\Public\HealthController())->show();

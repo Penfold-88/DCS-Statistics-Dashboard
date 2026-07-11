@@ -1,0 +1,23 @@
+<?php
+
+namespace DcsStats\Controllers\Admin;
+
+use DcsStats\Services\Admin\SettingsBackupPageService;
+
+final class SettingsBackupController extends AdminPageController
+{
+    public function show(): void
+    {
+        $this->boot([
+            'language',
+            'siteFeatures',
+            'siteMetadata',
+        ]);
+
+        $currentAdmin = $this->requirePermission('manage_features');
+        $settingsBackupService = new SettingsBackupPageService();
+        $settingsBackupState = $settingsBackupService->state($currentAdmin);
+
+        $this->render('settings_backup.php', $settingsBackupState);
+    }
+}

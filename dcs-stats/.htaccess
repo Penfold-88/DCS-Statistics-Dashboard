@@ -23,6 +23,7 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
     RewriteRule ^(data|backups|site-config/data|site-config/theme_backups|admin/data|admin/theme_backups)/.*$ - [F,L]
+    RewriteRule ^uploads/pages/.*\.(php|phtml|phar|cgi|pl|py|sh)(\.|$) - [F,L,NC]
 </IfModule>
 
 # Custom error pages (optional)
@@ -31,7 +32,12 @@ ErrorDocument 403 /403.php
 
 # Security headers
 <IfModule mod_headers.c>
+    # Public embed entry files intentionally allow framing by external squadron websites.
+    # Their PHP controllers set a dedicated CSP with frame-ancestors for the embed surface.
+    <IfModule mod_setenvif.c>
+        SetEnvIf Request_URI "(^|/)(server_status_embed|dashboard_widget_embed)\.php($|[?])" DCS_EMBED_PAGE=1
+    </IfModule>
     Header set X-Content-Type-Options "nosniff"
-    Header set X-Frame-Options "DENY"
+    Header set X-Frame-Options "DENY" env=!DCS_EMBED_PAGE
     Header set X-XSS-Protection "1; mode=block"
 </IfModule>
