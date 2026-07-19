@@ -6,6 +6,7 @@
 .cms-editor-toolbar button:disabled, .cms-editor-format:disabled { background: var(--bg-secondary); border-color: var(--border-color); color: var(--text-muted); cursor: not-allowed; opacity: .72; -webkit-text-fill-color: var(--text-muted); }
 .cms-editor-format { background: var(--bg-secondary); border-color: var(--border-color); min-width: 130px; }
 .cms-editor-widget-select { min-width: 155px; }
+.cms-editor-image-size { min-width: 105px; }
 .cms-editor-format option { background-color: var(--bg-secondary); color: var(--text-primary); }
 .cms-editor-format optgroup { background-color: var(--bg-secondary); color: var(--text-secondary); font-weight: 700; }
 .cms-editor-divider { align-self: stretch; background: var(--border-color); margin: 3px 4px; width: 1px; }
@@ -28,12 +29,20 @@
 .cms-editor-content .cms-text-center { text-align: center; }
 .cms-editor-content .cms-text-right { text-align: right; }
 .cms-editor-content figure { margin: 1.25em 0; max-width: 100%; }
+.cms-editor-content figure[data-image-size="25"] { width: 25%; }
+.cms-editor-content figure[data-image-size="50"] { width: 50%; }
+.cms-editor-content figure[data-image-size="75"] { width: 75%; }
+.cms-editor-content figure[data-image-size="100"], .cms-editor-content .cms-image-wide { width: 100%; }
+.cms-editor-content figure[data-editor-selected] { outline: 2px solid var(--accent-primary); outline-offset: 4px; }
+.cms-editor-content figure[data-image-size] img { width: 100%; }
+.cms-editor-content .cms-image-center { margin-left: auto; margin-right: auto; }
+.cms-editor-content .cms-image-right { margin-left: auto; }
 .cms-editor-content figure img { display: block; height: auto; max-width: 100%; }
 .cms-editor-content figcaption { color: var(--text-muted); font-size: 12px; margin-top: 6px; text-align: center; }
 .cms-media-panel { background: rgba(255,255,255,.025); border-bottom: 1px solid var(--border-color); padding: 14px; }
 .cms-media-panel-header, .cms-media-upload-row { align-items: center; display: flex; gap: 12px; justify-content: space-between; }
 .cms-media-panel-header p { margin: 2px 0 0; }
-.cms-media-insert-options { display: grid; gap: 12px; grid-template-columns: 1.4fr 1.4fr 1fr; margin: 14px 0; }
+.cms-media-insert-options { display: grid; gap: 12px; grid-template-columns: 1.4fr 1.4fr 1fr 1fr; margin: 14px 0; }
 .cms-media-insert-options label { display: grid; gap: 5px; }
 .cms-media-insert-options label > span { color: var(--text-secondary); font-size: 12px; font-weight: 600; }
 .cms-media-upload-row { justify-content: flex-start; margin-bottom: 14px; }

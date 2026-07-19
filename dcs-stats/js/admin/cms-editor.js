@@ -78,7 +78,9 @@
     }
 
     function sync() {
+        if (selectedImageFigure && !editor.contains(selectedImageFigure)) selectImageFigure(null);
         const portableContent = editor.cloneNode(true);
+        portableContent.querySelectorAll('[data-editor-selected]').forEach(element => element.removeAttribute('data-editor-selected'));
         normalizePortableContent(portableContent);
         portableContent.querySelectorAll('img').forEach(image => {
             const source = image.getAttribute('src') || '';
@@ -137,6 +139,9 @@
     const altInput = document.querySelector('[data-media-alt]');
     const captionInput = document.querySelector('[data-media-caption]');
     const alignmentInput = document.querySelector('[data-media-alignment]');
+    const sizeInput = document.querySelector('[data-media-size]');
+    const selectedImageSizeInput = wrapper.querySelector('[data-editor-image-size]');
+    let selectedImageFigure = null;
 
     function placeCursorInNode(node) {
         const selection = window.getSelection();
@@ -517,6 +522,8 @@
         }
         const figure = document.createElement('figure');
         figure.className = alignmentInput.value;
+        const imageSize = alignmentInput.value === 'cms-image-wide' ? '100' : sizeInput.value;
+        if (['25', '50', '75', '100'].includes(imageSize)) figure.dataset.imageSize = imageSize;
         const image = document.createElement('img');
         image.src = '../' + item.path;
         image.alt = alt;
@@ -531,10 +538,24 @@
             figure.appendChild(figcaption);
         }
         insertNodeAtSelection(figure);
+        selectImageFigure(figure);
         altInput.value = '';
         captionInput.value = '';
         mediaPanel.hidden = true;
         mediaButton.setAttribute('aria-expanded', 'false');
+    }
+
+    function selectImageFigure(figure) {
+        if (selectedImageFigure) selectedImageFigure.removeAttribute('data-editor-selected');
+        selectedImageFigure = figure && editor.contains(figure) ? figure : null;
+        selectedImageSizeInput.disabled = !selectedImageFigure;
+        if (!selectedImageFigure) {
+            selectedImageSizeInput.value = 'auto';
+            return;
+        }
+        selectedImageFigure.setAttribute('data-editor-selected', 'true');
+        const currentSize = selectedImageFigure.dataset.imageSize || 'auto';
+        selectedImageSizeInput.value = ['25', '50', '75', '100'].includes(currentSize) ? currentSize : 'auto';
     }
 
     function renderMedia() {
@@ -599,6 +620,27 @@
         mediaButton.setAttribute('aria-expanded', 'false');
         mediaButton.focus();
     });
+    alignmentInput.addEventListener('change', () => {
+        const isWide = alignmentInput.value === 'cms-image-wide';
+        sizeInput.disabled = isWide;
+        if (isWide) sizeInput.value = '100';
+    });
+    selectedImageSizeInput.addEventListener('change', () => {
+        if (!selectedImageFigure || !editor.contains(selectedImageFigure)) {
+            selectImageFigure(null);
+            return;
+        }
+        const imageSize = selectedImageSizeInput.value;
+        if (['25', '50', '75', '100'].includes(imageSize)) {
+            selectedImageFigure.dataset.imageSize = imageSize;
+            if (imageSize !== '100' && selectedImageFigure.classList.contains('cms-image-wide')) {
+                selectedImageFigure.className = 'cms-image-center';
+            }
+        } else {
+            selectedImageFigure.removeAttribute('data-image-size');
+        }
+        sync();
+    });
     document.querySelector('[data-media-upload]').addEventListener('click', () => {
         const fileInput = document.querySelector('[data-media-file]');
         if (!fileInput.files.length) return;
@@ -615,6 +657,10 @@
     });
 
     editor.addEventListener('input', sync);
+    editor.addEventListener('click', event => {
+        const image = event.target instanceof Element ? event.target.closest('img') : null;
+        selectImageFigure(image ? image.closest('figure') : null);
+    });
     editor.addEventListener('keyup', rememberSelection);
     editor.addEventListener('mouseup', rememberSelection);
     editor.addEventListener('paste', event => {

@@ -104,6 +104,7 @@ final class CmsHtmlSanitizer
             $width = $tag === 'img' ? (int)$node->getAttribute('width') : 0;
             $height = $tag === 'img' ? (int)$node->getAttribute('height') : 0;
             $figureClass = $tag === 'figure' ? trim($node->getAttribute('class')) : '';
+            $imageSize = $tag === 'figure' ? trim($node->getAttribute('data-image-size')) : '';
             $widgetClass = $tag === 'div' ? trim($node->getAttribute('class')) : '';
             $widgetServer = $tag === 'div' ? trim($node->getAttribute('data-server')) : '';
             $galleryId = $tag === 'div' ? trim($node->getAttribute('data-gallery')) : '';
@@ -141,6 +142,9 @@ final class CmsHtmlSanitizer
             }
             if ($tag === 'figure' && in_array($figureClass, ['cms-image-left', 'cms-image-center', 'cms-image-right', 'cms-image-wide'], true)) {
                 $node->setAttribute('class', $figureClass);
+                if (in_array($imageSize, ['25', '50', '75', '100'], true)) {
+                    $node->setAttribute('data-image-size', $imageSize);
+                }
             }
             if ($tag === 'div') {
                 if (!in_array($widgetClass, ['cms-widget-server-status', 'cms-widget-image-gallery', 'cms-widget-dashboard'], true)) {

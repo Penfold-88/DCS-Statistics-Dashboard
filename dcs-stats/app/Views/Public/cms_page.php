@@ -29,11 +29,17 @@
 .cms-public-page .cms-text-center { text-align: center; }
 .cms-public-page .cms-text-right { text-align: right; }
 .cms-public-page figure { box-sizing: border-box; clear: both; margin: 1.5em auto; max-width: 100%; }
+.cms-public-page figure[data-image-size="25"] { width: 25%; }
+.cms-public-page figure[data-image-size="50"] { width: 50%; }
+.cms-public-page figure[data-image-size="75"] { width: 75%; }
+.cms-public-page figure[data-image-size="100"] { width: 100%; }
+.cms-public-page figure[data-image-size] img { width: 100%; }
 .cms-public-page figure img { border-radius: 10px; display: block; height: auto; max-width: 100% !important; object-fit: contain; }
 .cms-public-page figcaption { color: var(--text_muted, #aaa); font-size: .9em; margin-top: .55em; text-align: center; }
 .cms-public-page .cms-image-center { width: fit-content; }
 .cms-public-page .cms-image-left { float: left; margin: .5em 1.5em 1em 0; max-width: 48%; }
 .cms-public-page .cms-image-right { float: right; margin: .5em 0 1em 1.5em; max-width: 48%; }
+.cms-public-page .cms-image-left[data-image-size], .cms-public-page .cms-image-right[data-image-size] { max-width: 100%; }
 .cms-public-page .cms-image-wide { width: 100%; }
 .cms-public-page .cms-image-wide img { width: 100%; }
 @media (max-width: 700px) {
