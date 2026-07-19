@@ -30,7 +30,7 @@
 .cms-editor-content figure { margin: 1.25em 0; max-width: 100%; }
 .cms-editor-content figure img { display: block; height: auto; max-width: 100%; }
 .cms-editor-content figcaption { color: var(--text-muted); font-size: 12px; margin-top: 6px; text-align: center; }
-.cms-media-panel { background: rgba(255,255,255,.025); border: 1px solid var(--border-color); border-radius: 8px; margin-top: 10px; padding: 14px; }
+.cms-media-panel { background: rgba(255,255,255,.025); border-bottom: 1px solid var(--border-color); padding: 14px; }
 .cms-media-panel-header, .cms-media-upload-row { align-items: center; display: flex; gap: 12px; justify-content: space-between; }
 .cms-media-panel-header p { margin: 2px 0 0; }
 .cms-media-insert-options { display: grid; gap: 12px; grid-template-columns: 1.4fr 1.4fr 1fr; margin: 14px 0; }

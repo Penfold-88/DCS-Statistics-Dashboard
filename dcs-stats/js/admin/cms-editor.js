@@ -534,6 +534,7 @@
         altInput.value = '';
         captionInput.value = '';
         mediaPanel.hidden = true;
+        mediaButton.setAttribute('aria-expanded', 'false');
     }
 
     function renderMedia() {
@@ -590,9 +591,14 @@
     mediaButton.addEventListener('click', () => {
         rememberSelection();
         mediaPanel.hidden = !mediaPanel.hidden;
+        mediaButton.setAttribute('aria-expanded', String(!mediaPanel.hidden));
         if (!mediaPanel.hidden) renderMedia();
     });
-    document.querySelector('[data-media-close]').addEventListener('click', () => { mediaPanel.hidden = true; });
+    document.querySelector('[data-media-close]').addEventListener('click', () => {
+        mediaPanel.hidden = true;
+        mediaButton.setAttribute('aria-expanded', 'false');
+        mediaButton.focus();
+    });
     document.querySelector('[data-media-upload]').addEventListener('click', () => {
         const fileInput = document.querySelector('[data-media-file]');
         if (!fileInput.files.length) return;
