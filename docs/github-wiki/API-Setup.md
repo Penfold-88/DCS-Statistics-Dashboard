@@ -34,15 +34,22 @@ The dashboard will build the API base URL from the host value.
 
 ## 🔑 API Key
 
-DCSServerBot can optionally use an API key.
+The dashboard requires a DCSServerBot API key for authenticated API requests.
 
-If your DCSServerBot REST API has an API key configured, enter it in:
+Enter it in:
 
 ```text
 DCSServerBot API Key
 ```
 
-If your bot has no API key configured, leave the field blank.
+Copy the `api_key` value from `config/services/webservice.yaml`. The dashboard stores it encrypted and never displays it after saving.
+
+Example DCSServerBot configuration:
+
+```yaml
+DEFAULT:
+  api_key: your-secure-api-key
+```
 
 Keys saved through the installer or API Settings page are encrypted with AES-256-GCM. Existing plaintext keys are migrated automatically on the next configuration load.
 

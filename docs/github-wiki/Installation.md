@@ -18,7 +18,7 @@ This page covers a standard browser-based installation of DCS Statistics Dashboa
 
 - DCSServerBot with REST API enabled
 - Network access from the web server to the DCSServerBot API host and port
-- Optional but recommended: DCSServerBot API key
+- DCSServerBot API key from `config/services/webservice.yaml`
 
 Docker or server-managed installs can also provide the API key with `DCSBOT_API_KEY`. When set, this environment variable is used instead of the saved JSON key.
 

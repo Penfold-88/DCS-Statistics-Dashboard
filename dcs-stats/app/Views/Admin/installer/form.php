@@ -119,7 +119,7 @@
                             <?= e(dcs_t('admin.install.api_key')) ?>
                             <span class="text-muted"><?= e(dcs_t('admin.install.api_key_optional')) ?></span>
                         </label>
-                        <input type="password" id="api_key" name="api_key" class="form-control" value="" autocomplete="off" placeholder="<?= e(dcs_t('admin.install.api_key_placeholder')) ?>">
+                        <input type="password" id="api_key" name="api_key" class="form-control" value="" autocomplete="off" placeholder="<?= e(dcs_t('admin.install.api_key_placeholder')) ?>" required>
                         <small class="text-muted"><?= e(dcs_t('admin.install.api_key_help')) ?></small>
                     </div>
 

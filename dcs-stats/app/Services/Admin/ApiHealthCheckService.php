@@ -57,12 +57,15 @@ final class ApiHealthCheckService
             ];
         }
 
+        $authenticationFailed = in_array((int)$httpCode, [401, 403], true);
         return [
             'status' => ($httpCode >= 200 && $httpCode < 300) ? \dcs_t('admin.api_health.ok') : 'HTTP ' . $httpCode,
             'ok' => $httpCode >= 200 && $httpCode < 300,
             'http_code' => $httpCode,
             'time_ms' => $timeMs,
-            'summary' => $this->summarizePayload($raw),
+            'summary' => $authenticationFailed
+                ? \dcs_t('admin.api_health.auth_failed')
+                : $this->summarizePayload($raw),
         ];
     }
 

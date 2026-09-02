@@ -28,7 +28,7 @@ The public frontend config endpoint only returns harmless browser settings neede
 
 The DCSServerBot API key, API host details, and sensitive settings stay server-side.
 
-Optional DCSServerBot API key support is available and recommended where possible.
+The dashboard requires a DCSServerBot API key and forwards it only from the server side. Saved keys are encrypted at rest.
 
 API keys saved by the dashboard are encrypted with AES-256-GCM. Existing plaintext keys are migrated automatically, and generated encryption-key material is stored separately under the protected `site-config/data/` directory.
 

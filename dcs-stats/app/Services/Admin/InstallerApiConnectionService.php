@@ -20,6 +20,7 @@ final class InstallerApiConnectionService
         }
 
         $host = preg_replace('#^https?://#', '', $apiUrl);
+        $authenticationFailed = false;
         foreach (['https', 'http'] as $protocol) {
             $curl = curl_init($protocol . '://' . $host . '/servers');
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
@@ -37,6 +38,17 @@ final class InstallerApiConnectionService
             if ($httpCode === 200) {
                 return ['connected' => true, 'error' => '', 'url' => $protocol . '://' . $host];
             }
+            if (in_array($httpCode, [401, 403], true)) {
+                $authenticationFailed = true;
+            }
+        }
+
+        if ($authenticationFailed) {
+            return [
+                'connected' => false,
+                'error' => 'DCSServerBot rejected the API key. Copy the api_key value from config/services/webservice.yaml and try again.',
+                'url' => $host,
+            ];
         }
 
         return [
@@ -45,7 +57,7 @@ final class InstallerApiConnectionService
                 • DCSServerBot is running<br>
                 • The REST API is enabled in DCSServerBot<br>
                 • The address and port are correct (default port is 9876)<br>
-                • The API key is correct if your DCSServerBot REST API requires one<br>
+                • The API key matches api_key in config/services/webservice.yaml<br>
                 • Firewall allows connections to the API port",
             'url' => $host,
         ];

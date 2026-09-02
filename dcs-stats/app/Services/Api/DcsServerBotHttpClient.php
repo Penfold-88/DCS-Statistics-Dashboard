@@ -63,6 +63,10 @@ final class DcsServerBotHttpClient
             throw new \Exception('API request failed: ' . $error);
         }
 
+        if (in_array($httpCode, [401, 403], true)) {
+            throw new \Exception('API authentication failed: API key is missing or invalid');
+        }
+
         if ($httpCode >= 400) {
             throw new \Exception('API returned error code: ' . $httpCode);
         }

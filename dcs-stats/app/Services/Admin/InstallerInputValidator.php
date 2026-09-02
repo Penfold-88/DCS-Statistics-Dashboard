@@ -19,7 +19,10 @@ final class InstallerInputValidator
         if (trim((string)($input['api_url'] ?? '')) === '') {
             $errors[] = 'API URL is required';
         }
-        if (!$this->isValidApiKey(trim((string)($input['api_key'] ?? '')))) {
+        $apiKey = trim((string)($input['api_key'] ?? ''));
+        if ($apiKey === '') {
+            $errors[] = 'API key is required';
+        } elseif (!$this->isValidApiKey($apiKey)) {
             $errors[] = 'API key contains invalid characters';
         }
 
@@ -28,7 +31,8 @@ final class InstallerInputValidator
 
     public function isValidApiKey($apiKey): bool
     {
-        return $apiKey === ''
-            || (strlen($apiKey) <= 256 && preg_match('/^[A-Za-z0-9._~:+\/=-]+$/', $apiKey));
+        return $apiKey !== ''
+            && strlen($apiKey) <= 256
+            && preg_match('/^[A-Za-z0-9._~:+\/=-]+$/', $apiKey) === 1;
     }
 }

@@ -40,7 +40,7 @@ Turn your DCSServerBot statistics into a polished, configurable, squadron-ready 
 - Site Features panel for enabling/disabling major dashboard, CMS, squadron, server, leaderboard, pilot, credits, and homepage sections.
 - Unified Menu Manager for dashboard links, CMS pages, downloads, integrations, custom links, labels, ordering, visibility, new-tab behaviour, and one-level dropdowns.
 - Theme presets, custom presets, detailed colour controls, chart colours, gradients, header image upload, logo settings, CSS upload, and theme backup/restore.
-- API Settings for DCSServerBot host, port, optional API key, timeout, cache TTL, refresh interval, unavailable message, health checks, and cache clearing.
+- API Settings for DCSServerBot host, port, required API key, timeout, cache TTL, refresh interval, unavailable message, health checks, and cache clearing.
 - Admin dashboard overview cards, update/version display, backup tools, settings import/export, and maintenance mode.
 - Built-in English, German, Italian, and Spanish language files with a translation template for community language packs.
 
@@ -48,7 +48,7 @@ Turn your DCSServerBot statistics into a polished, configurable, squadron-ready 
 
 - Password hashing, session security, session ID regeneration, CSRF protection, role checks, security headers, and demo-mode restrictions.
 - Server-side API proxy with endpoint, method, query, and request-body allow-listing.
-- Optional DCSServerBot API key forwarding with AES-256-GCM encryption for saved keys and automatic plaintext migration.
+- Required DCSServerBot API key forwarding with AES-256-GCM encryption for saved keys and automatic plaintext migration.
 - Protected runtime data folders, safer generated file permissions, CSV formula-injection protection, and privacy-reduced standard exports.
 - Verified update downloads with archive structure checks, path-safety checks, backups, and stable/dev channel support.
 - Works with Docker, XAMPP, shared hosting, Apache, Nginx, IIS, and existing `dcs-stats/` document-root deployments.
@@ -75,7 +75,7 @@ Turn your DCSServerBot statistics into a polished, configurable, squadron-ready 
 
 | Section | What You Can Manage |
 | --- | --- |
-| 🔌 API Settings | DCSServerBot host, port, optional API key, timeout, cache TTL, refresh interval, public unavailable message, API health |
+| 🔌 API Settings | DCSServerBot host, port, required API key, timeout, cache TTL, refresh interval, public unavailable message, API health |
 | ✅ Site Features | Enable/disable dashboard sections and individual feature blocks |
 | 🎨 Theme Management | Presets, colours, gradients, charts, header image, logo, CSS upload, backup/restore |
 | 🧭 Menu Manager | Order and rename public links, hide items, choose new-tab behaviour, and build one-level dropdowns |
@@ -108,7 +108,7 @@ Turn your DCSServerBot statistics into a polished, configurable, squadron-ready 
 
 - DCSServerBot with REST API enabled.
 - Network access from the dashboard web server to the DCSServerBot REST API host and port.
-- Optional but recommended: DCSServerBot API key.
+- DCSServerBot API key from `config/services/webservice.yaml`.
 
 ---
 
@@ -184,13 +184,13 @@ The dashboard will try to handle HTTP/HTTPS safely depending on the install envi
 
 HTTP remains the default for newly entered DCSServerBot hosts because many bot installations expose their REST API only over HTTP on a private network. HTTPS is preserved whenever it is configured or detected. Browser pages use the dashboard's server-side, allowlisted PHP proxy rather than connecting directly to an HTTP API.
 
-If DCSServerBot has an API key configured, add it in:
+Add the DCSServerBot API key in:
 
 ```text
 Admin Panel -> Settings -> API Settings
 ```
 
-If your DCSServerBot REST API has no key configured, leave the field blank.
+The dashboard requires the `api_key` value configured in DCSServerBot at `config/services/webservice.yaml`.
 
 Keys saved through the installer or API Settings page are encrypted with AES-256-GCM. Existing plaintext keys are migrated automatically. The generated encryption key is kept in the protected `site-config/data/` directory.
 
@@ -315,7 +315,7 @@ The dashboard includes:
 - Security headers.
 - API proxy endpoint, method, query, and request-body allow-listing.
 - Public API request validation and rate limits.
-- Optional DCSServerBot API key forwarding.
+- Required DCSServerBot API key forwarding.
 - AES-256-GCM encryption for saved API keys with automatic plaintext migration.
 - Sensitive API values kept server-side and redacted from audit events.
 - Protected runtime data folders.

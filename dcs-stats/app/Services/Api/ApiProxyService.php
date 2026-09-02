@@ -55,6 +55,11 @@ final class ApiProxyService
             return;
         }
 
+        if (in_array((int)$response['http_code'], [401, 403], true)) {
+            $this->jsonError('DCSServerBot API key is missing or invalid. Update it in Admin Panel > API Settings.', 502);
+            return;
+        }
+
         http_response_code($response['http_code']);
         header('X-DCS-API-Cache: MISS');
         apiCacheWrite($request['method'], $apiConfig['api_base_url'], $request['cache_endpoint'], $cacheData, $apiConfig, $response['body'], $response['http_code']);

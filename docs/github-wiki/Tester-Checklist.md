@@ -21,7 +21,7 @@ Use this checklist before a public release or when testing a new install.
 ## 🔌 API
 
 - [ ] API settings save correctly.
-- [ ] Optional API key field works when used.
+- [ ] Required API key is validated during installation and API configuration.
 - [ ] API health page opens.
 - [ ] Servers endpoint works.
 - [ ] Leaderboard data loads.

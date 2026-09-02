@@ -39,10 +39,13 @@ final class InstallerCliInputService
             $apiUrl = trim((string)fgets(STDIN));
         }
 
-        echo "DCSServerBot API Key (optional, press Enter to skip): ";
+        echo "DCSServerBot API Key (required; see config/services/webservice.yaml): ";
         $apiKey = trim((string)fgets(STDIN));
-        if (!$this->support->isValidApiKey($apiKey)) {
-            die("Error: API key contains invalid characters.\n");
+        while ($apiKey === '' || !$this->support->isValidApiKey($apiKey)) {
+            echo $apiKey === ''
+                ? "API key is required: "
+                : "API key contains invalid characters. Try again: ";
+            $apiKey = trim((string)fgets(STDIN));
         }
 
         $apiUrl = $this->resolveApiUrl($apiUrl, $apiKey, $isDev);

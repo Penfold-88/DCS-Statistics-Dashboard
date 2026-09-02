@@ -14,6 +14,7 @@ V1.3 remains in development. New implementation entries should include the date 
 
 ### ✨ Headline Features
 
+- 🔑 Made the DCSServerBot API key required for new installations and API configurations, added guidance for obtaining it from `config/services/webservice.yaml`, clarified authentication failures, and allowlisted the new read-only mission bullseye, drawing, and unit endpoints from API `3.0.4.28`. *(2 September 2026)*
 - 🔌 Added a configurable public Statistics API unavailable message, capped public/API request timeouts at 60 seconds, and routed CMS widgets, embeds, dashboard, leaderboard, squadrons, and browser API failures through the shared fallback message. *(11 July 2026)*
 - 🎨 Moved CMS admin styling into a versioned `dcs-stats/css/admin/cms.css` asset so updated/demo installs no longer depend on replacing preserved `site-config/css/admin.css`. *(11 July 2026)*
 - 🔓 Fixed demo-owner detection so the user named in `.demo` keeps full admin control, including when `.demo` is stored under `site-config/` or the username case differs. *(11 July 2026)*

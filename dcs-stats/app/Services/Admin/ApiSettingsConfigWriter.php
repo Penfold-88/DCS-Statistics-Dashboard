@@ -9,6 +9,9 @@ final class ApiSettingsConfigWriter
         $apiHost = trim($post['api_host'] ?? '');
         $apiKeyInput = trim($post['api_key'] ?? '');
         $existingApiKey = $envApiKeyActive ? null : ($apiConfig['api_key'] ?? null);
+        if (!$envApiKeyActive && $apiKeyInput === '' && empty($existingApiKey)) {
+            return [$apiConfig, \dcs_t('admin.api.api_key_required'), 'error', null];
+        }
         $timeout = max(5, min(60, intval($post['timeout'] ?? 30)));
         $unavailableMessage = trim((string)($post['unavailable_message'] ?? ''));
         $unavailableMessage = preg_replace('/[\x00-\x1F\x7F]/', ' ', $unavailableMessage);
