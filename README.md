@@ -1,5 +1,4 @@
-# 
-Project Maintenance Notice
+# Project Maintenance Notice
 This project is no longer actively maintained and will not receive further updates or support from the current maintainer.
 
 If someone is interested in continuing its development, I would be happy to discuss transferring ownership and handing over the project. Please contact me if you would like to take over its maintenance.
